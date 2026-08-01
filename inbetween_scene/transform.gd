@@ -13,6 +13,12 @@ extends Node3D
 # 新增：玩家重置场景的 Y 轴临界值
 @export var reset_y_threshold := -100.0
 
+## 合拢动画结束后进入的场景；留空则只做开场淡出，不跳转。
+@export_file("*.tscn") var next_scene_path := ""
+
+# --- 新增：关卡状态标记 ---
+var is_cleared := false
+
 @onready var wall6: Node3D = $m6
 @onready var wall3: Node3D = $m3
 @onready var wall5: Node3D = $m5
@@ -33,6 +39,7 @@ var _camera_tween: Tween
 func _ready() -> void:
 	# The Player camera remains active until this BOX is entered.
 	player_camera.make_current()
+
 
 func _process(_delta: float) -> void:
 	# 检查玩家 Y 轴坐标，若低于阈值则重置场景
@@ -93,6 +100,24 @@ func transition_to_box_camera() -> void:
 	_camera_tween.tween_property(player_camera, "frustum_offset", box_camera.frustum_offset, camera_transition_duration)
 	_camera_tween.finished.connect(_activate_box_camera)
 
+# --- 新增：视角平移还原回玩家相机的逻辑 ---
+func transition_back_to_player_camera(original_marker_transform: Transform3D) -> void:
+	if is_instance_valid(_camera_tween) and _camera_tween.is_running():
+		_camera_tween.kill()
+
+	# 保证目前依旧由 player_camera 负责渲染过渡动画
+	player_camera.make_current()
+
+	_camera_tween = create_tween().set_parallel(true)
+	_camera_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	_camera_tween.tween_method(
+		_set_player_marker_transform,
+		player_marker.global_transform,
+		original_marker_transform,
+		camera_transition_duration
+	)
+
 func _set_player_marker_transform(value: Transform3D) -> void:
 	player_marker.global_transform = value
 
@@ -117,63 +142,78 @@ func _on_area_3d_body_entered(body: Node3D) -> void:
 		rotate_wall(wall2, x_axis, 90)
 		rotate_wall(wall4, x_axis, 90)
 		transition_to_box_camera()
-		
-		rotated = true
-		if player is CharacterBody3D:
-			player.set_physics_process(false)
-			(player as CharacterBody3D).velocity = Vector3.ZERO
 
-		# 2. 等待墙体旋转与相机过渡全部结束（正方体合拢）后立刻进入正式关卡
+		rotated = true
+		if body is CharacterBody3D:
+			body.set_physics_process(false)
+			(body as CharacterBody3D).velocity = Vector3.ZERO
+
+		# 2. 等待墙体旋转与相机过渡全部结束
 		if last_wall_tween != null:
 			await last_wall_tween.finished
 		if _camera_tween != null:
 			await _camera_tween.finished
 
-		get_tree().change_scene_to_file("res://teach/main.tscn")
+		# 3. 有下一关就跳转；否则只做墙面淡出
+		if next_scene_path != "":
+			get_tree().paused = false
+			get_tree().change_scene_to_file(next_scene_path)
+		else:
+			fade_walls([wall3, wall4, wall5], target_alpha)
 
+# --- 新增：通关恢复原状的核心逻辑 ---
+func complete_level_and_reset(original_player_marker_transform: Transform3D) -> void:
+	if not rotated or is_cleared:
+		return
+		
+	is_cleared = true
+	
+	# 1. 墙体先逐渐恢复透明度（变回 1.0 不透明）
+	fade_walls([wall3, wall4, wall5], 1.0)
+	
+	# 2. 所有墙体进行反向旋转复位 (角度符号取反)
+	rotate_wall(wall6, z_axis, -180)
+	rotate_wall(wall3, z_axis, 180)
+	rotate_wall(wall5, x_axis, 90)
+	rotate_wall(wall2, x_axis, -90)
+	rotate_wall(wall4, x_axis, -90)
+	
+	# 3. 视角平移过渡回玩家初始的位置
+	transition_back_to_player_camera(original_player_marker_transform)
+	
+	rotated = false
 
-# 渐变淡出墙体函数
-func fade_walls_out(walls: Array[Node3D]) -> Tween:
+# 通用渐变墙体透明度函数 (目标 alpha 作为参数传入)
+func fade_walls(walls: Array[Node3D], to_alpha: float) -> void:
 	var fade_tween := create_tween().set_parallel(true)
 	fade_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	var animated := false
 
 	for wall in walls:
 		if not is_instance_valid(wall):
 			continue
-
+		
 		var mesh_node := _find_mesh_instance(wall)
 		if not mesh_node:
 			continue
-
-		# 获取 override 材质或网格资源上的材质
+			
 		var mat: Material = mesh_node.get_surface_override_material(0)
-		if not mat and mesh_node.mesh and mesh_node.mesh.get_surface_count() > 0 \
-			and mesh_node.mesh.surface_get_material(0):
+		if not mat and mesh_node.mesh and mesh_node.mesh.surface_get_material(0):
 			mat = mesh_node.mesh.surface_get_material(0).duplicate()
 			mesh_node.set_surface_override_material(0, mat)
-
+			
 		if not mat:
 			continue
 
-		# 1. 如果使用了自定义 ShaderMaterial
 		if mat is ShaderMaterial:
 			var s_mat := mat as ShaderMaterial
-			fade_tween.tween_property(s_mat, "shader_parameter/albedo:a", target_alpha, fade_duration)
-			animated = true
-
-		# 2. 如果使用的是 Godot 内置 StandardMaterial3D
+			var current_albedo = s_mat.get_shader_parameter("albedo")
+			if current_albedo != null:
+				fade_tween.tween_property(s_mat, "shader_parameter/albedo:a", to_alpha, fade_duration)
+				
 		elif mat is StandardMaterial3D:
 			var std_mat := mat as StandardMaterial3D
 			std_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			fade_tween.tween_property(std_mat, "albedo_color:a", target_alpha, fade_duration)
-			animated = true
-
-	if not animated:
-		fade_tween.kill()
-		return null
-	return fade_tween
-
+			fade_tween.tween_property(std_mat, "albedo_color:a", to_alpha, fade_duration)
 
 # 辅助方法：递归找寻节点下的 MeshInstance3D
 func _find_mesh_instance(node: Node) -> MeshInstance3D:

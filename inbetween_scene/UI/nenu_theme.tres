@@ -1,0 +1,17 @@
+[gd_resource type="Theme" format=3 uid="uid://dumv41cifgd1e"]
+
+[ext_resource type="FontFile" uid="uid://duto23x3bjd3c" path="res://inbetween_scene/UI/Source Han Sans CN.ttf" id="1_06h7q"]
+[ext_resource type="StyleBox" uid="uid://bf00l7o7100r7" path="res://inbetween_scene/UI/menu_style_box_flat2.tres" id="2_s3fm5"]
+[ext_resource type="StyleBox" uid="uid://bbbfaspodkq2i" path="res://inbetween_scene/UI/menu_style_box_flat.tres" id="3_o6iij"]
+[ext_resource type="StyleBox" uid="uid://cx8dpbuxr14rg" path="res://inbetween_scene/UI/menu_style_box_flat3.tres" id="4_pw2cb"]
+
+[resource]
+Button/colors/font_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_color = Color(0.25882354, 0.95686275, 0.95686275, 1)
+Button/colors/font_pressed_color = Color(1, 1, 1, 1)
+Button/font_sizes/font_size = 30
+Button/fonts/font = ExtResource("1_06h7q")
+Button/styles/hover = ExtResource("2_s3fm5")
+Button/styles/normal = ExtResource("3_o6iij")
+Button/styles/pressed = ExtResource("4_pw2cb")
+VBoxContainer/constants/separation = 15

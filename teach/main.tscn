@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://cmweiqu8nsrga"]
 
-[ext_resource type="Script" uid="uid://cjjbnvmcuu62f" path="res://teach/cube_world.gd" id="1_tlv81"]
+[ext_resource type="Script" uid="uid://b8kx2m4npq7vw" path="res://teach/cube_world.gd" id="1_tlv81"]
 [ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_sy78l"]
 [ext_resource type="PackedScene" uid="uid://ceuu150fmggvr" path="res://teach/player.tscn" id="3_hgqey"]
 [ext_resource type="Material" uid="uid://qqii2wv7fpkc" path="res://exit_material.tres" id="3_sy78l"]
 [ext_resource type="Script" uid="uid://b7sta4rhwntrw" path="res://teach/ui_ingame.gd" id="4_fv4yg"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_tlv81"]
+[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="6_mbox"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -15,7 +16,8 @@ ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
 sky_material = SubResource("ProceduralSkyMaterial_ig7tw")
 
 [sub_resource type="Environment" id="Environment_h2yge"]
-background_mode = 2
+background_mode = 1
+background_color = Color(0.26657522, 0.2665752, 0.2665752, 1)
 sky = SubResource("Sky_0xm2m")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
@@ -46,7 +48,7 @@ border_blend = true
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
 bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
 
-[node name="Main" type="Node3D" unique_id=222267479]
+[node name="Main2" type="Node3D" unique_id=222267479]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=109826146]
 environment = SubResource("Environment_h2yge")
@@ -156,6 +158,7 @@ mesh = SubResource("BoxMesh_1r6oq")
 
 [node name="MovableBox" type="RigidBody3D" parent="Node3D" unique_id=2005701679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.5, -2.5)
+script = ExtResource("6_mbox")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/MovableBox" unique_id=2107868234]
 shape = SubResource("BoxShape3D_1r6oq")
@@ -163,13 +166,13 @@ shape = SubResource("BoxShape3D_1r6oq")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/MovableBox" unique_id=46767789]
 mesh = SubResource("BoxMesh_a7i5e")
 
-[node name="EXIT" type="Area3D" parent="Node3D" unique_id=768943197]
+[node name="StaticBox_EXIT" type="Area3D" parent="Node3D" unique_id=768943197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 5.5, 2.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/EXIT" unique_id=271851938]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBox_EXIT" unique_id=271851938]
 mesh = SubResource("BoxMesh_wr0sf")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/EXIT" unique_id=1730241246]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox_EXIT" unique_id=1730241246]
 shape = SubResource("SphereShape3D_exit")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=666005303]
@@ -183,9 +186,11 @@ transform = Transform3D(0.70710677, -0.40860704, 0.5770964, 0, 0.8161376, 0.5778
 [node name="Camera3D" type="Camera3D" parent="Marker3D" unique_id=1988377131]
 transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 5.9604645e-08, 0, -5.9604645e-08, 1, 0, 3.0517578e-05, 310.96033)
 projection = 1
+current = true
 size = 10.0
 
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("3_hgqey")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.5, 0.45, 0.5)
 
 [node name="ui_ingame" type="CanvasLayer" parent="." unique_id=1213911550]
 script = ExtResource("4_fv4yg")
@@ -209,22 +214,6 @@ offset_bottom = 1080.0
 theme_override_font_sizes/font_size = 30
 text = "退出游戏"
 
-[node name="right" type="Button" parent="ui_ingame" unique_id=656057896]
-offset_left = 1500.0
-offset_top = 700.0
-offset_right = 1700.0
-offset_bottom = 800.0
-theme_override_font_sizes/font_size = 30
-text = "展开右侧面"
-
-[node name="left" type="Button" parent="ui_ingame" unique_id=1651980671]
-offset_left = 220.0
-offset_top = 700.0
-offset_right = 420.0
-offset_bottom = 800.0
-theme_override_font_sizes/font_size = 30
-text = "展开左侧面"
-
 [node name="back" type="Button" parent="ui_ingame" unique_id=294393585]
 offset_left = 710.0
 offset_top = 700.0
@@ -242,13 +231,13 @@ theme_override_font_sizes/font_size = 30
 text = "下一关"
 
 [node name="congratulations" type="Label" parent="ui_ingame" unique_id=27067940]
-visible = false
-offset_left = 695.0
 offset_top = 550.0
-offset_right = 1245.0
+offset_right = 1920.0
 offset_bottom = 619.0
 theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = ExtResource("5_tlv81")
 text = "恭喜你完成了教学关卡！"
+horizontal_alignment = 1
 
 [node name="help_button" type="Button" parent="ui_ingame" unique_id=40558876]
 offset_left = 1720.0
@@ -288,14 +277,14 @@ horizontal_alignment = 1
 [node name="Label3" type="Label" parent="ui_ingame/help" unique_id=875761949]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "点击展开左/右侧面可完成水平旋转
+text = "按 Q / E 可水平旋转立方体
 移动到另一墙面会发生整体翻转"
 horizontal_alignment = 1
 
 [node name="Label4" type="Label" parent="ui_ingame/help" unique_id=1972886067]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "在空间中辗转腾挪走到绿色出口即通关"
+text = "在空间中走到绿色出口即通关"
 horizontal_alignment = 1
 
 [node name="Label5" type="Label" parent="ui_ingame/help" unique_id=554676803]
@@ -321,10 +310,8 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "返回游戏"
 
-[connection signal="body_entered" from="Node3D/EXIT" to="ui_ingame" method="_on_exit_body_entered"]
+[connection signal="body_entered" from="Node3D/StaticBox_EXIT" to="ui_ingame" method="_on_exit_body_entered"]
 [connection signal="pressed" from="ui_ingame/exit" to="ui_ingame" method="_on_exit_pressed"]
-[connection signal="pressed" from="ui_ingame/right" to="Node3D" method="_on_right_pressed"]
-[connection signal="pressed" from="ui_ingame/left" to="Node3D" method="_on_left_pressed"]
 [connection signal="pressed" from="ui_ingame/back" to="ui_ingame" method="_on_back_pressed"]
 [connection signal="pressed" from="ui_ingame/next" to="ui_ingame" method="_on_next_pressed"]
 [connection signal="pressed" from="ui_ingame/help_button" to="ui_ingame" method="_on_help_button_pressed"]

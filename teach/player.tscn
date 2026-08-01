@@ -1,18 +1,17 @@
 [gd_scene format=3 uid="uid://ceuu150fmggvr"]
 
-[ext_resource type="PackedScene" uid="uid://0cbd464vy26g" path="res://art/player.glb" id="1_4flbx"]
-[ext_resource type="Script" uid="uid://bs6l2gn6h6g1d" path="res://teach/player.gd" id="1_onrkg"]
+[ext_resource type="Script" uid="uid://bs6l2gn6h6g1d" path="res://player.gd" id="1_onrkg"]
+[ext_resource type="PackedScene" uid="uid://crrqqemegc4kj" path="res://player_visual/player_cube.tscn" id="2_i3pqv"]
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_a7i5e"]
-radius = 0.8
+[sub_resource type="BoxShape3D" id="BoxShape3D_hqtel"]
 
 [node name="Player" type="CharacterBody3D" unique_id=1151131115]
-transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, 0)
 script = ExtResource("1_onrkg")
 
 [node name="Pivot" type="Node3D" parent="." unique_id=1663281541]
 
-[node name="Character" parent="Pivot" unique_id=663027302 instance=ExtResource("1_4flbx")]
+[node name="PlayerCube" parent="Pivot" unique_id=587664388 instance=ExtResource("2_i3pqv")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=866199691]
-shape = SubResource("SphereShape3D_a7i5e")
+shape = SubResource("BoxShape3D_hqtel")

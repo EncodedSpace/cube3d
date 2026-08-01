@@ -12,22 +12,27 @@ var face_tween: Tween
 
 
 func look_direction(direction: Vector3) -> void:
+	var dir := Vector3(direction.x, 0.0, direction.z)
+	if absf(dir.x) >= absf(dir.z):
+		dir = Vector3(signf(dir.x), 0.0, 0.0)
+	elif absf(dir.z) > 0.0001:
+		dir = Vector3(0.0, 0.0, signf(dir.z))
+	else:
+		return
+
 	var target_position := Vector3(
-		direction.x * face_offset,
+		dir.x * face_offset,
 		base_height,
-		direction.z * face_offset
+		dir.z * face_offset
 	)
 
 	var target_rotation := 0.0
+	if absf(dir.x) > 0.5:
+		target_rotation = deg_to_rad(90.0) if dir.x > 0.0 else deg_to_rad(-90.0)
+	else:
+		# FORWARD is -Z in Godot.
+		target_rotation = deg_to_rad(180.0) if dir.z < 0.0 else 0.0
 
-	if direction == Vector3.RIGHT:
-		target_rotation = deg_to_rad(90.0)
-	elif direction == Vector3.LEFT:
-		target_rotation = deg_to_rad(-90.0)
-	elif direction == Vector3.FORWARD:
-		target_rotation = deg_to_rad(180.0)
-	elif direction == Vector3.BACK:
-		target_rotation = 0.0
 
 	if face_tween:
 		face_tween.kill()

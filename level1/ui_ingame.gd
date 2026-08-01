@@ -15,13 +15,27 @@ func _ready() -> void:
 	$help_bg.visible = false
 	$welcome.visible = true
 
-	# Prevent Space/Enter from activating a focused button (would fire left/right
-	# rotate while also jumping).
+	# Prevent Space/Enter from activating a focused button (would also jump).
 	for child in get_children():
 		if child is BaseButton:
 			(child as BaseButton).focus_mode = Control.FOCUS_NONE
 
 	_hide_welcome_after_delay()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Q = yaw left, E = yaw right. Blocked while paused / on win screen.
+	if get_tree().paused or won:
+		return
+	var cube := get_parent().get_node_or_null("Node3D")
+	if cube == null:
+		return
+	if event.is_action_pressed("rotate_left") and cube.has_method("_on_left_pressed"):
+		cube._on_left_pressed()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("rotate_right") and cube.has_method("_on_right_pressed"):
+		cube._on_right_pressed()
+		get_viewport().set_input_as_handled()
 
 
 func _hide_welcome_after_delay() -> void:
@@ -55,8 +69,6 @@ func _on_help_button_pressed() -> void:
 	game_paused()
 
 func game_paused() -> void:
-	$left.disabled = true
-	$right.disabled = true
 	$exit.disabled = true
 	$welcome.visible = false
 	
@@ -66,15 +78,12 @@ func game_paused() -> void:
 		if player is CharacterBody3D:
 			(player as CharacterBody3D).velocity = Vector3.ZERO
 
-	var box := get_parent().get_node_or_null("Node3D/MovableBox") as RigidBody3D
-	if box != null:
+	for box in _movable_boxes():
 		box.freeze = true
 
 	get_tree().paused = true
 	
 func game_continued() -> void:
-	$left.disabled = false
-	$right.disabled = false
 	$exit.disabled = false
 	$back.visible = false
 	$next.visible = false
@@ -86,8 +95,7 @@ func game_continued() -> void:
 	if player != null:
 		player.set_physics_process(true)
 
-	var box := get_parent().get_node_or_null("Node3D/MovableBox") as RigidBody3D
-	if box != null:
+	for box in _movable_boxes():
 		box.freeze = false
 
 	get_tree().paused = false
@@ -97,6 +105,18 @@ func _on_back_to_game_pressed() -> void:
 
 func _on_exit_pressed() -> void:
 	get_tree().quit()
+
+
+func _movable_boxes() -> Array[RigidBody3D]:
+	var result: Array[RigidBody3D] = []
+	var cube := get_parent().get_node_or_null("Node3D")
+	if cube == null:
+		return result
+	for child in cube.get_children():
+		if child is RigidBody3D and "MovableBox" in child.name:
+			result.append(child as RigidBody3D)
+	return result
+
 	
 func reset_level() -> void:
 	# 若在暂停中，先恢复，再重置
@@ -107,12 +127,12 @@ func reset_level() -> void:
 	if cube != null and cube.has_method("reset_to_start"):
 		cube.reset_to_start()
 
+	for box in _movable_boxes():
+		if box.has_method("reset_to_start"):
+			box.reset_to_start()
+		box.freeze = false
+
 	var player := get_parent().get_node_or_null("Player")
 	if player != null and player.has_method("reset_to_start"):
 		player.reset_to_start()
 		player.set_physics_process(true)
-
-	var box := get_parent().get_node_or_null("Node3D/MovableBox") as RigidBody3D
-	if box != null:
-		box.freeze = false
-		# 若也要箱子回原位，可同样给箱子记 start_transform 再重置

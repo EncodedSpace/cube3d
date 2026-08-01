@@ -15,6 +15,18 @@ extends CharacterBody3D
 # 玩家推向墙面达到这个强度时，允许触发世界翻转。
 @export var flip_push_threshold := 0.35
 
+# 关卡内：WASD 相对屏幕（W=右上）。开场 transform 等场景应关掉。
+@export var screen_relative_move := true
+
+# 关卡用格子翻滚；开场 transform 长路应关掉，改用滑动移动。
+@export var use_grid_roll := true
+
+# 滑动移动速度（use_grid_roll == false 时）。
+@export var walk_speed := 8.0
+
+# 格子步长固定为 1，不随 player scale 缩小，避免错格。
+@export var grid_step := 1.0
+
 
 # 根据实际节点名称调整这里。
 @onready var visual_body: Node3D = $Pivot/PlayerCube/Body
@@ -35,8 +47,40 @@ var jump_preparing := false
 # 记录上一帧是否在地面上，用于检测落地瞬间。
 var was_on_floor := true
 
+var start_transform: Transform3D
+
+
+func _ready() -> void:
+	start_transform = global_transform
+
+
+func reset_to_start() -> void:
+	global_transform = start_transform
+	velocity = Vector3.ZERO
+	moving_chain = false
+	jump_preparing = false
+	was_on_floor = true
+	$Pivot.basis = Basis.IDENTITY
+	if visual_body:
+		visual_body.basis = Basis.IDENTITY
+		visual_body.scale = Vector3.ONE
+
+
+func sync_move_from_facing() -> void:
+	# Movement stays camera/screen-relative; only reset visuals after world flips.
+	$Pivot.basis = Basis.IDENTITY
+	if visual_body:
+		visual_body.basis = Basis.IDENTITY
+		visual_body.scale = Vector3.ONE
+	moving_chain = false
+	jump_preparing = false
+
 
 func _physics_process(delta: float) -> void:
+	if not use_grid_roll:
+		_physics_process_walk(delta)
+		return
+
 	# 翻滚由 roll_step() 单独控制。
 	# 此时不要再执行普通 CharacterBody3D 移动。
 	if moving_chain:
@@ -91,6 +135,51 @@ func _physics_process(delta: float) -> void:
 	was_on_floor = on_floor_now
 
 
+## 开场道路等场景：普通滑动，可沿 Z 自由前进。
+func _physics_process_walk(delta: float) -> void:
+	var direction := _get_walk_direction()
+
+	if direction != Vector3.ZERO:
+		visual_face.look_direction(direction)
+		velocity.x = direction.x * walk_speed
+		velocity.z = direction.z * walk_speed
+	else:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
+	if not is_on_floor():
+		velocity.y -= fall_acceleration * delta
+	elif Input.is_action_just_pressed("jump"):
+		velocity.y = jump_impulse
+	elif velocity.y < 0.0:
+		velocity.y = 0.0
+
+	move_and_slide()
+
+	var on_floor_now := is_on_floor()
+	if not was_on_floor and on_floor_now and visual_body:
+		visual_body.land_squash()
+	was_on_floor = on_floor_now
+
+
+func _get_walk_direction() -> Vector3:
+	if screen_relative_move:
+		return get_input_direction()
+
+	var input := Vector3.ZERO
+	if Input.is_action_pressed("move_right"):
+		input.x += 1.0
+	if Input.is_action_pressed("move_left"):
+		input.x -= 1.0
+	if Input.is_action_pressed("move_back"):
+		input.z += 1.0
+	if Input.is_action_pressed("move_forward"):
+		input.z -= 1.0
+	if input == Vector3.ZERO:
+		return Vector3.ZERO
+	return input.normalized()
+
+
 # 起跳流程：
 # 先播放压缩蓄力，再赋予向上速度。
 func start_jump() -> void:
@@ -117,22 +206,28 @@ func start_move_chain(first_direction: Vector3) -> void:
 	# 一串滚动只在最开始蓄力一次。
 	await visual_body.start_squash()
 
-	while direction != Vector3.ZERO:
+	while direction != Vector3.ZERO and moving_chain:
 		var step_distance := get_step_distance(direction)
+		var destination := global_position + direction * step_distance
 
-		# 先测试前方是否存在墙体。
-		# test_only = true，因此这里只检测，不真正移动。
+		# 先测试前方是否挡住。碰撞裕度可能提前碰到远处箱子，
+		# 因此只有撞到立方体墙面才尝试翻转；撞到箱子时按目标格是否被占决定能否滚入。
 		var test_collision := move_and_collide(
 			direction * step_distance,
 			true
 		)
 
 		if test_collision:
-			try_flip_from_normal(
-				test_collision.get_normal(),
-				direction
-			)
-			break
+			var collider := test_collision.get_collider()
+			if _is_cube_wall_collider(collider):
+				try_flip_from_normal(
+					test_collision.get_normal(),
+					direction
+				)
+				break
+			if _destination_has_obstacle(destination):
+				break
+			# 目标格为空：视为裕度误报，允许滚入空格。
 
 		visual_face.look_direction(direction)
 
@@ -142,7 +237,7 @@ func start_move_chain(first_direction: Vector3) -> void:
 			step_distance
 		)
 
-		if not roll_succeeded:
+		if not roll_succeeded or not moving_chain:
 			break
 
 		# 翻滚后如果前方已经没有地面，则结束滚动并开始下落。
@@ -153,7 +248,7 @@ func start_move_chain(first_direction: Vector3) -> void:
 		direction = get_input_direction()
 
 	# 只有仍在地面上时才播放落地回弹。
-	if has_floor_below():
+	if moving_chain and has_floor_below():
 		await visual_body.end_squash()
 
 	moving_chain = false
@@ -172,6 +267,7 @@ func roll_step(
 ) -> bool:
 	var start_position := global_position
 	var start_body_basis := visual_body.basis
+	var final_position := start_position + direction * step_distance
 
 	var cube_height := get_cube_height()
 	var half_height := cube_height * 0.5
@@ -191,6 +287,11 @@ func roll_step(
 
 	while elapsed < roll_duration:
 		await get_tree().physics_frame
+
+		if not moving_chain:
+			global_position = start_position
+			visual_body.basis = start_body_basis
+			return false
 
 		elapsed += get_physics_process_delta_time()
 
@@ -218,10 +319,15 @@ func roll_step(
 		var collision := move_and_collide(frame_motion)
 
 		if collision:
-			# 中途发生碰撞时恢复到翻滚前状态。
-			global_position = start_position
-			visual_body.basis = start_body_basis
-			return false
+			if _should_abort_roll_on_collision(
+				collision.get_collider(),
+				final_position
+			):
+				global_position = start_position
+				visual_body.basis = start_body_basis
+				return false
+			# 目标格为空时，远处箱子的裕度误报可忽略。
+			global_position = desired_position
 
 		# 身体同步旋转，但眼睛不会跟着翻。
 		visual_body.basis = (
@@ -229,21 +335,20 @@ func roll_step(
 			start_body_basis
 		).orthonormalized()
 
-	# 最终位置严格对齐一个方块边长。
-	var final_position := (
-		start_position
-		+ direction * step_distance
-	)
-
 	var correction := final_position - global_position
 
 	if correction.length() > 0.0001:
 		var final_collision := move_and_collide(correction)
 
 		if final_collision:
-			global_position = start_position
-			visual_body.basis = start_body_basis
-			return false
+			if _should_abort_roll_on_collision(
+				final_collision.get_collider(),
+				final_position
+			):
+				global_position = start_position
+				visual_body.basis = start_body_basis
+				return false
+			global_position = final_position
 
 	# 最终旋转严格对齐90度，消除浮点误差。
 	visual_body.basis = (
@@ -254,21 +359,20 @@ func roll_step(
 	return true
 
 
+## Abort roll only for real walls, or boxes that occupy the destination cell.
+func _should_abort_roll_on_collision(
+	collider: Object,
+	final_position: Vector3
+) -> bool:
+	if _is_cube_wall_collider(collider):
+		return true
+	return _destination_has_obstacle(final_position)
+
+
 # 根据碰撞盒实际尺寸计算每一步的移动距离。
 # 不再把步长写死为1。
-func get_step_distance(direction: Vector3) -> float:
-	var box_shape := collision_shape.shape as BoxShape3D
-
-	if box_shape == null:
-		return 1.0
-
-	var shape_scale := collision_shape.global_basis.get_scale()
-	var world_size := box_shape.size * shape_scale.abs()
-
-	if absf(direction.x) > 0.5:
-		return world_size.x
-
-	return world_size.z
+func get_step_distance(_direction: Vector3) -> float:
+	return grid_step
 
 
 # 获取碰撞盒实际高度。
@@ -293,19 +397,96 @@ func has_floor_below() -> bool:
 
 # 方格移动只允许四个方向，不允许斜向翻滚。
 func get_input_direction() -> Vector3:
-	if Input.is_action_pressed("move_right"):
-		return Vector3.RIGHT
+	if not screen_relative_move:
+		if Input.is_action_pressed("move_right"):
+			return Vector3.RIGHT
+		if Input.is_action_pressed("move_left"):
+			return Vector3.LEFT
+		if Input.is_action_pressed("move_forward"):
+			return Vector3.FORWARD
+		if Input.is_action_pressed("move_back"):
+			return Vector3.BACK
+		return Vector3.ZERO
 
-	elif Input.is_action_pressed("move_left"):
-		return Vector3.LEFT
+	# 关卡：WASD 相对屏幕，W = 屏幕右上；与 Q/E、墙面翻转无关。
+	var axes := _get_screen_move_axes()
+	var screen_up: Vector3 = axes[0]
+	var screen_right: Vector3 = axes[1]
 
-	elif Input.is_action_pressed("move_forward"):
-		return Vector3.FORWARD
-
+	var world := Vector3.ZERO
+	if Input.is_action_pressed("move_forward"):
+		world = screen_up + screen_right
 	elif Input.is_action_pressed("move_back"):
-		return Vector3.BACK
+		world = -(screen_up + screen_right)
+	elif Input.is_action_pressed("move_right"):
+		world = screen_right - screen_up
+	elif Input.is_action_pressed("move_left"):
+		world = -(screen_right - screen_up)
+	else:
+		return Vector3.ZERO
 
-	return Vector3.ZERO
+	world.y = 0.0
+	if world.length_squared() < 0.0001:
+		return Vector3.ZERO
+
+	return _snap_horizontal_axis(world.normalized())
+
+
+func _get_screen_move_axes() -> Array[Vector3]:
+	var screen_up := Vector3(0.0, 0.0, -1.0)
+	var screen_right := Vector3(1.0, 0.0, 0.0)
+
+	var cam := get_viewport().get_camera_3d()
+	if cam != null:
+		screen_up = Vector3(-cam.global_basis.z.x, 0.0, -cam.global_basis.z.z)
+		screen_right = Vector3(cam.global_basis.x.x, 0.0, cam.global_basis.x.z)
+		if screen_up.length_squared() < 0.0001:
+			screen_up = Vector3(0.0, 0.0, -1.0)
+		else:
+			screen_up = screen_up.normalized()
+		if screen_right.length_squared() < 0.0001:
+			screen_right = Vector3(1.0, 0.0, 0.0)
+		else:
+			screen_right = screen_right.normalized()
+
+	return [screen_up, screen_right]
+
+
+func _snap_horizontal_axis(v: Vector3) -> Vector3:
+	if absf(v.x) >= absf(v.z):
+		return Vector3(signf(v.x), 0.0, 0.0)
+	return Vector3(0.0, 0.0, signf(v.z))
+
+
+func _is_cube_wall_collider(collider: Object) -> bool:
+	if collider == null or cube_world == null:
+		return false
+	var walls := cube_world.get_node_or_null("WALLS")
+	if walls == null:
+		return false
+	var node := collider as Node
+	while node != null:
+		if node.get_parent() == walls:
+			return true
+		node = node.get_parent()
+	return false
+
+
+func _destination_has_obstacle(destination: Vector3) -> bool:
+	if cube_world == null or not cube_world.has_method("_collect_obstacle_boxes"):
+		return false
+	const HALF_CELL := 0.51
+	for box in cube_world._collect_obstacle_boxes():
+		if box == null or not is_instance_valid(box):
+			continue
+		var offset: Vector3 = box.global_position - destination
+		if (
+			absf(offset.x) < HALF_CELL
+			and absf(offset.y) < HALF_CELL
+			and absf(offset.z) < HALF_CELL
+		):
+			return true
+	return false
 
 
 # 翻滚前检测到墙体时，尝试触发大立方体世界翻转。
@@ -338,6 +519,10 @@ func try_flip_from_normal(
 # 普通物理移动后的墙面检测。
 # 主要用于跳跃过程中撞到墙面等情况。
 func try_face_flip(input_direction: Vector3) -> void:
+	# Don't start a wall flip while airborne.
+	if not is_on_floor():
+		return
+
 	if cube_world == null:
 		return
 
@@ -349,6 +534,9 @@ func try_face_flip(input_direction: Vector3) -> void:
 
 	for i in get_slide_collision_count():
 		var collision := get_slide_collision(i)
+		if not _is_cube_wall_collider(collision.get_collider()):
+			continue
+
 		var normal := collision.get_normal()
 
 		# 忽略地面。

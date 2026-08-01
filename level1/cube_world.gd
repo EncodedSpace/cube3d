@@ -7,6 +7,8 @@ extends Node3D
 @export var cube_half_extent: float = 3.0
 ## How strongly an outer wall must face the camera to be cut away.
 @export var wall_visible_dot: float = 0.2
+## Half-size of the floor-wall junction cell that must be clear of boxes to flip.
+@export var flip_junction_clearance: float = 0.75
 
 var flipping: bool = false
 var start_transform: Transform3D
@@ -23,9 +25,42 @@ signal flip_finished
 func _ready() -> void:
 	start_transform = global_transform
 	_bind_props_to_walls()
-	# Wait one frame so the camera exists in the tree.
-	await get_tree().process_frame
-	update_cutaway_visibility()
+	# Camera may not be current on the first frame after a scene change.
+	await _bootstrap_cutaway()
+
+
+func _bootstrap_cutaway() -> void:
+	for _i in range(12):
+		_ensure_level_camera()
+		update_cutaway_visibility()
+		if _has_cutaway_applied():
+			return
+		await get_tree().process_frame
+
+
+func _has_cutaway_applied() -> bool:
+	if get_viewport().get_camera_3d() == null:
+		return false
+	var walls := get_node_or_null("WALLS")
+	if walls == null:
+		return false
+	var hidden := 0
+	for child in walls.get_children():
+		var mesh := (child as Node).get_node_or_null("MeshInstance3D") as MeshInstance3D
+		if mesh != null and not mesh.visible:
+			hidden += 1
+	return hidden >= 3
+
+
+func _ensure_level_camera() -> Camera3D:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		var host := get_parent()
+		if host != null:
+			cam = host.find_child("Camera3D", true, false) as Camera3D
+	if cam != null and not cam.current:
+		cam.make_current()
+	return cam
 
 
 func get_center_global() -> Vector3:
@@ -56,8 +91,60 @@ func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
 	if rotation_quat.get_angle() < 0.01:
 		return false
 
+	# Only empty floor-wall junctions can flip (no StaticBox / MovableBox there).
+	if player != null and _is_flip_blocked_by_box(collision_normal, player):
+		return false
+
 	_animate_flip(rotation_quat, player)
 	return true
+
+
+## True when a StaticBox/MovableBox occupies the wall junction the player is pressing into.
+func _is_flip_blocked_by_box(collision_normal: Vector3, player: Node3D) -> bool:
+	var toward_wall := -_snap_to_axis(collision_normal)
+	if toward_wall.length_squared() < 0.5:
+		return false
+
+	var contact := player.global_position + toward_wall * 0.5
+	var along_wall := Vector3.UP.cross(toward_wall)
+	if along_wall.length_squared() < 0.0001:
+		along_wall = Vector3.RIGHT
+	else:
+		along_wall = along_wall.normalized()
+
+	var clearance := flip_junction_clearance
+	for box in _collect_obstacle_boxes():
+		if not is_instance_valid(box):
+			continue
+		var offset := box.global_position - contact
+		if absf(offset.dot(Vector3.UP)) > clearance:
+			continue
+		if absf(offset.dot(along_wall)) > clearance:
+			continue
+		if absf(offset.dot(toward_wall)) > clearance:
+			continue
+		return true
+	return false
+
+
+func _collect_obstacle_boxes() -> Array[Node3D]:
+	var result: Array[Node3D] = []
+	_gather_obstacle_boxes(self, result)
+	return result
+
+
+func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
+	for child in node.get_children():
+		if child is Node3D:
+			var n := String(child.name)
+			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
+			if (
+				(child is StaticBody3D or child is RigidBody3D)
+				and ("StaticBox" in n or "MovableBox" in n)
+				and "EXIT" not in n
+			):
+				result.append(child as Node3D)
+			_gather_obstacle_boxes(child, result)
 
 
 func _on_left_pressed() -> void:
@@ -174,7 +261,7 @@ func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 ## stays visible (needed when wall materials are double-sided).
 ## Props bound to multiple walls stay visible if any bound wall is shown.
 func update_cutaway_visibility() -> void:
-	var cam := get_viewport().get_camera_3d()
+	var cam := _ensure_level_camera()
 	if cam == null:
 		return
 
@@ -191,10 +278,8 @@ func update_cutaway_visibility() -> void:
 			continue
 		var inward: Vector3 = wall.global_transform.basis.y.normalized()
 		var outward: Vector3 = -inward
-		var is_outer_cutaway := outward.dot(to_camera) > wall_visible_dot
-		var show_wall := not is_outer_cutaway
+		var show_wall := outward.dot(to_camera) <= wall_visible_dot
 		wall_shown[wall] = show_wall
-
 		var mesh := wall.get_node_or_null("MeshInstance3D") as MeshInstance3D
 		if mesh != null:
 			mesh.visible = show_wall
@@ -246,6 +331,10 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 		(player as CharacterBody3D).velocity = Vector3.ZERO
 	if "target_velocity" in player:
 		player.target_velocity = Vector3.ZERO
+	if "moving_chain" in player:
+		player.moving_chain = false
+	if "jump_preparing" in player:
+		player.jump_preparing = false
 
 	var tween := create_tween()
 	tween.set_ease(Tween.EASE_IN_OUT)
