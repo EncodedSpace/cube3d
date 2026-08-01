@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://crrqqemegc4kj"]
+
+[ext_resource type="Texture2D" uid="uid://b7c40itvfyyct" path="res://player_visual/textures/01/TCom_Gore_1K_albedo.png" id="2_88rhx"]
+[ext_resource type="Script" uid="uid://njeaqpse8wdi" path="res://player_visual/Body.gd" id="2_k71v5"]
+[ext_resource type="Texture2D" uid="uid://utp42jogdlh8" path="res://player_visual/textures/01/TCom_Gore_1K_ao.png" id="3_efkua"]
+[ext_resource type="Texture2D" uid="uid://dibummlwmyf4a" path="res://player_visual/textures/01/TCom_Gore_1K_height.png" id="4_dteel"]
+[ext_resource type="Script" uid="uid://2tea8chkjncm" path="res://player_visual/Face.gd" id="4_i3gw7"]
+[ext_resource type="Texture2D" uid="uid://c5ckb5nc5cbsh" path="res://player_visual/textures/01/TCom_Gore_1K_normal.png" id="5_n5w12"]
+[ext_resource type="Texture2D" uid="uid://c566pr5d5yi4p" path="res://player_visual/textures/01/TCom_Gore_1K_roughness.png" id="6_ck6u1"]
+
+[sub_resource type="GDScript" id="GDScript_273r3"]
+script/source = "extends Node3D
+
+#呼吸起伏幅度
+@export var breath_amount := 0.06
+#一次呼吸所需秒数
+@export var breath_cycle := 2.5
+
+var breathing := true
+var phase := 0.0
+var breath_weight := 1.0
+
+
+func _process(delta: float) -> void:
+	phase += delta * TAU / breath_cycle
+
+	var target_weight := 1.0 if breathing else 0.0
+	breath_weight = move_toward(
+		breath_weight,
+		target_weight,
+		delta * 5.0
+	)
+
+	var wave := sin(phase) * breath_amount * breath_weight
+	var scale_y := 1.0 + wave
+	var scale_xz := 1.0 - wave * 0.10
+
+	scale = Vector3(scale_xz, scale_y, scale_xz)
+
+	# 保持方块底部基本不动
+	position.y = (scale_y - 1.0) * 0.5
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0xm2m"]
+albedo_texture = ExtResource("2_88rhx")
+roughness_texture = ExtResource("6_ck6u1")
+normal_enabled = true
+normal_texture = ExtResource("5_n5w12")
+ao_enabled = true
+ao_light_affect = 0.5
+ao_texture = ExtResource("3_efkua")
+heightmap_enabled = true
+heightmap_texture = ExtResource("4_dteel")
+
+[sub_resource type="BoxMesh" id="BoxMesh_fdgck"]
+material = SubResource("StandardMaterial3D_0xm2m")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_552cn"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+roughness = 0.24
+
+[sub_resource type="SphereMesh" id="SphereMesh_fdgck"]
+material = SubResource("StandardMaterial3D_552cn")
+
+[node name="PlayerCube" type="Node3D" unique_id=587664388]
+
+[node name="Body" type="Node3D" parent="." unique_id=1890089261]
+script = ExtResource("2_k71v5")
+
+[node name="BodyVisual" type="Node3D" parent="Body" unique_id=248408449]
+script = SubResource("GDScript_273r3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Body/BodyVisual" unique_id=1883568359]
+mesh = SubResource("BoxMesh_fdgck")
+
+[node name="Face" type="Node3D" parent="." unique_id=370727281]
+script = ExtResource("4_i3gw7")
+
+[node name="EyesVisual" type="Node3D" parent="Face" unique_id=462859982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+
+[node name="Eye_L" type="MeshInstance3D" parent="Face/EyesVisual" unique_id=245697957]
+transform = Transform3D(0.12, 0, 0, 0, 0.15, 0, 0, 0, 0.12, -0.2, 0, 0)
+mesh = SubResource("SphereMesh_fdgck")
+
+[node name="Eye_R" type="MeshInstance3D" parent="Face/EyesVisual" unique_id=666010548]
+transform = Transform3D(0.12, 0, 0, 0, 0.15, 0, 0, 0, 0.12, 0.2, 0, 0)
+mesh = SubResource("SphereMesh_fdgck")

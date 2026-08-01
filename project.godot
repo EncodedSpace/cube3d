@@ -13,7 +13,6 @@ config_version=5
 config/name="3dtest"
 run/main_scene="uid://cmweiqu8nsrga"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://icon.svg"
 
 [display]
 
