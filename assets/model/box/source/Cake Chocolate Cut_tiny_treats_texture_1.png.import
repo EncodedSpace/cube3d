@@ -2,17 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5ckb5nc5cbsh"
-path.s3tc="res://.godot/imported/TCom_Gore_1K_normal.png-11f9ba7a5d56d1c0d26b38547b9d33c6.s3tc.ctex"
+uid="uid://cw3wxn2704emw"
+path.s3tc="res://.godot/imported/Cake Chocolate Cut_tiny_treats_texture_1.png-2645c1dd1c2ff1dc3af145fd984c4fee.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "77713f85c2561bd81d71750081e5c904"
+}
 
 [deps]
 
-source_file="res://player_visual/textures/01/TCom_Gore_1K_normal.png"
-dest_files=["res://.godot/imported/TCom_Gore_1K_normal.png-11f9ba7a5d56d1c0d26b38547b9d33c6.s3tc.ctex"]
+source_file="res://assets/model/box/source/Cake Chocolate Cut_tiny_treats_texture_1.png"
+dest_files=["res://.godot/imported/Cake Chocolate Cut_tiny_treats_texture_1.png-2645c1dd1c2ff1dc3af145fd984c4fee.s3tc.ctex"]
 
 [params]
 
@@ -22,12 +25,12 @@ compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=1
+compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
-roughness/mode=1
-roughness/src_normal="res://Texture/01/TCom_Gore_1K_normal.png"
+roughness/mode=0
+roughness/src_normal=""
 process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2

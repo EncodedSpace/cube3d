@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dibummlwmyf4a"
-path.s3tc="res://.godot/imported/TCom_Gore_1K_height.png-70b6242930aeecf44983064079d7b09a.s3tc.ctex"
+path.s3tc="res://.godot/imported/TCom_Gore_1K_height.png-97cf86db73f930894a4a83d0ce00b3e3.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://player_visual/textures/01/TCom_Gore_1K_height.png"
-dest_files=["res://.godot/imported/TCom_Gore_1K_height.png-70b6242930aeecf44983064079d7b09a.s3tc.ctex"]
+source_file="res://player/player_visual/textures/01/TCom_Gore_1K_height.png"
+dest_files=["res://.godot/imported/TCom_Gore_1K_height.png-97cf86db73f930894a4a83d0ce00b3e3.s3tc.ctex"]
 
 [params]
 

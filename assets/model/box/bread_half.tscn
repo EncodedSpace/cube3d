@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dfeusfyy4sxns"]
+
+[ext_resource type="PackedScene" uid="uid://da0jwx3q3slqw" path="res://assets/model/box/source/Bread Half.glb" id="1_jxq6h"]
+
+[node name="BreadHalf" type="Node3D" unique_id=991388019]
+
+[node name="BreadHalf" parent="." unique_id=2137821239 instance=ExtResource("1_jxq6h")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, -0.5, 0.352)

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dxcd6mgvrkqky"]
 
-[ext_resource type="PackedScene" uid="uid://ceuu150fmggvr" path="res://player.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://ceuu150fmggvr" path="res://teach/player.tscn" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://cjjbnvmcuu62f" path="res://cube_world.gd" id="2_cube"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
@@ -93,6 +93,7 @@ shape = SubResource("BoxShape3D_tctkp")
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 3, 3)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m5" unique_id=1679573345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0014781952, 0.0046458244, 0.008652687)
 mesh = SubResource("PlaneMesh_8rpug")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m5" unique_id=311589666]

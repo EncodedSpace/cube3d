@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bxwg1o4swt0ji"]
+
+[ext_resource type="PackedScene" uid="uid://15kqisetw53g" path="res://assets/model/box/source/Frying Pan.glb" id="1_foq2f"]
+
+[node name="FryingPan" type="Node3D" unique_id=1299094027]
+
+[node name="Frying Pan" parent="." unique_id=102665667 instance=ExtResource("1_foq2f")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)

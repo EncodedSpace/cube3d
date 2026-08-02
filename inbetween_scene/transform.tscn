@@ -3,7 +3,7 @@
 [ext_resource type="Shader" uid="uid://5cofbedtogfw" path="res://inbetween_scene/grid.gdshader" id="1_aegxc"]
 [ext_resource type="Script" uid="uid://ci2ccbqwvq05j" path="res://inbetween_scene/shader_follow_camera.gd" id="1_sc2ue"]
 [ext_resource type="Script" uid="uid://ddsvq0fu4a2gw" path="res://inbetween_scene/transform.gd" id="2_unn5r"]
-[ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player.tscn" id="3_8thna"]
+[ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="3_8thna"]
 [ext_resource type="Shader" uid="uid://b4b3wsvxdiy1y" path="res://inbetween_scene/sky_shader_test.gdshader" id="4_8thna"]
 [ext_resource type="FontFile" uid="uid://duto23x3bjd3c" path="res://inbetween_scene/UI/Source Han Sans CN.ttf" id="6_sc2ue"]
 [ext_resource type="Theme" uid="uid://dumv41cifgd1e" path="res://inbetween_scene/UI/nenu_theme.tres" id="7_subsv"]

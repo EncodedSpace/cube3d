@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://0cbd464vy26g"
-path="res://.godot/imported/player.glb-08dcfb373480a049995065542e37637b.scn"
+uid="uid://da0jwx3q3slqw"
+path="res://.godot/imported/Bread Half.glb-f70534e80a969d680eac6810868ef7d8.scn"
 
 [deps]
 
-source_file="res://art/player.glb"
-dest_files=["res://.godot/imported/player.glb-08dcfb373480a049995065542e37637b.scn"]
+source_file="res://assets/model/box/source/Bread Half.glb"
+dest_files=["res://.godot/imported/Bread Half.glb-f70534e80a969d680eac6810868ef7d8.scn"]
 
 [params]
 

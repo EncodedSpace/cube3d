@@ -1,3 +1,5 @@
+#Face负责控制眼睛的移动
+
 extends Node3D
 
 @onready var eyes_visual: Node3D = $EyesVisual
@@ -70,33 +72,3 @@ func look_direction(direction: Vector3) -> void:
 		rotate_time
 	)
 var travel_tween: Tween
-
-
-func move_with_roll(direction: Vector3, duration: float) -> void:
-	if travel_tween:
-		travel_tween.kill()
-
-	var pivot := (Vector3.DOWN + direction) * 0.5
-	var axis := Vector3.UP.cross(direction).normalized()
-
-	travel_tween = create_tween()
-	travel_tween.set_trans(Tween.TRANS_LINEAR)
-
-	travel_tween.tween_method(
-		func(progress: float):
-			# 沿着和方块相同的圆弧移动，但眼睛自身不翻转
-			position = pivot + (-pivot).rotated(
-				axis,
-				deg_to_rad(90.0) * progress
-			),
-		0.0,
-		1.0,
-		duration
-	)
-
-
-func finish_roll() -> void:
-	if travel_tween:
-		travel_tween.kill()
-
-	position = Vector3.ZERO

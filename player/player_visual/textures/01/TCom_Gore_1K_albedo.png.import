@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://utp42jogdlh8"
-path.s3tc="res://.godot/imported/TCom_Gore_1K_ao.png-271f19c6edeb63e9ed74c30cc82f0e6e.s3tc.ctex"
+uid="uid://b7c40itvfyyct"
+path.s3tc="res://.godot/imported/TCom_Gore_1K_albedo.png-0e92044abb257c9752b18d34c375b52d.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://player_visual/textures/01/TCom_Gore_1K_ao.png"
-dest_files=["res://.godot/imported/TCom_Gore_1K_ao.png-271f19c6edeb63e9ed74c30cc82f0e6e.s3tc.ctex"]
+source_file="res://player/player_visual/textures/01/TCom_Gore_1K_albedo.png"
+dest_files=["res://.godot/imported/TCom_Gore_1K_albedo.png-0e92044abb257c9752b18d34c375b52d.s3tc.ctex"]
 
 [params]
 

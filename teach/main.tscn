@@ -2,9 +2,10 @@
 
 [ext_resource type="Script" uid="uid://b8kx2m4npq7vw" path="res://teach/cube_world.gd" id="1_tlv81"]
 [ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_sy78l"]
-[ext_resource type="PackedScene" uid="uid://ceuu150fmggvr" path="res://teach/player.tscn" id="3_hgqey"]
-[ext_resource type="Material" uid="uid://qqii2wv7fpkc" path="res://exit_material.tres" id="3_sy78l"]
+[ext_resource type="PackedScene" uid="uid://dfeusfyy4sxns" path="res://assets/model/box/bread_half.tscn" id="4_2457s"]
 [ext_resource type="Script" uid="uid://b7sta4rhwntrw" path="res://teach/ui_ingame.gd" id="4_fv4yg"]
+[ext_resource type="PackedScene" uid="uid://bxwg1o4swt0ji" path="res://assets/model/box/frying_pan.tscn" id="5_fv4yg"]
+[ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="5_hgqey"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_tlv81"]
 [ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="6_mbox"]
 
@@ -28,15 +29,6 @@ size = Vector3(6, 1, 6)
 [sub_resource type="BoxMesh" id="BoxMesh_1r6oq"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1r6oq"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1r6oq"]
-albedo_color = Color(0.24705882, 0.29803923, 1, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_a7i5e"]
-material = SubResource("StandardMaterial3D_1r6oq")
-
-[sub_resource type="BoxMesh" id="BoxMesh_wr0sf"]
-material = ExtResource("3_sy78l")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_exit"]
 
@@ -163,17 +155,16 @@ script = ExtResource("6_mbox")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/MovableBox" unique_id=2107868234]
 shape = SubResource("BoxShape3D_1r6oq")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/MovableBox" unique_id=46767789]
-mesh = SubResource("BoxMesh_a7i5e")
+[node name="BoxVisual" parent="Node3D/MovableBox" unique_id=991388019 instance=ExtResource("4_2457s")]
 
 [node name="StaticBox_EXIT" type="Area3D" parent="Node3D" unique_id=768943197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 5.5, 2.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBox_EXIT" unique_id=271851938]
-mesh = SubResource("BoxMesh_wr0sf")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox_EXIT" unique_id=1730241246]
 shape = SubResource("SphereShape3D_exit")
+
+[node name="FryingPan" parent="Node3D/StaticBox_EXIT" unique_id=1299094027 instance=ExtResource("5_fv4yg")]
+transform = Transform3D(-4.371139e-08, 1, 0, -0.83088994, -3.6319353e-08, 0.55643684, 0.55643684, 2.4322627e-08, 0.83088994, -0.4000001, 0, 0)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=666005303]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
@@ -189,8 +180,8 @@ projection = 1
 current = true
 size = 10.0
 
-[node name="Player" parent="." unique_id=1151131115 instance=ExtResource("3_hgqey")]
-transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.5, 0.45, 0.5)
+[node name="Player" parent="." unique_id=1151131115 instance=ExtResource("5_hgqey")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.5, 0.4, 0.5)
 
 [node name="ui_ingame" type="CanvasLayer" parent="." unique_id=1213911550]
 script = ExtResource("4_fv4yg")
