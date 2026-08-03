@@ -60,6 +60,7 @@ var start_transform: Transform3D
 
 func _ready() -> void:
 	start_transform = global_transform
+	add_to_group("player")
 
 	jump_controller.setup(
 		self,
@@ -224,6 +225,7 @@ func _physics_process_walk(delta: float) -> void:
 		velocity.y -= fall_acceleration * delta
 	elif Input.is_action_just_pressed("jump"):
 		velocity.y = jump_impulse
+		jump_controller.play_jump_sfx()
 	elif velocity.y < 0.0:
 		velocity.y = 0.0
 

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ceuu150fmggvr"]
+[gd_scene format=3 uid="uid://d1tk2ndqo3ifn"]
 
 [ext_resource type="Script" uid="uid://bs6l2gn6h6g1d" path="res://player/player.gd" id="1_onrkg"]
 [ext_resource type="Script" uid="uid://ci741nxu8eb12" path="res://player/player_controller/player_jump.gd" id="2_hqtel"]

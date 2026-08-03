@@ -9,6 +9,8 @@ var _succeed_sfx: AudioStreamPlayer
 func _ready() -> void:
 	# Stay interactive while the game tree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# In case previous scene left the tree paused (e.g. teach win → next).
+	get_tree().paused = false
 	$back.visible = false
 	$next.visible = false
 	$congratulations.visible = false
@@ -81,7 +83,6 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_help_button_pressed() -> void:
@@ -140,26 +141,11 @@ func _movable_boxes() -> Array[RigidBody3D]:
 
 	
 func reset_level() -> void:
-	# 若在暂停中，先恢复，再重置
+	# 关卡内道具状态很多（钥匙已吃、门已开、G 已删等），整关重载才能完整复原。
 	get_tree().paused = false
 	won = false
-
-	var cube := get_parent().get_node_or_null("Node3D")
-	if cube != null and cube.has_method("reset_to_start"):
-		cube.reset_to_start()
-
-	for box in _movable_boxes():
-		if box.has_method("reset_to_start"):
-			box.reset_to_start()
-		box.freeze = false
-
-	var player := get_parent().get_node_or_null("Player")
-	if player != null and player.has_method("reset_to_start"):
-		player.reset_to_start()
-		player.set_physics_process(true)
-
+	get_tree().reload_current_scene()
 
 func _on_next_pressed() -> void:
-	# Win screen pauses the tree; clear it or level1 will load frozen.
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://level1/main.tscn")
+	get_tree().change_scene_to_file("res://level2/main.tscn")
