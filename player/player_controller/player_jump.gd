@@ -4,6 +4,10 @@ extends Node
 # 完成一圈空翻所需时间。
 @export var flip_duration := 0.40
 
+# 跳跃音效：放到 res://audio/jump.mp3（或 .ogg / .wav）
+@export var jump_sfx_path := "res://audio/jump.mp3"
+@export var jump_sfx_volume_db := -4.0
+
 
 var player: CharacterBody3D
 var visual_root: Node3D
@@ -25,6 +29,7 @@ var start_visual_basis := Basis.IDENTITY
 
 # 用于取消尚未完成的异步起跳。
 var _request_id := 0
+var _jump_sfx: AudioStreamPlayer
 
 
 func setup(
@@ -35,6 +40,7 @@ func setup(
 	player = player_node
 	visual_root = root_node
 	visual_body = body_node
+	_setup_jump_sfx()
 
 
 # 没有方向时原地跳，有方向时向相邻一格跳。
@@ -77,10 +83,42 @@ func start(
 
 	visual_body.jump_stretch()
 	player.velocity.y = jump_impulse
+	play_jump_sfx()
 
 	preparing = false
 	active = true
 	return true
+
+
+func _setup_jump_sfx() -> void:
+	if _jump_sfx != null:
+		return
+
+	_jump_sfx = AudioStreamPlayer.new()
+	_jump_sfx.name = "JumpSfx"
+	_jump_sfx.bus = "Master"
+	_jump_sfx.volume_db = jump_sfx_volume_db
+	add_child(_jump_sfx)
+
+	var resolved := jump_sfx_path
+	if not ResourceLoader.exists(resolved):
+		var found := ""
+		for alt in ["res://audio/jump.ogg", "res://audio/jump.mp3", "res://audio/jump.wav"]:
+			if alt != resolved and ResourceLoader.exists(alt):
+				found = alt
+				break
+		if found.is_empty():
+			return
+		resolved = found
+
+	var stream := load(resolved) as AudioStream
+	if stream:
+		_jump_sfx.stream = stream
+
+
+func play_jump_sfx() -> void:
+	if _jump_sfx and _jump_sfx.stream:
+		_jump_sfx.play()
 
 
 # 蓄力期间仍然可以读取方向键。

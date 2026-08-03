@@ -144,6 +144,12 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 				and "EXIT" not in n
 			):
 				result.append(child as Node3D)
+			# Closed D_Wall blocks player rolls (check parent tool part by name).
+			elif (
+				("D_Wall" in n or n.begins_with("D_Wall"))
+				and child.get("is_open") != true
+			):
+				result.append(child as Node3D)
 			_gather_obstacle_boxes(child, result)
 
 
@@ -195,32 +201,75 @@ func _rotated_xform(xform: Transform3D, center: Vector3, q: Quaternion) -> Trans
 	return Transform3D(Basis(q) * xform.basis, center + q * (xform.origin - center))
 
 
-## Bind every node whose name contains "StaticBox" to nearby wall face(s).
+## Bind StaticBox* and MovableBox* so they hide with their attached wall faces.
 func _bind_props_to_walls() -> void:
 	_wall_props.clear()
 	var walls := get_node_or_null("WALLS")
 	if walls == null:
 		return
 
+	# Teach keeps StaticBoxes under the cube root; optional staticboxes folder also works.
+	var boxes_root := get_node_or_null("staticboxes")
+	if boxes_root == null:
+		boxes_root = get_node_or_null("staticbox")
+	if boxes_root == null:
+		boxes_root = self
+
 	var props: Array[Node3D] = []
-	for child in get_children():
-		if child is Node3D and "StaticBox" in child.name:
-			props.append(child as Node3D)
-	# Recover boxes that may still sit under WALLS from older parenting.
-	for node in walls.find_children("*StaticBox*", "Node3D", true, false):
-		var found := node as Node3D
-		if found != null and found not in props:
-			props.append(found)
+	_gather_wall_props(self, props)
+
+	var host := get_parent()
+	if host != null:
+		for child in host.get_children():
+			if child is Node3D and _is_wall_prop_name(String(child.name)):
+				var found := child as Node3D
+				if found not in props:
+					props.append(found)
+
+	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*"]:
+		for node in walls.find_children(pattern, "Node3D", true, false):
+			var found := node as Node3D
+			if found != null and found not in props:
+				props.append(found)
 
 	for prop in props:
-		if prop.get_parent() != self:
-			prop.reparent(self, true)
+		var n := String(prop.name)
+		# Tool_B_D_G parts stay under their tool group (do not reparent).
+		if "StaticBox" in n:
+			if prop.get_parent() != boxes_root:
+				prop.reparent(boxes_root, true)
+		elif "MovableBox" in n:
+			# Keep under cube root so ui_ingame / physics still find them.
+			if prop.get_parent() != self:
+				prop.reparent(self, true)
+
 		var bound_walls: Array[Node3D] = _find_nearest_walls(prop, walls)
 		if bound_walls.is_empty():
 			continue
 		prop.add_to_group("wall_prop")
 		_wall_props.append({"prop": prop, "walls": bound_walls})
 		_set_prop_visible(prop, true)
+
+
+func _is_wall_prop_name(n: String) -> bool:
+	return (
+		"StaticBox" in n
+		or "MovableBox" in n
+		or n == "D_Wall"
+		or n == "B_Tool"
+		or n == "G_Tool"
+		or n.begins_with("D_Wall")
+		or n.begins_with("B_Tool")
+		or n.begins_with("G_Tool")
+	)
+
+
+func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
+	for child in node.get_children():
+		if child is Node3D and _is_wall_prop_name(String(child.name)):
+			result.append(child as Node3D)
+		if child is Node3D and not _is_wall_prop_name(String(child.name)):
+			_gather_wall_props(child, result)
 
 
 ## All walls at the minimum plane-distance (equal attach for corners/edges).
@@ -276,28 +325,91 @@ func update_cutaway_visibility() -> void:
 		if mesh != null:
 			mesh.visible = show_wall
 
+	# Drop props that were freed (e.g. G_Tool after player collects it).
+	var alive_props: Array[Dictionary] = []
 	for entry in _wall_props:
-		var prop := entry["prop"] as Node3D
-		var bound: Array = entry["walls"]
-		if prop == null or not is_instance_valid(prop):
+		var prop_ref = entry.get("prop")
+		if prop_ref == null or not is_instance_valid(prop_ref):
 			continue
+		var prop := prop_ref as Node3D
+		if prop == null:
+			continue
+		alive_props.append(entry)
+
+		# Moving props / D_Wall: refresh nearest walls (keeps multi-face binds).
+		var prop_name := String(prop.name)
+		if (
+			"MovableBox" in prop_name
+			or prop_name == "D_Wall"
+			or prop_name.begins_with("D_Wall")
+			or prop_name == "B_Tool"
+			or prop_name == "G_Tool"
+			or prop_name.begins_with("B_Tool")
+			or prop_name.begins_with("G_Tool")
+		):
+			entry["walls"] = _find_nearest_walls(prop, walls)
+		var bound: Array = entry["walls"]
 		var show_prop := false
 		for wall in bound:
 			if wall != null and is_instance_valid(wall) and wall_shown.get(wall, false):
 				show_prop = true
 				break
 		_set_prop_visible(prop, show_prop)
+	_wall_props = alive_props
 
 
 func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
+	# Falling B must keep WALLS collision, or it will drop out of the cube.
+	if (
+		prop.is_in_group("b_tool")
+		and prop.get("gravity_enabled") == true
+		and prop.get("adsorbed") != true
+	):
+		prop.visible = true
+		_set_collision_shapes_disabled(prop, false)
+		return
+
+	# D_Wall:
+	# - before G: any bound face lit → visible + collision
+	# - after G, before open: always visible + collision
+	# - after open: no solid collision
+	if prop.has_method("should_keep_player_block"):
+		var closed: bool = prop.should_keep_player_block()
+		if not closed:
+			prop.visible = true
+			_set_collision_shapes_disabled(prop, true)
+			return
+
+		var show_d := wall_visible
+		if prop.has_method("should_force_visible_block") and prop.should_force_visible_block():
+			show_d = true
+
+		prop.visible = show_d
+		if show_d:
+			if prop.has_method("ensure_player_block"):
+				prop.ensure_player_block()
+		else:
+			_set_collision_shapes_disabled(prop, true)
+		return
+
 	prop.visible = wall_visible
-	for child in prop.get_children():
-		if child is CollisionShape3D:
-			(child as CollisionShape3D).disabled = not wall_visible
-	if prop is CollisionObject3D:
-		var body := prop as CollisionObject3D
-		body.set_collision_layer_value(1, true)
-		body.set_collision_mask_value(1, true)
+	_set_collision_shapes_disabled(prop, not wall_visible)
+	# Only MovableBox uses freeze for cutaway. B_Tool/G_Tool manage freeze themselves.
+	if prop is RigidBody3D and "MovableBox" in String(prop.name):
+		var rb := prop as RigidBody3D
+		if not wall_visible:
+			rb.linear_velocity = Vector3.ZERO
+			rb.angular_velocity = Vector3.ZERO
+			rb.freeze = true
+		elif not get_tree().paused:
+			rb.freeze = false
+
+
+func _set_collision_shapes_disabled(node: Node, disabled: bool) -> void:
+	if node is CollisionShape3D:
+		(node as CollisionShape3D).disabled = disabled
+	for child in node.get_children():
+		_set_collision_shapes_disabled(child, disabled)
 
 
 ## Rotates cube and player together. Afterward the player stands upright but

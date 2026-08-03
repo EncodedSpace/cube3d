@@ -96,7 +96,9 @@ func start(
 				)
 				break
 
-			if _destination_has_obstacle(destination):
+			# D_Wall / StaticBox / other solids: never roll into them.
+			# (Destination name checks alone miss D_Wall's child StaticBody3D.)
+			if _destination_has_obstacle(destination) or collider != null:
 				break
 
 		visual_face.look_direction(direction)

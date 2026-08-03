@@ -9,6 +9,8 @@ var _succeed_sfx: AudioStreamPlayer
 func _ready() -> void:
 	# Stay interactive while the game tree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# In case previous scene left the tree paused (e.g. teach win → next).
+	get_tree().paused = false
 	$back.visible = false
 	$next.visible = false
 	$congratulations.visible = false
@@ -158,8 +160,6 @@ func reset_level() -> void:
 		player.reset_to_start()
 		player.set_physics_process(true)
 
-
 func _on_next_pressed() -> void:
-	# Win screen pauses the tree; clear it or level1 will load frozen.
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://level1/main.tscn")
+	get_tree().change_scene_to_file("res://level2/main.tscn")

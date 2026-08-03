@@ -1,6 +1,9 @@
 extends CanvasLayer
 
+const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+
 var won: bool = false
+var _succeed_sfx: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -20,6 +23,7 @@ func _ready() -> void:
 		if child is BaseButton:
 			(child as BaseButton).focus_mode = Control.FOCUS_NONE
 
+	_setup_succeed_sfx()
 	_hide_welcome_after_delay()
 
 
@@ -45,17 +49,36 @@ func _hide_welcome_after_delay() -> void:
 
 
 func _on_exit_body_entered(body: Node) -> void:
-	if body.name != "Player":
+	if won or body.name != "Player":
 		return
 	_show_win()
 
 
 func _show_win() -> void:
+	if won:
+		return
 	won = true
+	_play_succeed_sfx()
 	$congratulations.visible = true
 	$back.visible = true
 	$next.visible = true
 	game_paused()
+
+
+func _setup_succeed_sfx() -> void:
+	_succeed_sfx = AudioStreamPlayer.new()
+	_succeed_sfx.name = "SucceedSfx"
+	_succeed_sfx.bus = "Master"
+	_succeed_sfx.volume_db = -4.0
+	_succeed_sfx.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_succeed_sfx)
+	if ResourceLoader.exists(SUCCEED_SFX_PATH):
+		_succeed_sfx.stream = load(SUCCEED_SFX_PATH) as AudioStream
+
+
+func _play_succeed_sfx() -> void:
+	if _succeed_sfx and _succeed_sfx.stream:
+		_succeed_sfx.play()
 
 
 func _on_back_pressed() -> void:
@@ -136,3 +159,8 @@ func reset_level() -> void:
 	if player != null and player.has_method("reset_to_start"):
 		player.reset_to_start()
 		player.set_physics_process(true)
+
+
+func _on_next_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://level2/main.tscn")

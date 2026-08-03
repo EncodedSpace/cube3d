@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bxwg1o4swt0ji" path="res://assets/model/box/frying_pan.tscn" id="5_fv4yg"]
 [ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="5_hgqey"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_tlv81"]
+[ext_resource type="PackedScene" uid="uid://bynpixfcpdb1h" path="res://Tools_B_D_G/Tool_B_D_G.tscn" id="6_2457s"]
 [ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="6_mbox"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
@@ -165,6 +166,11 @@ shape = SubResource("SphereShape3D_exit")
 
 [node name="FryingPan" parent="Node3D/StaticBox_EXIT" unique_id=1299094027 instance=ExtResource("5_fv4yg")]
 transform = Transform3D(-4.371139e-08, 1, 0, -0.83088994, -3.6319353e-08, 0.55643684, 0.55643684, 2.4322627e-08, 0.83088994, -0.4000001, 0, 0)
+
+[node name="Node3D" parent="Node3D" unique_id=887628236 instance=ExtResource("6_2457s")]
+b_position = Vector3(1.5, 0.5, 2.5)
+g_position = Vector3(2.5, 0.5, 1.5)
+d_position = Vector3(1.5, 0.5, 0.5)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=666005303]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
