@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://6tyii205io1d" path="res://level1/cube_world.gd" id="1_onvak"]
 [ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_qxp3c"]
-[ext_resource type="Material" uid="uid://bkhbhiffawrma" path="res://assets/material/siu_material.tres" id="3_qxp3c"]
 [ext_resource type="Script" uid="uid://d1wgfaq162a23" path="res://level1/ui_ingame.gd" id="4_jnms4"]
 [ext_resource type="PackedScene" uid="uid://5dwpsxuib8kf" path="res://assets/model/box/cake_chocolate_cut.tscn" id="4_rg5yx"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_jnms4"]
@@ -104,7 +103,7 @@ shadow_size = 4
 environment = SubResource("Environment_h2yge")
 
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("7_qfbep")]
-transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -0.5, 0.4, -1.5)
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -0.5, 0.45, -1.5)
 
 [node name="Node3D" type="Node3D" parent="." unique_id=2128679359]
 script = ExtResource("1_onvak")

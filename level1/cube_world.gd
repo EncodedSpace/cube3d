@@ -533,6 +533,10 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 
 	player.set_physics_process(true)
 	await _wait_for_props_to_settle()
+
+	if not is_inside_tree():
+		return
+
 	flipping = false
 	flip_finished.emit()
 
@@ -583,18 +587,43 @@ func _all_fallable_props_settled() -> bool:
 
 
 func _wait_for_props_to_settle() -> void:
-	await get_tree().physics_frame
+	if not is_inside_tree():
+		return
+
+	var tree := get_tree()
+	if tree == null:
+		return
+
+	await tree.physics_frame
+
+	if not is_inside_tree():
+		return
+
 	var stable := 0
 	var elapsed := 0.0
+
 	while elapsed < settle_timeout:
-		if get_tree().paused:
-			await get_tree().process_frame
+		if not is_inside_tree():
+			return
+
+		tree = get_tree()
+		if tree == null:
+			return
+
+		if tree.paused:
+			await tree.process_frame
 			continue
+
 		if _all_fallable_props_settled():
 			stable += 1
 			if stable >= settle_stable_frames:
 				return
 		else:
 			stable = 0
-		await get_tree().physics_frame
+
+		await tree.physics_frame
+
+		if not is_inside_tree():
+			return
+
 		elapsed += get_physics_process_delta_time()

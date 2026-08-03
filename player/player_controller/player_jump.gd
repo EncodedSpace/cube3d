@@ -58,6 +58,13 @@ func start(
 	):
 		return false
 
+	# 第二道权限检查，避免其他脚本直接调用 JumpController 绕过限制。
+	if (
+		player.has_method("can_jump")
+		and not bool(player.can_jump())
+	):
+		return false
+
 	_request_id += 1
 	var current_request := _request_id
 
@@ -77,8 +84,15 @@ func start(
 	# 起跳前压缩蓄力。
 	await visual_body.jump_takeoff()
 
-	# 重置关卡或世界翻转后，不再继续起跳。
+	# 重置关卡、世界翻转或权限被收回后，不再继续起跳。
 	if current_request != _request_id:
+		return false
+
+	if (
+		player.has_method("is_jump_enabled")
+		and not bool(player.is_jump_enabled())
+	):
+		cancel()
 		return false
 
 	visual_body.jump_stretch()

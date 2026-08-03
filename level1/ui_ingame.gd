@@ -195,8 +195,17 @@ func _on_player_died() -> void:
 
 func _on_restart_button_pressed() -> void:
 	get_tree().paused = false
-	get_tree().reload_current_scene()
 
+	var level_root := get_parent()
+	var scene_path: String = level_root.scene_file_path
+
+	if scene_path.is_empty():
+		push_error("无法识别当前关卡场景路径")
+		return
+
+	print("重新加载关卡：", scene_path)
+	get_tree().change_scene_to_file(scene_path)
+	
 
 func _on_quit_button_pressed() -> void:
 	get_tree().paused = false

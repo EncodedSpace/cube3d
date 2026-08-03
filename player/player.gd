@@ -50,6 +50,12 @@ var is_dead: bool = false
 @onready var cube_world: Node3D = \
 	get_parent().get_node_or_null("Node3D")
 
+@export var jump_enabled_by_default: bool = false
+
+@export_category("Debug")
+@export var allow_jump_cheat: bool = true
+
+var jump_enabled: bool = false
 
 # 用于检测落地瞬间。
 var was_on_floor := true
@@ -57,9 +63,19 @@ var was_on_floor := true
 # 关卡重置位置。
 var start_transform: Transform3D
 
+var start_visual_body_position: Vector3
+
+var start_collision_position: Vector3
+var start_collision_size: Vector3
 
 func _ready() -> void:
+	jump_enabled = jump_enabled_by_default
+	
+	if collision_shape.shape != null:
+		collision_shape.shape = collision_shape.shape.duplicate()
+	
 	start_transform = global_transform
+	start_visual_body_position = visual_body.position
 	add_to_group("player")
 
 	jump_controller.setup(
@@ -79,13 +95,23 @@ func _ready() -> void:
 	roll_controller.finished.connect(
 		_on_roll_finished
 	)
+	
+	start_collision_position = collision_shape.position
+
+	var box_shape := collision_shape.shape as BoxShape3D
+	if box_shape:
+		start_collision_size = box_shape.size
+
 
 func reset_to_start() -> void:
+	# 每次关卡重置后恢复默认跳跃权限。
+	jump_enabled = jump_enabled_by_default
+
 	var box_shape := collision_shape.shape as BoxShape3D
 
 	if box_shape:
-		box_shape.size.y = 1.0
-		collision_shape.position.y = 0.0
+		box_shape.size = start_collision_size
+		collision_shape.position = start_collision_position
 		
 	is_dead = false
 	collision_shape.set_deferred("disabled", false)
@@ -113,8 +139,13 @@ func sync_move_from_facing() -> void:
 	)
 
 func _reset_visual_state() -> void:
+	if visual_body.has_method("stop_shape_tween"):
+		visual_body.stop_shape_tween()
+
 	pivot.basis = Basis.IDENTITY
 	visual_root.basis = Basis.IDENTITY
+
+	visual_body.position = start_visual_body_position
 	visual_body.basis = Basis.IDENTITY
 	visual_body.scale = Vector3.ONE
 
@@ -172,8 +203,11 @@ func _physics_process(delta: float) -> void:
 		if velocity.y < 0.0:
 			velocity.y = 0.0
 
-		# 跳跃输入优先于翻滚。
-		if Input.is_action_just_pressed("jump"):
+		# 默认禁止跳跃；只有获得跳跃权限时才允许原地跳或方向跳。
+		if (
+			Input.is_action_just_pressed("jump")
+			and can_jump()
+		):
 			_start_jump(direction)
 			return
 
@@ -223,7 +257,10 @@ func _physics_process_walk(delta: float) -> void:
 
 	if not is_on_floor():
 		velocity.y -= fall_acceleration * delta
-	elif Input.is_action_just_pressed("jump"):
+	elif (
+		Input.is_action_just_pressed("jump")
+		and can_jump()
+	):
 		velocity.y = jump_impulse
 		jump_controller.play_jump_sfx()
 	elif velocity.y < 0.0:
@@ -268,6 +305,10 @@ func _get_walk_direction() -> Vector3:
 func _start_jump(
 	direction: Vector3
 ) -> void:
+	# 防止其他调用路径绕过跳跃权限。
+	if not can_jump():
+		return
+
 	if direction != Vector3.ZERO:
 		visual_face.look_direction(direction)
 
@@ -427,8 +468,6 @@ func die() -> void:
 	# 保证压扁方向永远朝向地面。
 	visual_body.basis = Basis.IDENTITY
 	
-	# 先播放压扁动画。
-	await visual_body.death_squash()
 
 	var box_shape := collision_shape.shape as BoxShape3D
 
@@ -460,3 +499,52 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func get_death_height_scale() -> float:
 	return visual_body.death_height_scale
+
+# 由弹跳板等机关调用：只控制“能否开始新的跳跃”。
+# 离开弹跳板后不会打断已经开始的跳跃。
+func set_jump_enabled(enabled: bool) -> void:
+	jump_enabled = enabled
+
+	# 若权限在蓄力阶段被收回，则取消尚未真正起跳的动作。
+	if (
+		not jump_enabled
+		and is_instance_valid(jump_controller)
+		and jump_controller.preparing
+	):
+		jump_controller.cancel()
+
+
+func is_jump_enabled() -> bool:
+	return jump_enabled
+
+
+# 原地跳和“跳跃 + 移动”统一经过这里。
+func can_jump() -> bool:
+	return (
+		jump_enabled
+		and not is_dead
+		and (
+			is_on_floor()
+			or has_floor_below()
+		)
+		and not roll_controller.active
+		and not jump_controller.preparing
+		and not jump_controller.active
+	)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not allow_jump_cheat:
+		return
+
+	if is_dead:
+		return
+
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_J
+	):
+		set_jump_enabled(true)
+		print("DEBUG：本关跳跃技能已解锁")
+		get_viewport().set_input_as_handled()
