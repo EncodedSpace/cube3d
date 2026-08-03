@@ -9,9 +9,17 @@ extends Node3D
 @export var wall_visible_dot: float = 0.2
 ## Half-size of the floor-wall junction cell that must be clear of boxes to flip.
 @export var flip_junction_clearance: float = 0.75
+## After orient: consider bodies settled when speed stays under this.
+@export var settle_velocity_epsilon: float = 0.08
+## Need this many consecutive settled physics frames before next flip/yaw.
+@export var settle_stable_frames: int = 4
+## Safety cap so a stuck body cannot block orient forever.
+@export var settle_timeout: float = 4.0
 
 var flipping: bool = false
 var start_transform: Transform3D
+## True while cube is rotating: fallable props stay frozen so falls aren't cut mid-air.
+var _hold_props_frozen: bool = false
 
 ## Props attached to walls: each entry is { "prop": Node3D, "walls": Array[Node3D] }
 ## A prop can bind to multiple walls when equally close to each. Visible if ANY
@@ -73,6 +81,7 @@ func can_flip() -> bool:
 
 func reset_to_start() -> void:
 	flipping = false
+	_hold_props_frozen = false
 	global_transform = start_transform
 	update_cutaway_visibility()
 
@@ -97,6 +106,29 @@ func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
 
 	_animate_flip(rotation_quat, player)
 	return true
+
+
+## Orient so this wall becomes the floor (portal teleport). Skips junction-box blocking.
+func request_orient_wall_as_floor(wall: Node3D, player: Node3D) -> bool:
+	if flipping or wall == null:
+		return false
+	var inward := wall.global_transform.basis.y.normalized()
+	var outward := _snap_to_axis(-inward)
+	if outward.dot(Vector3.DOWN) > 0.99:
+		return false
+	var rotation_quat := Quaternion(outward, Vector3.DOWN)
+	if rotation_quat.get_angle() < 0.01:
+		return false
+	_animate_flip(rotation_quat, player)
+	return true
+
+
+func get_nearest_walls_for(prop: Node3D) -> Array[Node3D]:
+	var walls := get_node_or_null("WALLS")
+	if walls == null or prop == null:
+		var empty: Array[Node3D] = []
+		return empty
+	return _find_nearest_walls(prop, walls)
 
 
 ## True when a StaticBox/MovableBox occupies the wall junction the player is pressing into.
@@ -133,6 +165,32 @@ func _collect_obstacle_boxes() -> Array[Node3D]:
 	return result
 
 
+## True when a prop at this cell explicitly allows the player to occupy it (e.g. open E2).
+func is_passable_for_player(world_pos: Vector3) -> bool:
+	const HALF_CELL := 0.51
+	return _has_passable_prop_at(self, world_pos, HALF_CELL)
+
+
+func _has_passable_prop_at(node: Node, world_pos: Vector3, half_cell: float) -> bool:
+	for child in node.get_children():
+		if child is Node3D:
+			var n3 := child as Node3D
+			if (
+				(n3.get("allows_player_enter") == true or n3.get("is_open") == true)
+				and "StaticBox" in String(n3.name)
+			):
+				var offset := n3.global_position - world_pos
+				if (
+					absf(offset.x) < half_cell
+					and absf(offset.y) < half_cell
+					and absf(offset.z) < half_cell
+				):
+					return true
+			if _has_passable_prop_at(child, world_pos, half_cell):
+				return true
+	return false
+
+
 func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 	for child in node.get_children():
 		if child is Node3D:
@@ -143,7 +201,10 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 				and ("StaticBox" in n or "MovableBox" in n)
 				and "EXIT" not in n
 			):
-				result.append(child as Node3D)
+				if child.get("allows_player_enter") == true or child.get("is_open") == true:
+					pass
+				else:
+					result.append(child as Node3D)
 			# Closed D_Wall blocks player rolls (check parent tool part by name).
 			elif (
 				("D_Wall" in n or n.begins_with("D_Wall"))
@@ -226,7 +287,7 @@ func _bind_props_to_walls() -> void:
 				if found not in props:
 					props.append(found)
 
-	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -243,7 +304,7 @@ func _bind_props_to_walls() -> void:
 			if prop.get_parent() != self:
 				prop.reparent(self, true)
 
-		var bound_walls: Array[Node3D] = _find_nearest_walls(prop, walls)
+		var bound_walls: Array[Node3D] = _bound_walls_for_prop(prop, walls)
 		if bound_walls.is_empty():
 			continue
 		prop.add_to_group("wall_prop")
@@ -255,12 +316,15 @@ func _is_wall_prop_name(n: String) -> bool:
 	return (
 		"StaticBox" in n
 		or "MovableBox" in n
+		or "Portal" in n
 		or n == "D_Wall"
 		or n == "B_Tool"
 		or n == "G_Tool"
+		or n == "F_Trigger"
 		or n.begins_with("D_Wall")
 		or n.begins_with("B_Tool")
 		or n.begins_with("G_Tool")
+		or n.begins_with("F_Trigger")
 	)
 
 
@@ -291,11 +355,38 @@ func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	if best_dist == INF:
 		return result
 
-	const EPS := 0.001
+	# 棱/角上等距绑多面。容差要覆盖刚体落稳后的微小偏移，
+	# 否则会从「地板+侧墙」退化成只绑侧墙，侧墙裁切时箱子在亮着的地板上消失。
+	const EPS := 0.25
 	for wall in dists:
 		if dists[wall] <= best_dist + EPS:
 			result.append(wall)
 	return result
+
+
+## Portal_Key sits on an edge/corner: always bind the two closest faces.
+func _find_n_nearest_walls(prop: Node3D, walls: Node, count: int) -> Array[Node3D]:
+	var scored: Array[Dictionary] = []
+	for child in walls.get_children():
+		var wall := child as Node3D
+		if wall == null:
+			continue
+		var inward: Vector3 = wall.global_transform.basis.y.normalized()
+		var dist := absf(inward.dot(prop.global_position - wall.global_position))
+		scored.append({"d": dist, "wall": wall})
+	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["d"] < b["d"])
+	var result: Array[Node3D] = []
+	for i in range(mini(count, scored.size())):
+		result.append(scored[i]["wall"] as Node3D)
+	return result
+
+
+func _bound_walls_for_prop(prop: Node3D, walls: Node) -> Array[Node3D]:
+	var n := String(prop.name)
+	# 钥匙固定贴最近两面：任一面裁切亮起即显示。
+	if n == "Portal_Key" or n.begins_with("Portal_Key"):
+		return _find_n_nearest_walls(prop, walls, 2)
+	return _find_nearest_walls(prop, walls)
 
 
 ## Hide the 3 outer faces that point toward the camera so the room interior
@@ -336,18 +427,21 @@ func update_cutaway_visibility() -> void:
 			continue
 		alive_props.append(entry)
 
-		# Moving props / D_Wall: refresh nearest walls (keeps multi-face binds).
+		# Moving props / portals / D_Wall: refresh nearest walls (keeps multi-face binds).
 		var prop_name := String(prop.name)
 		if (
 			"MovableBox" in prop_name
+			or "Portal" in prop_name
 			or prop_name == "D_Wall"
 			or prop_name.begins_with("D_Wall")
 			or prop_name == "B_Tool"
 			or prop_name == "G_Tool"
+			or prop_name == "F_Trigger"
 			or prop_name.begins_with("B_Tool")
 			or prop_name.begins_with("G_Tool")
+			or prop_name.begins_with("F_Trigger")
 		):
-			entry["walls"] = _find_nearest_walls(prop, walls)
+			entry["walls"] = _bound_walls_for_prop(prop, walls)
 		var bound: Array = entry["walls"]
 		var show_prop := false
 		for wall in bound:
@@ -367,6 +461,14 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	):
 		prop.visible = true
 		_set_collision_shapes_disabled(prop, false)
+		if prop is RigidBody3D:
+			var b := prop as RigidBody3D
+			if _hold_props_frozen:
+				b.linear_velocity = Vector3.ZERO
+				b.angular_velocity = Vector3.ZERO
+				b.freeze = true
+			elif not get_tree().paused:
+				b.freeze = false
 		return
 
 	# D_Wall:
@@ -397,7 +499,7 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	# Only MovableBox uses freeze for cutaway. B_Tool/G_Tool manage freeze themselves.
 	if prop is RigidBody3D and "MovableBox" in String(prop.name):
 		var rb := prop as RigidBody3D
-		if not wall_visible:
+		if not wall_visible or _hold_props_frozen:
 			rb.linear_velocity = Vector3.ZERO
 			rb.angular_velocity = Vector3.ZERO
 			rb.freeze = true
@@ -414,9 +516,12 @@ func _set_collision_shapes_disabled(node: Node, disabled: bool) -> void:
 
 ## Rotates cube and player together. Afterward the player stands upright but
 ## keeps the facing continuous with the rotation (no sudden yaw snap).
+## Next flip/yaw waits until any gravity falls finish settling.
 func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool = false) -> void:
 	flipping = true
+	_hold_props_frozen = true
 	flip_started.emit()
+	_freeze_fallable_props()
 
 	var center := get_center_global()
 	var cube_start := global_transform
@@ -484,8 +589,79 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 	if "target_velocity" in player:
 		player.target_velocity = Vector3.ZERO
 
+	# Release hold so cutaway can unfreeze visible fallable props; then wait for settle.
+	_hold_props_frozen = false
 	update_cutaway_visibility()
 
 	player.set_physics_process(true)
+	await _wait_for_props_to_settle()
 	flipping = false
 	flip_finished.emit()
+
+
+func _freeze_fallable_props() -> void:
+	for rb in _gather_fallable_bodies():
+		rb.linear_velocity = Vector3.ZERO
+		rb.angular_velocity = Vector3.ZERO
+		rb.freeze = true
+
+
+func _gather_fallable_bodies() -> Array[RigidBody3D]:
+	var result: Array[RigidBody3D] = []
+	_gather_fallable_bodies_rec(self, result)
+	return result
+
+
+func _gather_fallable_bodies_rec(node: Node, result: Array[RigidBody3D]) -> void:
+	for child in node.get_children():
+		if child is RigidBody3D and _is_fallable_body(child as RigidBody3D):
+			result.append(child as RigidBody3D)
+		_gather_fallable_bodies_rec(child, result)
+
+
+func _is_fallable_body(rb: RigidBody3D) -> bool:
+	if rb == null or not is_instance_valid(rb):
+		return false
+	var n := String(rb.name)
+	if "MovableBox" in n:
+		return true
+	if rb.is_in_group("b_tool"):
+		return rb.get("gravity_enabled") == true and rb.get("adsorbed") != true
+	return false
+
+
+func _body_is_settled(rb: RigidBody3D) -> bool:
+	if rb == null or not is_instance_valid(rb):
+		return true
+	if rb.freeze or rb.sleeping:
+		return true
+	if rb.linear_velocity.length() > settle_velocity_epsilon:
+		return false
+	if rb.angular_velocity.length() > settle_velocity_epsilon:
+		return false
+	return true
+
+
+func _all_fallable_props_settled() -> bool:
+	for rb in _gather_fallable_bodies():
+		if not _body_is_settled(rb):
+			return false
+	return true
+
+
+func _wait_for_props_to_settle() -> void:
+	await get_tree().physics_frame
+	var stable := 0
+	var elapsed := 0.0
+	while elapsed < settle_timeout:
+		if get_tree().paused:
+			await get_tree().process_frame
+			continue
+		if _all_fallable_props_settled():
+			stable += 1
+			if stable >= settle_stable_frames:
+				return
+		else:
+			stable = 0
+		await get_tree().physics_frame
+		elapsed += get_physics_process_delta_time()

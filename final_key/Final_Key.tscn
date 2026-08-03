@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://bq8finalkey001"]
+
+[ext_resource type="Script" path="res://final_key/final_key.gd" id="1_root"]
+[ext_resource type="Script" path="res://final_key/final_key_pickup.gd" id="2_key"]
+[ext_resource type="Script" path="res://final_key/final_exit.gd" id="3_exit"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_key"]
+radius = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_key"]
+albedo_color = Color(1, 0.9, 0.25, 1)
+emission_enabled = true
+emission = Color(1, 0.85, 0.2, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_key"]
+material = SubResource("StandardMaterial3D_key")
+radius = 0.25
+height = 0.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_exit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_exit"]
+transparency = 1
+albedo_color = Color(0.25, 1, 0.45, 0.2)
+emission_enabled = true
+emission = Color(0.2, 0.95, 0.4, 1)
+emission_energy_multiplier = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_exit"]
+material = SubResource("StandardMaterial3D_exit")
+size = Vector3(1, 1, 1)
+
+[node name="FinalKey" type="Node3D"]
+script = ExtResource("1_root")
+
+[node name="Final_Key" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+script = ExtResource("2_key")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Final_Key"]
+shape = SubResource("SphereShape3D_key")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Final_Key"]
+mesh = SubResource("SphereMesh_key")
+
+[node name="Final_Exit" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.5, 0)
+script = ExtResource("3_exit")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Final_Exit"]
+shape = SubResource("BoxShape3D_exit")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Final_Exit"]
+mesh = SubResource("BoxMesh_exit")

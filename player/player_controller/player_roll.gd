@@ -89,16 +89,17 @@ func start(
 		if test_collision:
 			var collider := test_collision.get_collider()
 
-			if _is_cube_wall_collider(collider):
+			# 已打开的通行格（如 E2）：允许滚入，即使身后贴着外墙。
+			if _destination_is_passable(destination):
+				pass
+			elif _is_cube_wall_collider(collider):
 				_try_world_flip(
 					test_collision.get_normal(),
 					direction
 				)
 				break
-
 			# D_Wall / StaticBox / other solids: never roll into them.
-			# (Destination name checks alone miss D_Wall's child StaticBody3D.)
-			if _destination_has_obstacle(destination) or collider != null:
+			elif _destination_has_obstacle(destination) or collider != null:
 				break
 
 		visual_face.look_direction(direction)
@@ -267,10 +268,19 @@ func _should_abort_roll_on_collision(
 	collider: Object,
 	final_position: Vector3
 ) -> bool:
+	# 通行格内碰到外墙不算中断（否则贴墙的开门格永远进不去）。
+	if _destination_is_passable(final_position):
+		return false
 	return (
 		_is_cube_wall_collider(collider)
 		or _destination_has_obstacle(final_position)
 	)
+
+
+func _destination_is_passable(destination: Vector3) -> bool:
+	if cube_world != null and cube_world.has_method("is_passable_for_player"):
+		return bool(cube_world.is_passable_for_player(destination))
+	return false
 
 
 # 获取角色碰撞盒的真实高度。

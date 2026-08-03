@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://6tyii205io1d" path="res://level1/cube_world.gd" id="1_onvak"]
 [ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_qxp3c"]
-[ext_resource type="Material" uid="uid://bkhbhiffawrma" path="res://material/siu_material.tres" id="3_qxp3c"]
 [ext_resource type="Script" uid="uid://d1wgfaq162a23" path="res://level1/ui_ingame.gd" id="4_jnms4"]
 [ext_resource type="PackedScene" uid="uid://5dwpsxuib8kf" path="res://assets/model/box/cake_chocolate_cut.tscn" id="4_rg5yx"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_jnms4"]
@@ -11,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://4lrfobg0ygq8" path="res://assets/model/box/box.tscn" id="6_mnrfm"]
 [ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="7_qfbep"]
 [ext_resource type="PackedScene" uid="uid://bxwg1o4swt0ji" path="res://assets/model/box/frying_pan.tscn" id="7_rg5yx"]
+[ext_resource type="PackedScene" uid="uid://vtouulnlf386" path="res://Tools_I/Tools_I.tscn" id="9_mnrfm"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -36,12 +36,6 @@ size = Vector3(1, 0.8, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_1r6oq"]
 material = SubResource("StandardMaterial3D_onvak")
-
-[sub_resource type="BoxMesh" id="BoxMesh_qfbep"]
-material = ExtResource("3_qxp3c")
-
-[sub_resource type="BoxMesh" id="BoxMesh_rg5yx"]
-material = ExtResource("3_qxp3c")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
 bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
@@ -619,26 +613,6 @@ shape = SubResource("BoxShape3D_a7i5e")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
 mesh = SubResource("BoxMesh_1r6oq")
 
-[node name="StaticBox_siu2" type="StaticBody3D" parent="Node3D/staticboxes" unique_id=1920732568]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 3.5, 2.5)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/staticboxes/StaticBox_siu2" unique_id=1985803801]
-shape = SubResource("BoxShape3D_a7i5e")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/staticboxes/StaticBox_siu2" unique_id=2108682189]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
-mesh = SubResource("BoxMesh_qfbep")
-
-[node name="StaticBox_siu1" type="StaticBody3D" parent="Node3D/staticboxes" unique_id=531379077]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 5.5, -0.5)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/staticboxes/StaticBox_siu1" unique_id=153210103]
-shape = SubResource("BoxShape3D_a7i5e")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/staticboxes/StaticBox_siu1" unique_id=211642146]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
-mesh = SubResource("BoxMesh_rg5yx")
-
 [node name="StaticBox_EXIT" type="Area3D" parent="Node3D/staticboxes" unique_id=768943197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 3.5, -2.5)
 
@@ -647,6 +621,11 @@ shape = SubResource("BoxShape3D_a7i5e")
 
 [node name="FryingPan" parent="Node3D/staticboxes/StaticBox_EXIT" unique_id=1299094027 instance=ExtResource("7_rg5yx")]
 transform = Transform3D(0.97336763, -1.0020823e-08, -0.22924972, -0.22924972, -4.254725e-08, -0.97336763, 0, 1, -4.371139e-08, 0, 0, -0.4)
+
+[node name="ToolsI" parent="Node3D" unique_id=2039248798 instance=ExtResource("9_mnrfm")]
+portal_a_position = Vector3(-2.5, 5.5, -0.5)
+portal_b_position = Vector3(1.5, 3.5, 2.5)
+key_position = Vector3(-0.5, 0.45, -1.5)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=666005303]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)

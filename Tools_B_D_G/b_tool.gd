@@ -44,6 +44,24 @@ func adsorb_to_d(d_global_pos: Vector3) -> void:
 	global_transform.origin = d_global_pos
 
 
+## 复原到「G 已收集、尚未落入 D」：取消吸附、不透明。
+## defer_gravity：先保持冻结，等外部换完位置再 enable_gravity（避免还在 D 上就掉进去）。
+func restore_after_g_collected(defer_gravity: bool = false) -> void:
+	adsorbed = false
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	set_transparency(1.0)
+	if defer_gravity:
+		gravity_enabled = false
+		gravity_scale = 0.0
+		freeze = true
+	else:
+		gravity_enabled = true
+		gravity_scale = 1.0
+		freeze = false
+		sleeping = false
+
+
 ## 外部调用，设置 B 的透明度。
 func set_transparency(alpha: float) -> void:
 	var mi := get_node_or_null("MeshInstance3D") as MeshInstance3D

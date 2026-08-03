@@ -5,15 +5,15 @@
 [ext_resource type="Script" uid="uid://bp3a80vy04n71" path="res://Tools_B_D_G/d_wall.gd" id="2_onvv6"]
 [ext_resource type="Script" uid="uid://bmt42os3ne5si" path="res://Tools_B_D_G/g_tool.gd" id="4_aiee5"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_1r6oq"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_5cdc3"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_a7i5e"]
-size = Vector3(1, 2, 1)
+[sub_resource type="BoxShape3D" id="BoxShape3D_lr1vn"]
+size = Vector3(1.15, 2.6, 1.15)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1r6oq"]
-albedo_color = Color(0.38431373, 0.49411765, 1, 1)
+albedo_color = Color(0.8181082, 0.4249597, 0.15981194, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_a7i5e"]
+[sub_resource type="BoxMesh" id="BoxMesh_fywue"]
 material = SubResource("StandardMaterial3D_1r6oq")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
@@ -36,17 +36,18 @@ script = ExtResource("2_onvv6")
 [node name="StaticBody3D" type="StaticBody3D" parent="D_Wall" unique_id=829373557]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="D_Wall/StaticBody3D" unique_id=1004236137]
-shape = SubResource("BoxShape3D_1r6oq")
+shape = SubResource("BoxShape3D_5cdc3")
+debug_color = Color(0.9490196, 0.4392157, 0.14509805, 0.41960785)
 
 [node name="Area3D" type="Area3D" parent="D_Wall" unique_id=1977526214]
 collision_layer = 4
 collision_mask = 4
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="D_Wall/Area3D" unique_id=310689457]
-shape = SubResource("BoxShape3D_a7i5e")
+shape = SubResource("BoxShape3D_lr1vn")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="D_Wall" unique_id=780665315]
-mesh = SubResource("BoxMesh_a7i5e")
+mesh = SubResource("BoxMesh_fywue")
 
 [node name="B_Tool" type="RigidBody3D" parent="." unique_id=314963699]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 0)
@@ -54,6 +55,7 @@ collision_layer = 4
 script = ExtResource("2_btool")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="B_Tool" unique_id=67479488]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, 0)
 shape = SubResource("BoxShape3D_tctkp")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="B_Tool" unique_id=98446302]
