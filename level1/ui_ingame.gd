@@ -22,17 +22,31 @@ func _ready() -> void:
 
 	_hide_welcome_after_delay()
 
+	$GameOverPanel.visible = false
+
+	var player := get_parent().get_node_or_null("Player")
+	if player != null and player.has_signal("died"):
+		player.died.connect(_on_player_died)
+
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Q = yaw left, E = yaw right. Blocked while paused / on win screen.
 	if get_tree().paused or won:
 		return
+
+	var player := get_parent().get_node_or_null("Player")
+
+	# 角色死亡后禁止 Q/E 旋转。
+	if player != null and player.get("is_dead") == true:
+		return
+
 	var cube := get_parent().get_node_or_null("Node3D")
 	if cube == null:
 		return
+
 	if event.is_action_pressed("rotate_left") and cube.has_method("_on_left_pressed"):
 		cube._on_left_pressed()
 		get_viewport().set_input_as_handled()
+
 	elif event.is_action_pressed("rotate_right") and cube.has_method("_on_right_pressed"):
 		cube._on_right_pressed()
 		get_viewport().set_input_as_handled()
@@ -68,10 +82,11 @@ func _on_help_button_pressed() -> void:
 	$help_bg.visible = true
 	game_paused()
 
+
 func game_paused() -> void:
 	$exit.disabled = true
 	$welcome.visible = false
-	
+
 	var player := get_parent().get_node_or_null("Player")
 	if player != null:
 		player.set_physics_process(false)
@@ -82,7 +97,8 @@ func game_paused() -> void:
 		box.freeze = true
 
 	get_tree().paused = true
-	
+
+
 func game_continued() -> void:
 	$exit.disabled = false
 	$back.visible = false
@@ -100,8 +116,10 @@ func game_continued() -> void:
 
 	get_tree().paused = false
 
+
 func _on_back_to_game_pressed() -> void:
 	game_continued()
+
 
 func _on_exit_pressed() -> void:
 	get_tree().quit()
@@ -117,7 +135,7 @@ func _movable_boxes() -> Array[RigidBody3D]:
 			result.append(child as RigidBody3D)
 	return result
 
-	
+
 func reset_level() -> void:
 	# 若在暂停中，先恢复，再重置
 	get_tree().paused = false
@@ -136,3 +154,27 @@ func reset_level() -> void:
 	if player != null and player.has_method("reset_to_start"):
 		player.reset_to_start()
 		player.set_physics_process(true)
+
+
+func _on_next_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://level2/main.tscn")
+
+
+func _on_player_died() -> void:
+	for child in get_children():
+		if child is CanvasItem and child != $GameOverPanel:
+			child.visible = false
+
+	$GameOverPanel.visible = true
+	get_tree().paused = true
+
+
+func _on_restart_button_pressed() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func _on_quit_button_pressed() -> void:
+	get_tree().paused = false
+	get_tree().quit()

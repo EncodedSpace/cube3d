@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+signal died
+var is_dead: bool = false
 
 # 重力与起跳力度。
 @export var fall_acceleration := 75.0
@@ -77,8 +79,16 @@ func _ready() -> void:
 		_on_roll_finished
 	)
 
-
 func reset_to_start() -> void:
+	var box_shape := collision_shape.shape as BoxShape3D
+
+	if box_shape:
+		box_shape.size.y = 1.0
+		collision_shape.position.y = 0.0
+		
+	is_dead = false
+	collision_shape.set_deferred("disabled", false)
+	
 	jump_controller.cancel()
 	roll_controller.cancel()
 
@@ -87,7 +97,6 @@ func reset_to_start() -> void:
 	was_on_floor = true
 
 	_reset_visual_state()
-
 
 # 世界翻转完成后同步角色状态。
 func sync_move_from_facing() -> void:
@@ -102,15 +111,17 @@ func sync_move_from_facing() -> void:
 		or has_floor_below()
 	)
 
-
 func _reset_visual_state() -> void:
 	pivot.basis = Basis.IDENTITY
 	visual_root.basis = Basis.IDENTITY
 	visual_body.basis = Basis.IDENTITY
 	visual_body.scale = Vector3.ONE
 
-
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		velocity = Vector3.ZERO
+		return
+		
 	if not use_grid_roll:
 		_physics_process_walk(delta)
 		return
@@ -196,7 +207,6 @@ func _physics_process(delta: float) -> void:
 
 	was_on_floor = on_floor_now
 
-
 # 开场道路等场景使用普通滑动模式。
 func _physics_process_walk(delta: float) -> void:
 	var direction := _get_walk_direction()
@@ -230,7 +240,6 @@ func _physics_process_walk(delta: float) -> void:
 
 	was_on_floor = on_floor_now
 
-
 func _get_walk_direction() -> Vector3:
 	if screen_relative_move:
 		return get_input_direction()
@@ -253,7 +262,6 @@ func _get_walk_direction() -> Vector3:
 		return Vector3.ZERO
 
 	return input.normalized()
-
 
 func _start_jump(
 	direction: Vector3
@@ -333,7 +341,6 @@ func get_input_direction() -> Vector3:
 		world.normalized()
 	)
 
-
 func _get_screen_move_axes() -> Array[Vector3]:
 	var screen_up := Vector3(
 		0.0,
@@ -385,7 +392,6 @@ func _get_screen_move_axes() -> Array[Vector3]:
 		screen_right
 	]
 
-
 func _snap_horizontal_axis(
 	value: Vector3
 ) -> Vector3:
@@ -401,3 +407,54 @@ func _snap_horizontal_axis(
 		0.0,
 		signf(value.z)
 	)
+
+func die() -> void:
+	if is_dead:
+		return
+
+	is_dead = true
+	velocity = Vector3.ZERO
+
+	if is_instance_valid(jump_controller):
+		jump_controller.cancel()
+
+	if is_instance_valid(roll_controller):
+		roll_controller.cancel()
+	
+	# 死亡时让身体重新对齐世界坐标，
+	# 保证压扁方向永远朝向地面。
+	visual_body.basis = Basis.IDENTITY
+	
+	# 先播放压扁动画。
+	await visual_body.death_squash()
+
+	var box_shape := collision_shape.shape as BoxShape3D
+
+	if box_shape:
+		var height_scale: float = visual_body.death_height_scale
+		var original_height: float = 1.0
+		var new_height: float = original_height * height_scale
+
+		box_shape.size.y = new_height
+
+		# 保持碰撞体底面位置不变。
+		collision_shape.position.y = -(
+			original_height - new_height
+		) * 0.5
+	
+	await visual_body.death_squash()
+	
+	died.emit()
+
+# 临时测试：按 K 触发死亡。
+func _unhandled_input(event: InputEvent) -> void:
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_K
+	):
+		die()
+
+func get_death_height_scale() -> float:
+	return visual_body.death_height_scale

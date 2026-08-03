@@ -80,7 +80,7 @@ func start(
 			+ direction * grid_step
 		)
 
-		# 提前检查下一格是否有墙或障碍。
+				# 提前检查下一格是否有墙或障碍。
 		var test_collision := player.move_and_collide(
 			direction * grid_step,
 			true
@@ -94,12 +94,12 @@ func start(
 					test_collision.get_normal(),
 					direction
 				)
-				break
 
-			if _destination_has_obstacle(destination):
-				break
+			# 碰到墙、箱子或其他实体，都停止翻滚。
+			break
 
 		visual_face.look_direction(direction)
+
 
 		var roll_succeeded := await _roll_step(
 			direction,
