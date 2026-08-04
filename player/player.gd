@@ -84,6 +84,8 @@ func reset_to_start() -> void:
 	roll_controller.cancel()
 
 	global_transform = start_transform
+	# 重置后 XZ 校准到整数格，Y 不变。
+	global_position = Vector3(roundf(global_position.x), global_position.y, roundf(global_position.z))
 	velocity = Vector3.ZERO
 	was_on_floor = true
 
@@ -100,6 +102,8 @@ func sync_move_from_facing() -> void:
 	roll_controller.cancel()
 
 	velocity = Vector3.ZERO
+	# 翻转后 XZ 校准到整数格，Y 不变。
+	global_position = Vector3(roundf(global_position.x), global_position.y, roundf(global_position.z))
 	_reset_visual_state()
 
 	was_on_floor = (

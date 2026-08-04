@@ -8,7 +8,7 @@ signal finished(on_floor: bool)
 @export var roll_duration := 0.20
 
 # 玩家向墙面推动达到此强度时，触发世界翻转。
-@export var flip_push_threshold := 0.35
+@export var flip_push_threshold := 0.20
 
 
 var player: CharacterBody3D
@@ -139,6 +139,9 @@ func start(
 	var on_floor: bool = bool(player.has_floor_below())
 
 	if on_floor:
+		# 校准 XZ 到整数格，Y 不变（玩家站在方块顶面，Y 偏移 0.5）。
+		var p := player.global_position
+		player.global_position = Vector3(roundf(p.x), p.y, roundf(p.z))
 		await visual_body.end_squash()
 
 		if not _is_request_active(current_request):
@@ -154,7 +157,10 @@ func _roll_step(
 	step_distance: float,
 	request_id: int
 ) -> bool:
-	var start_position := player.global_position
+	# 校准 XZ 到整数格，Y 不变（玩家站在方块顶面）。
+	var p := player.global_position
+	var start_position := Vector3(roundf(p.x), p.y, roundf(p.z))
+	player.global_position = start_position
 	var start_body_basis := visual_body.basis
 
 	var final_position := (
