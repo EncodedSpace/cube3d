@@ -72,6 +72,9 @@ func _ready() -> void:
 		for child in walls.get_children():
 			if child is Node3D:
 				(child as Node3D).visible = true
+
+	rng.randomize()
+	generate()
 	await _bootstrap_cutaway()
 
 
@@ -470,7 +473,6 @@ func update_cutaway_visibility() -> void:
 		var wall := node as Node3D
 		wall_nodes[wall_name] = wall
 
-		# 墙壁朝外的法线方向
 		var inward: Vector3 = wall.global_transform.basis.y.normalized()
 		var outward: Vector3 = -inward
 		var score := outward.dot(to_camera)
@@ -795,24 +797,12 @@ func restore_saved_map() -> void:
 func _apply_map() -> void:
 	_scale_shell_walls()
 	_clone_wall_boxes()
-
-	# Store spawn and place exit BEFORE rotation (local coords still valid)
-	var spawn_local := _wp(start_pos.x, start_pos.y, start_pos.z)
-	var spawn_outward := _surface_normal(start_pos)
 	_position_exit()
-
-	# Rotate the cube around its geometric center
-	# We avoid rotating the whole cube on spawn by selecting a bottom-face
-	# start. Bind boxes now without rotating so world transforms remain stable.
 	_bind_boxes_to_walls()
-
-	# Adjust camera size (10–20) and Marker3D height (y: 0–3) based on n (6–12).
 	adjust_camera()
 
-	# (Already bound above when not rotating.)
-
-	# Place player at the rotated spawn position (convert local → world)
-	_place_player_at(spawn_local, spawn_outward)
+	# 玩家始终从底面出生 → 不需要旋转，直接放在 world 坐标
+	_place_player_at()
 
 
 ## 根据矩阵尺寸 n（6–12）调节：
@@ -995,37 +985,31 @@ func _position_exit() -> void:
 func _orient_start_as_floor() -> void:
 	## Rotate this node around its geometric center so the start face becomes the floor.
 	var outward := _surface_normal(start_pos)
+	if outward.dot(Vector3.DOWN) > 0.99:
+		return  # 已经是底面，不需要旋转
 	var q := Quaternion(outward, Vector3.DOWN)
 	if q.get_angle() < 0.01:
 		return
-	var center := to_global(Vector3(0, cube_half_extent, 0))
+	var center := to_global(Vector3(0.0, cube_half_extent, 0.0))
 	global_transform = _rotated_xform(global_transform, center, q)
+	global_transform.basis = global_transform.basis.orthonormalized()
 
 
-func _place_player_at(spawn_local: Vector3, outward: Vector3) -> void:
+func _place_player_at() -> void:
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	if player == null:
 		return
 
-	# The spawn cell is empty (matrix=0), so the player stands directly on the
-	# shell wall – not on top of a block. The wall collision box is 1 unit thick
-	# and its center sits 0.5 inside the cube, so the walkable surface is at
-	# block_center + inward * 0.0 (i.e. wall_surface = block_center in local Y).
-	# Simply place the player origin at the block center of the spawn cell.
-	var block_center_world := to_global(spawn_local)
+	# _wp 返回格子的精确中心，用 local 坐标转 world
+	var world_pos := to_global(_wp(start_pos.x, start_pos.y, start_pos.z))
+	world_pos.y = 0.55  # 底面碰撞壳顶部（壳厚1，-0.5~0.5）
+	# x/z 保持 _wp 返回的精确中心值（不 snapped）
 
-	# Player origin at the spawn cell's block center (y=0.5 for bottom face).
-	# The wall collision top is at y=1.0, but the visual floor plane is at y=0;
-	# the player physics collides with the wall top at y=1.0, so we spawn at
-	# the block center and let gravity settle the player onto the wall.
-	# 保留玩家原有的缩放（0.9），仅覆盖位置与朝向。
 	var player_scale := player.scale
-	var desired_origin := block_center_world
-	var desired_transform := Transform3D(Basis.IDENTITY, desired_origin).scaled(player_scale)
-
+	var xform := Transform3D(Basis.IDENTITY, world_pos).scaled(player_scale)
 	if player.has_method("set_start_transform"):
-		player.set_start_transform(desired_transform)
-	player.global_transform = desired_transform
+		player.set_start_transform(xform)
+	player.global_transform = xform
 	if player is CharacterBody3D:
 		(player as CharacterBody3D).velocity = Vector3.ZERO
 

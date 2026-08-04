@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+## Resolved .import UID → use path load as fallback when uid:// fails (e.g. Web).
+const FONT_PATH := "res://Fonts/Source Han Sans CN.ttf"
 
 ## 欢迎语，在 _ready 中自动设置到 welcome Label
 @export_multiline var welcome_text: String = "欢迎来到教学关卡！\n请走到绿色出口吧！"
@@ -19,6 +21,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
 
+	_apply_ui_theme()
+
 	$back.visible = false
 	$next.visible = false
 	$next2.visible = false
@@ -27,11 +31,8 @@ func _ready() -> void:
 	$help.visible = false
 	$help_bg.visible = false
 	$welcome.visible = true
-	# 禅模式专属：显示"重新生成"按钮与"地图尺寸"选择菜单（MenuButton 可选）
+	# 禅模式专属：显示"重新生成"按钮
 	$recreate.visible = is_zen_mode
-	var menu_btn := get_node_or_null("MenuButton") as MenuButton
-	if menu_btn != null:
-		menu_btn.visible = is_zen_mode
 
 	$welcome.text = welcome_text
 	$congratulations.text = congrats_text
@@ -50,6 +51,26 @@ func _ready() -> void:
 	var player := get_parent().get_node_or_null("Player")
 	if player != null and player.has_signal("died"):
 		player.died.connect(_on_player_died)
+
+
+## Apply the Chinese font to every Label + Button descendant.
+## Uses `add_theme_font_override("font", …)` directly on each control,
+## which is the most reliable way across all platforms including Web.
+func _apply_ui_theme() -> void:
+	var font := load(FONT_PATH) as Font
+	if font == null:
+		return
+	var controls: Array[Node] = []
+	_gather_text_controls(self, controls)
+	for c in controls:
+		(c as Control).add_theme_font_override("font", font)
+
+
+func _gather_text_controls(node: Node, result: Array[Node]) -> void:
+	for child in node.get_children():
+		if child is Label or child is Button:
+			result.append(child)
+		_gather_text_controls(child, result)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -116,17 +137,20 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_reload_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_zen_mode_pressed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://map_generator/zen_mode.tscn")
+
+
+func _on_main_menu_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://MainMenu/control.tscn")
 
 
 func _on_next2_pressed() -> void:
@@ -214,32 +238,33 @@ func _movable_boxes() -> Array[RigidBody3D]:
 
 
 func reset_level() -> void:
-	get_tree().paused = false
-	won = false
-
-	var cube := get_parent().get_node_or_null("Node3D")
-	if cube != null and cube.has_method("reset_to_start"):
-		cube.reset_to_start()
-
-	for box in _movable_boxes():
-		if box.has_method("reset_to_start"):
-			box.reset_to_start()
-
-	var player := get_parent().get_node_or_null("Player")
-	if player != null and player.has_method("reset_to_start"):
-		player.reset_to_start()
-
-	game_continued()
-
-	# 没有生成器时回退到重载整个场景。
-	if cube == null or not cube.has_method("reset_to_start"):
-		get_tree().reload_current_scene()
+	var tree := get_tree()
+	if tree == null:
+		return
+	tree.paused = false
+	tree.reload_current_scene()
 
 
 func _on_next_pressed() -> void:
 	get_tree().paused = false
 	if not next_scene.is_empty():
+		# 标记当前关卡完成
+		_mark_current_level_complete()
 		get_tree().change_scene_to_file(next_scene)
+
+
+func _mark_current_level_complete() -> void:
+	match next_scene:
+		"res://level1/main.tscn":
+			LevelProgress.mark_completed("teach")
+		"res://level2/main.tscn":
+			LevelProgress.mark_completed("level1")
+		"res://level3/main.tscn":
+			LevelProgress.mark_completed("level2")
+		"res://level4/main.tscn":
+			LevelProgress.mark_completed("level3")
+		"res://level5/main.tscn":
+			LevelProgress.mark_completed("level4")
 
 
 func _on_player_died() -> void:
