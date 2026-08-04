@@ -33,8 +33,83 @@ signal flip_finished
 func _ready() -> void:
 	start_transform = global_transform
 	_bind_props_to_walls()
+	# 入场：先确保 6 面全可见，然后背向相机的 3 面从可见渐变消失
+	await _fade_in_outer_walls()
 	# Camera may not be current on the first frame after a scene change.
 	await _bootstrap_cutaway()
+
+
+## 进入关卡时，让玩家看到的外侧 3 面墙从可见 → 不可见渐变。
+func _fade_in_outer_walls() -> void:
+	# 先确保相机已激活。
+	for _i in range(12):
+		if _ensure_level_camera() != null:
+			break
+		await get_tree().process_frame
+
+	var walls := get_node_or_null("WALLS")
+	if walls == null:
+		return
+
+	# 1. 先把所有墙面设为可见，alpha = 1.0
+	var all_meshes: Array[MeshInstance3D] = []
+	for child in walls.get_children():
+		var wall := child as Node3D
+		if wall == null:
+			continue
+		var mesh := wall.get_node_or_null("MeshInstance3D") as MeshInstance3D
+		if mesh == null:
+			continue
+		mesh.visible = true
+		all_meshes.append(mesh)
+		# 复制材质以便独立控制 alpha
+		var mat: Material = mesh.get_surface_override_material(0)
+		if not mat and mesh.mesh and mesh.mesh.surface_get_material(0):
+			mat = mesh.mesh.surface_get_material(0).duplicate()
+			mesh.set_surface_override_material(0, mat)
+		if mat is ShaderMaterial:
+			(mat as ShaderMaterial).set_shader_parameter("albedo:a", 1.0)
+
+	await get_tree().process_frame
+
+	# 2. 找出背向相机的 3 面墙
+	var cam := _ensure_level_camera()
+	if cam == null:
+		return
+	var to_camera := (cam.global_position - get_center_global()).normalized()
+	var meshes_to_fade: Array[MeshInstance3D] = []
+
+	for child in walls.get_children():
+		var wall := child as Node3D
+		if wall == null:
+			continue
+		var outward := -wall.global_transform.basis.y.normalized()
+		if outward.dot(to_camera) > wall_visible_dot:
+			var mesh := wall.get_node_or_null("MeshInstance3D") as MeshInstance3D
+			if mesh != null and mesh not in meshes_to_fade:
+				meshes_to_fade.append(mesh)
+
+	if meshes_to_fade.is_empty():
+		return
+
+	# 3. 等半秒，再渐变 alpha 1.0 → 0.0
+	await get_tree().create_timer(0.5).timeout
+
+	var fade_tween := create_tween().set_parallel(true)
+	fade_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	for mesh in meshes_to_fade:
+		var mat := mesh.get_surface_override_material(0)
+		if mat is ShaderMaterial:
+			fade_tween.tween_property(mat, "shader_parameter/albedo:a", 0.0, 1.0)
+
+	await fade_tween.finished
+
+	# 4. 渐变结束后 visible = false，alpha 恢复 1.0（交给 cutaway 控制可见性）
+	for mesh in meshes_to_fade:
+		mesh.visible = false
+		var mat2 := mesh.get_surface_override_material(0)
+		if mat2 is ShaderMaterial:
+			(mat2 as ShaderMaterial).set_shader_parameter("albedo:a", 1.0)
 
 
 func _bootstrap_cutaway() -> void:

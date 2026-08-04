@@ -9,7 +9,6 @@
 [ext_resource type="Script" uid="uid://eq4yj0dlhuvl" path="res://Tools_E/static_box_e1.gd" id="6_s4uq2"]
 [ext_resource type="PackedScene" uid="uid://bynpixfcpdb1h" path="res://Tools_B_D_G/Tool_B_D_G.tscn" id="7_vxgnr"]
 [ext_resource type="Script" uid="uid://bp3a80vy04n71" path="res://Tools_B_D_G/d_wall.gd" id="8_3jimp"]
-[ext_resource type="Script" uid="uid://ct6thgwaeii38" path="res://Tools_B_D_G/tool_b_d_g.gd" id="9_ecgf5"]
 [ext_resource type="PackedScene" uid="uid://vtouulnlf386" path="res://Tools_I/Tools_I.tscn" id="9_x6fpw"]
 [ext_resource type="PackedScene" uid="uid://cxsojn8u6mkk1" path="res://Tools_F/Tools_F.tscn" id="10_abtoq"]
 [ext_resource type="PackedScene" uid="uid://y36yjna2dm53" path="res://final_key/Final_Key.tscn" id="11_5thim"]
@@ -709,7 +708,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
 mesh = SubResource("BoxMesh_7i5fj")
 
 [node name="Tool_B_D_G" parent="Node3D" unique_id=887628236 instance=ExtResource("7_vxgnr")]
-script = ExtResource("9_ecgf5")
 b_position = Vector3(-2.5, 3.5, -1.5)
 g_position = Vector3(-0.5, 1.5, -2.5)
 d_position = Vector3(-2.5, 3.5, -2.5)
@@ -744,15 +742,6 @@ shape = SubResource("BoxShape3D_lr1vn")
 mesh = SubResource("BoxMesh_fywue")
 
 [node name="Tool_X_Y_Z" parent="Node3D" unique_id=2084279781 instance=ExtResource("7_vxgnr")]
-
-[node name="D_Wall" parent="Node3D/Tool_X_Y_Z" index="0" unique_id=596464517]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 3.5, -2.5)
-
-[node name="B_Tool" parent="Node3D/Tool_X_Y_Z" index="1" unique_id=314963699]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 3.5, -1.5)
-
-[node name="G_Tool" parent="Node3D/Tool_X_Y_Z" index="2" unique_id=1264973914]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.5, -2.5)
 
 [node name="D_Wall2" type="Node3D" parent="Node3D/Tool_X_Y_Z" unique_id=1716206180]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.5, 2.5)
