@@ -118,6 +118,11 @@ func _on_zen_mode_pressed() -> void:
 	get_tree().change_scene_to_file("res://map_generator/zen_mode.tscn")
 
 
+func _on_main_menu_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://MainMenu/control.tscn")
+
+
 func _on_next2_pressed() -> void:
 	# 禅模式专属"下一轮游戏"：与"重新生成"一致，弹出尺寸面板重新建图。
 	_on_recreate_pressed()
@@ -226,4 +231,18 @@ func reset_level() -> void:
 func _on_next_pressed() -> void:
 	get_tree().paused = false
 	if not next_scene.is_empty():
+		# 标记当前关卡完成
+		_mark_current_level_complete()
 		get_tree().change_scene_to_file(next_scene)
+
+
+func _mark_current_level_complete() -> void:
+	match next_scene:
+		"res://level1/main.tscn":
+			LevelProgress.mark_completed("teach")
+		"res://level2/main.tscn":
+			LevelProgress.mark_completed("level1")
+		"res://level3/main.tscn":
+			LevelProgress.mark_completed("level2")
+		"res://level4/main.tscn":
+			LevelProgress.mark_completed("level3")

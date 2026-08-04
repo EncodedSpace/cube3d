@@ -84,6 +84,12 @@ offset_bottom = 70.0
 theme_override_font_sizes/font_size = 30
 text = "玩法说明"
 
+[node name="main_menu" type="Button" parent="." unique_id=1810501355]
+offset_right = 200.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 30
+text = "主菜单"
+
 [node name="help_bg" type="PanelContainer" parent="." unique_id=704348181]
 visible = false
 z_index = -1
@@ -165,5 +171,6 @@ text = "返回游戏"
 [connection signal="pressed" from="next" to="." method="_on_next_pressed"]
 [connection signal="pressed" from="next2" to="." method="_on_next2_pressed"]
 [connection signal="pressed" from="help_button" to="." method="_on_help_button_pressed"]
-[connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]
+[connection signal="pressed" from="main_menu" to="." method="_on_main_menu_pressed"]
 [connection signal="pressed" from="zen_mode" to="." method="_on_zen_mode_pressed"]
+[connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]

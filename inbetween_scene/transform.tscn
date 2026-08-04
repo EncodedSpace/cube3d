@@ -439,7 +439,7 @@ offset_right = 264.0
 offset_bottom = 114.0
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_e4awe")
-text = "· 按WASD移动，探索这片区域"
+text = " · 按WASD移动，探索这片区域"
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1372869028]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 13.398322)
