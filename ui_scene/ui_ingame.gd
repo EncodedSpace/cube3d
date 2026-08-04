@@ -105,12 +105,10 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_reload_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_zen_mode_pressed() -> void:
@@ -206,26 +204,11 @@ func _movable_boxes() -> Array[RigidBody3D]:
 
 
 func reset_level() -> void:
-	get_tree().paused = false
-	won = false
-
-	var cube := get_parent().get_node_or_null("Node3D")
-	if cube != null and cube.has_method("reset_to_start"):
-		cube.reset_to_start()
-
-	for box in _movable_boxes():
-		if box.has_method("reset_to_start"):
-			box.reset_to_start()
-
-	var player := get_parent().get_node_or_null("Player")
-	if player != null and player.has_method("reset_to_start"):
-		player.reset_to_start()
-
-	game_continued()
-
-	# 没有生成器时回退到重载整个场景。
-	if cube == null or not cube.has_method("reset_to_start"):
-		get_tree().reload_current_scene()
+	var tree := get_tree()
+	if tree == null:
+		return
+	tree.paused = false
+	tree.reload_current_scene()
 
 
 func _on_next_pressed() -> void:

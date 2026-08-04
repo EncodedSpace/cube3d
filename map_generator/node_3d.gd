@@ -470,7 +470,6 @@ func update_cutaway_visibility() -> void:
 		var wall := node as Node3D
 		wall_nodes[wall_name] = wall
 
-		# 墙壁朝外的法线方向
 		var inward: Vector3 = wall.global_transform.basis.y.normalized()
 		var outward: Vector3 = -inward
 		var score := outward.dot(to_camera)

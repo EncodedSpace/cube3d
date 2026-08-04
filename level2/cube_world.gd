@@ -681,11 +681,17 @@ func _all_fallable_props_settled() -> bool:
 func _wait_for_props_to_settle() -> void:
 	# Let physics start falling for at least one frame after unfreeze.
 	await get_tree().physics_frame
+	if not is_inside_tree():
+		return
 	var stable := 0
 	var elapsed := 0.0
 	while elapsed < settle_timeout:
+		if not is_inside_tree():
+			return
 		if get_tree().paused:
 			await get_tree().process_frame
+			if not is_inside_tree():
+				return
 			continue
 		if _all_fallable_props_settled():
 			stable += 1
@@ -694,4 +700,6 @@ func _wait_for_props_to_settle() -> void:
 		else:
 			stable = 0
 		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
 		elapsed += get_physics_process_delta_time()
