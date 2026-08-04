@@ -1,0 +1,149 @@
+[gd_scene format=3 uid="uid://1is4plx7j8v1"]
+
+[ext_resource type="Script" uid="uid://d1wgfaq162a23" path="res://level1/ui_ingame.gd" id="1_f8os5"]
+[ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_0kaxw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
+bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
+
+[node name="ui_ingame" type="CanvasLayer" unique_id=1065938345]
+script = ExtResource("1_f8os5")
+
+[node name="welcome" type="Label" parent="." unique_id=342224486]
+offset_top = 465.0
+offset_right = 1920.0
+offset_bottom = 615.0
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = ExtResource("2_0kaxw")
+text = "欢迎来到第一关！
+请走到绿色出口吧！"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="exit" type="Button" parent="." unique_id=1372351424]
+offset_left = 1720.0
+offset_top = 1000.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+theme_override_font_sizes/font_size = 30
+text = "退出游戏"
+
+[node name="reload" type="Button" parent="." unique_id=235228788]
+offset_left = 1720.0
+offset_top = 920.0
+offset_right = 1920.0
+offset_bottom = 1000.0
+theme_override_font_sizes/font_size = 30
+text = "重置本关"
+
+[node name="back" type="Button" parent="." unique_id=467652134]
+offset_left = 710.0
+offset_top = 700.0
+offset_right = 910.0
+offset_bottom = 800.0
+theme_override_font_sizes/font_size = 30
+text = "重新开始"
+
+[node name="next" type="Button" parent="." unique_id=1418291869]
+offset_left = 1020.0
+offset_top = 700.0
+offset_right = 1220.0
+offset_bottom = 800.0
+theme_override_font_sizes/font_size = 30
+text = "下一关"
+
+[node name="congratulations" type="Label" parent="." unique_id=678298616]
+offset_top = 550.0
+offset_right = 1920.0
+offset_bottom = 619.0
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = ExtResource("2_0kaxw")
+text = "恭喜你完成了教学关卡！"
+horizontal_alignment = 1
+
+[node name="help_button" type="Button" parent="." unique_id=1710963555]
+offset_left = 1720.0
+offset_right = 1920.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 30
+text = "玩法说明"
+
+[node name="help_bg" type="PanelContainer" parent="." unique_id=704348181]
+visible = false
+z_index = -1
+offset_left = 710.0
+offset_top = 240.0
+offset_right = 1220.0
+offset_bottom = 816.0
+theme_override_styles/panel = ExtResource("2_0kaxw")
+
+[node name="zen_mode" type="Button" parent="." unique_id=1055988393]
+offset_left = 710.0
+offset_top = 816.0
+offset_right = 1220.0
+offset_bottom = 866.0
+theme_override_font_sizes/font_size = 30
+text = "ZEN MODE"
+
+[node name="help" type="VBoxContainer" parent="." unique_id=521764835]
+offset_left = 710.0
+offset_top = 240.0
+offset_right = 1220.0
+offset_bottom = 866.0
+theme_override_constants/separation = 30
+
+[node name="Label" type="Label" parent="help" unique_id=924911074]
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_272bh")
+text = "玩法说明"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="help" unique_id=605505394]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "使用WASD控制角色移动"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="help" unique_id=1310464651]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "按 Q / E 可水平旋转立方体
+移动到另一墙面会发生整体翻转"
+horizontal_alignment = 1
+
+[node name="Label4" type="Label" parent="help" unique_id=1273527900]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "在空间中走到绿色出口即通关"
+horizontal_alignment = 1
+
+[node name="Label5" type="Label" parent="help" unique_id=608698143]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "请在倒计时结束前完成当前关卡"
+horizontal_alignment = 1
+
+[node name="Label6" type="Label" parent="help" unique_id=947619081]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "依次通关后你才能逃出密室"
+horizontal_alignment = 1
+
+[node name="Label7" type="Label" parent="help" unique_id=2141604603]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "祝你逃脱顺利！"
+horizontal_alignment = 1
+
+[node name="back_to_game" type="Button" parent="help" unique_id=1163095839]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "返回游戏"
+
+[connection signal="pressed" from="exit" to="." method="_on_exit_pressed"]
+[connection signal="pressed" from="reload" to="." method="_on_reload_pressed"]
+[connection signal="pressed" from="back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="next" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="help_button" to="." method="_on_help_button_pressed"]
+[connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]

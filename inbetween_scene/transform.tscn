@@ -358,9 +358,8 @@ projection = 1
 size = 10.0
 
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("3_8thna")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 17.792477)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 12.555117)
 screen_relative_move = false
-use_grid_roll = true
 
 [node name="OmniLight3D" type="OmniLight3D" parent="Player" unique_id=963476749]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.999999, 0)

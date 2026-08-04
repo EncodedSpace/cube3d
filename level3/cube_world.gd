@@ -201,6 +201,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 				and ("StaticBox" in n or "MovableBox" in n)
 				and "EXIT" not in n
 			):
+				# E2 解锁后允许玩家进入，不再当翻滚障碍。
 				if child.get("allows_player_enter") == true or child.get("is_open") == true:
 					pass
 				else:
@@ -269,16 +270,17 @@ func _bind_props_to_walls() -> void:
 	if walls == null:
 		return
 
-	# Teach keeps StaticBoxes under the cube root; optional staticboxes folder also works.
 	var boxes_root := get_node_or_null("staticboxes")
 	if boxes_root == null:
 		boxes_root = get_node_or_null("staticbox")
 	if boxes_root == null:
 		boxes_root = self
+		push_warning("Missing Node3D/staticbox(es); binding StaticBox props under cube root.")
 
 	var props: Array[Node3D] = []
 	_gather_wall_props(self, props)
 
+	# Recover boxes left under the scene root (Main) instead of the cube.
 	var host := get_parent()
 	if host != null:
 		for child in host.get_children():
@@ -287,7 +289,8 @@ func _bind_props_to_walls() -> void:
 				if found not in props:
 					props.append(found)
 
-	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*"]:
+	# Recover boxes that may still sit under WALLS from older parenting.
+	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*", "*Final_*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -295,12 +298,13 @@ func _bind_props_to_walls() -> void:
 
 	for prop in props:
 		var n := String(prop.name)
+		# Static props live under staticboxes; movable boxes stay under the cube root
+		# so ui_ingame / physics keep finding them as direct children.
 		# Tool_B_D_G parts stay under their tool group (do not reparent).
 		if "StaticBox" in n:
 			if prop.get_parent() != boxes_root:
 				prop.reparent(boxes_root, true)
 		elif "MovableBox" in n:
-			# Keep under cube root so ui_ingame / physics still find them.
 			if prop.get_parent() != self:
 				prop.reparent(self, true)
 
@@ -317,6 +321,7 @@ func _is_wall_prop_name(n: String) -> bool:
 		"StaticBox" in n
 		or "MovableBox" in n
 		or "Portal" in n
+		or n.begins_with("Final_")
 		or n == "D_Wall"
 		or n == "B_Tool"
 		or n == "G_Tool"
@@ -332,6 +337,7 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 	for child in node.get_children():
 		if child is Node3D and _is_wall_prop_name(String(child.name)):
 			result.append(child as Node3D)
+		# Keep walking containers; skip descending into a prop itself.
 		if child is Node3D and not _is_wall_prop_name(String(child.name)):
 			_gather_wall_props(child, result)
 
@@ -432,6 +438,7 @@ func update_cutaway_visibility() -> void:
 		if (
 			"MovableBox" in prop_name
 			or "Portal" in prop_name
+			or prop_name.begins_with("Final_")
 			or prop_name == "D_Wall"
 			or prop_name.begins_with("D_Wall")
 			or prop_name == "B_Tool"
@@ -471,35 +478,40 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 				b.freeze = false
 		return
 
-	# D_Wall:
-	# - before G: any bound face lit → visible + collision
-	# - after G, before open: always visible + collision
-	# - after open: no solid collision
+	# D_Wall / D_Wall2：始终跟随绑定墙裁切（与 G 无关）；开门后无固体碰撞。
+	# 隐藏时只关 StaticBody，保留 Area。
 	if prop.has_method("should_keep_player_block"):
 		var closed: bool = prop.should_keep_player_block()
 		if not closed:
-			prop.visible = true
-			_set_collision_shapes_disabled(prop, true)
+			# 已开门：仍跟墙显隐，但不挡人。
+			prop.visible = wall_visible
+			_set_d_solid_disabled(prop, true)
 			return
 
-		var show_d := wall_visible
-		if prop.has_method("should_force_visible_block") and prop.should_force_visible_block():
-			show_d = true
-
-		prop.visible = show_d
-		if show_d:
+		prop.visible = wall_visible
+		if wall_visible:
 			if prop.has_method("ensure_player_block"):
 				prop.ensure_player_block()
 		else:
-			_set_collision_shapes_disabled(prop, true)
+			_set_d_solid_disabled(prop, true)
+		return
+
+	# StaticBox_E1 / E2：自管碰撞（E1 永不挡箱；E2 解锁后不挡人）。
+	if prop.has_method("apply_cutaway_visibility"):
+		prop.apply_cutaway_visibility(wall_visible)
 		return
 
 	prop.visible = wall_visible
 	_set_collision_shapes_disabled(prop, not wall_visible)
 	# Only MovableBox uses freeze for cutaway. B_Tool/G_Tool manage freeze themselves.
+	# 锁在 E1 里的箱子保持 freeze，不被裁切逻辑解开。
 	if prop is RigidBody3D and "MovableBox" in String(prop.name):
 		var rb := prop as RigidBody3D
-		if not wall_visible or _hold_props_frozen:
+		if prop.has_meta("locked_in_e1") and bool(prop.get_meta("locked_in_e1")):
+			rb.linear_velocity = Vector3.ZERO
+			rb.angular_velocity = Vector3.ZERO
+			rb.freeze = true
+		elif not wall_visible or _hold_props_frozen:
 			rb.linear_velocity = Vector3.ZERO
 			rb.angular_velocity = Vector3.ZERO
 			rb.freeze = true
@@ -512,6 +524,20 @@ func _set_collision_shapes_disabled(node: Node, disabled: bool) -> void:
 		(node as CollisionShape3D).disabled = disabled
 	for child in node.get_children():
 		_set_collision_shapes_disabled(child, disabled)
+
+
+## 只开关 D 的固体碰撞，不动 Area（B 检测）。
+func _set_d_solid_disabled(d_prop: Node, disabled: bool) -> void:
+	var static_body := d_prop.get_node_or_null("StaticBody3D") as StaticBody3D
+	if static_body == null:
+		return
+	if disabled:
+		static_body.collision_layer = 0
+	else:
+		static_body.collision_layer = 1
+	for child in static_body.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = disabled
 
 
 ## Rotates cube and player together. Afterward the player stands upright but
@@ -624,6 +650,8 @@ func _is_fallable_body(rb: RigidBody3D) -> bool:
 		return false
 	var n := String(rb.name)
 	if "MovableBox" in n:
+		if rb.has_meta("locked_in_e1") and bool(rb.get_meta("locked_in_e1")):
+			return false
 		return true
 	if rb.is_in_group("b_tool"):
 		return rb.get("gravity_enabled") == true and rb.get("adsorbed") != true
@@ -633,6 +661,7 @@ func _is_fallable_body(rb: RigidBody3D) -> bool:
 func _body_is_settled(rb: RigidBody3D) -> bool:
 	if rb == null or not is_instance_valid(rb):
 		return true
+	# Locked / adsorbed / cutaway-hidden bodies stay frozen → settled.
 	if rb.freeze or rb.sleeping:
 		return true
 	if rb.linear_velocity.length() > settle_velocity_epsilon:
@@ -650,6 +679,7 @@ func _all_fallable_props_settled() -> bool:
 
 
 func _wait_for_props_to_settle() -> void:
+	# Let physics start falling for at least one frame after unfreeze.
 	await get_tree().physics_frame
 	if not is_inside_tree():
 		return

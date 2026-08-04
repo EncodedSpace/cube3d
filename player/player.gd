@@ -90,6 +90,10 @@ func reset_to_start() -> void:
 	_reset_visual_state()
 
 
+func set_start_transform(xform: Transform3D) -> void:
+	start_transform = xform
+
+
 # 世界翻转完成后同步角色状态。
 func sync_move_from_facing() -> void:
 	jump_controller.cancel()

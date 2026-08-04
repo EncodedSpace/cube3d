@@ -2,15 +2,21 @@ extends CanvasLayer
 
 const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
 
+## 欢迎语，在 _ready 中自动设置到 welcome Label
+@export_multiline var welcome_text: String = "欢迎来到教学关卡！\n请走到绿色出口吧！"
+## 通关祝贺语
+@export_multiline var congrats_text: String = "恭喜你完成了教学关卡！"
+## 下一关的场景路径，为空则隐藏"下一关"按钮
+@export var next_scene: String = ""
+
 var won: bool = false
 var _succeed_sfx: AudioStreamPlayer
 
 
 func _ready() -> void:
-	# Stay interactive while the game tree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# In case previous scene left the tree paused (e.g. teach win → next).
 	get_tree().paused = false
+
 	$back.visible = false
 	$next.visible = false
 	$congratulations.visible = false
@@ -18,7 +24,9 @@ func _ready() -> void:
 	$help_bg.visible = false
 	$welcome.visible = true
 
-	# Prevent Space/Enter from activating a focused button (would also jump).
+	$welcome.text = welcome_text
+	$congratulations.text = congrats_text
+
 	for child in get_children():
 		if child is BaseButton:
 			(child as BaseButton).focus_mode = Control.FOCUS_NONE
@@ -28,7 +36,6 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Q = yaw left, E = yaw right. Blocked while paused / on win screen.
 	if get_tree().paused or won:
 		return
 	var cube := get_parent().get_node_or_null("Node3D")
@@ -61,7 +68,8 @@ func _show_win() -> void:
 	_play_succeed_sfx()
 	$congratulations.visible = true
 	$back.visible = true
-	$next.visible = true
+	if not next_scene.is_empty():
+		$next.visible = true
 	game_paused()
 
 
@@ -96,10 +104,11 @@ func _on_help_button_pressed() -> void:
 	$help_bg.visible = true
 	game_paused()
 
+
 func game_paused() -> void:
 	$exit.disabled = true
 	$welcome.visible = false
-	
+
 	var player := get_parent().get_node_or_null("Player")
 	if player != null:
 		player.set_physics_process(false)
@@ -110,7 +119,8 @@ func game_paused() -> void:
 		box.freeze = true
 
 	get_tree().paused = true
-	
+
+
 func game_continued() -> void:
 	$exit.disabled = false
 	$back.visible = false
@@ -128,8 +138,10 @@ func game_continued() -> void:
 
 	get_tree().paused = false
 
+
 func _on_back_to_game_pressed() -> void:
 	game_continued()
+
 
 func _on_exit_pressed() -> void:
 	get_tree().quit()
@@ -145,27 +157,14 @@ func _movable_boxes() -> Array[RigidBody3D]:
 			result.append(child as RigidBody3D)
 	return result
 
-	
+
 func reset_level() -> void:
-	# 若在暂停中，先恢复，再重置
 	get_tree().paused = false
 	won = false
-
-	var cube := get_parent().get_node_or_null("Node3D")
-	if cube != null and cube.has_method("reset_to_start"):
-		cube.reset_to_start()
-
-	for box in _movable_boxes():
-		if box.has_method("reset_to_start"):
-			box.reset_to_start()
-		box.freeze = false
-
-	var player := get_parent().get_node_or_null("Player")
-	if player != null and player.has_method("reset_to_start"):
-		player.reset_to_start()
-		player.set_physics_process(true)
+	get_tree().reload_current_scene()
 
 
 func _on_next_pressed() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://level2/main.tscn")
+	if not next_scene.is_empty():
+		get_tree().change_scene_to_file(next_scene)

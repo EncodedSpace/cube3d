@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://d3goakc0yvocg"]
+
+[ext_resource type="Script" uid="uid://bs6l2gn6h6g1d" path="res://player/player.gd" id="1_fsr8f"]
+[ext_resource type="Script" uid="uid://rlgc5vg4ulbq" path="res://player/player_controller/player_roll.gd" id="2_1mjsr"]
+[ext_resource type="Script" uid="uid://ci741nxu8eb12" path="res://player/player_controller/player_jump.gd" id="3_maemw"]
+[ext_resource type="PackedScene" uid="uid://crrqqemegc4kj" path="res://player/player_visual/player_cube.tscn" id="4_658h0"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hqtel"]
+size = Vector3(0.9, 0.9, 0.9)
+
+[node name="Player" type="CharacterBody3D" unique_id=1151131115]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, 0)
+script = ExtResource("1_fsr8f")
+
+[node name="RollController" type="Node3D" parent="." unique_id=801697553]
+script = ExtResource("2_1mjsr")
+
+[node name="JumpController" type="Node3D" parent="." unique_id=1172718448]
+script = ExtResource("3_maemw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=866199691]
+shape = SubResource("BoxShape3D_hqtel")
+
+[node name="Pivot" type="Node3D" parent="." unique_id=1663281541]
+
+[node name="PlayerCube" parent="Pivot" unique_id=587664388 instance=ExtResource("4_658h0")]
