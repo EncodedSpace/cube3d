@@ -22,6 +22,7 @@ func _ready() -> void:
 	$back.visible = false
 	$next.visible = false
 	$next2.visible = false
+	$zen_mode.visible = false
 	$congratulations.visible = false
 	$help.visible = false
 	$help_bg.visible = false
@@ -76,6 +77,7 @@ func _show_win() -> void:
 	_play_succeed_sfx()
 	$congratulations.visible = true
 	$back.visible = true
+	$zen_mode.visible = true
 	if not next_scene.is_empty():
 		$next.visible = true
 	# 禅模式通关后：显示"下一轮游戏"按钮（作用同"重新生成"）
@@ -109,6 +111,11 @@ func _on_back_pressed() -> void:
 func _on_reload_pressed() -> void:
 	reset_level()
 	game_continued()
+
+
+func _on_zen_mode_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://map_generator/zen_mode.tscn")
 
 
 func _on_next2_pressed() -> void:
@@ -159,6 +166,7 @@ func game_continued() -> void:
 	$back.visible = false
 	$next.visible = false
 	$next2.visible = false
+	$zen_mode.visible = false
 	$congratulations.visible = false
 	$help.visible = false
 	$help_bg.visible = false

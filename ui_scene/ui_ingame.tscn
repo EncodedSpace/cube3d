@@ -166,3 +166,4 @@ text = "返回游戏"
 [connection signal="pressed" from="next2" to="." method="_on_next2_pressed"]
 [connection signal="pressed" from="help_button" to="." method="_on_help_button_pressed"]
 [connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]
+[connection signal="pressed" from="zen_mode" to="." method="_on_zen_mode_pressed"]
