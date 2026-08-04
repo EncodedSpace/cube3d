@@ -800,6 +800,7 @@ func _apply_map() -> void:
 	_position_exit()
 	_bind_boxes_to_walls()
 	adjust_camera()
+	adjust_light()
 
 	# 玩家始终从底面出生 → 不需要旋转，直接放在 world 坐标
 	_place_player_at()
@@ -833,6 +834,22 @@ func adjust_camera() -> void:
 	if active != null:
 		active.size = lerpf(10.0, 20.0, t)
 		active.make_current()
+
+
+## 根据尺寸 n（6→12）调节 OmniLight3D：
+##   range：5 → 11  |  y 坐标：3 → 6
+func adjust_light() -> void:
+	var t := clampf((float(n) - 6.0) / 6.0, 0.0, 1.0)
+
+	var light := get_parent().get_node_or_null("OmniLight3D") as OmniLight3D
+	if light == null:
+		return
+
+	light.omni_range = lerpf(5.0, 11.0, t)
+
+	var pos := light.position
+	pos.y = lerpf(3.0, 6.0, t)
+	light.position = pos
 
 
 func _clear_generated() -> void:
@@ -979,6 +996,18 @@ func _position_exit() -> void:
 			exit_area.add_to_group("wall_prop")
 			_wall_props.append({"prop": exit_area, "walls": bound})
 			_set_prop_visible(exit_area as Node3D, true)
+
+	# Forward exit signal to shared UI.
+	if not exit_area.body_entered.is_connected(_on_exit_body_entered):
+		exit_area.body_entered.connect(_on_exit_body_entered)
+
+
+func _on_exit_body_entered(body: Node) -> void:
+	if body.name != "Player":
+		return
+	var ui := get_parent().get_node_or_null("ui_ingame")
+	if ui != null and ui.has_method("_on_exit_body_entered"):
+		ui._on_exit_body_entered(body)
 
 
 
