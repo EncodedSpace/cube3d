@@ -14,7 +14,7 @@ sky_material = SubResource("ProceduralSkyMaterial_zen")
 
 [sub_resource type="Environment" id="Environment_zen"]
 background_mode = 1
-background_color = Color(0.7764706, 0.7764706, 0.7764706, 1)
+background_color = Color(0.38625115, 0.3862508, 0.38625085, 1)
 sky = SubResource("Sky_zen")
 
 [sub_resource type="Shader" id="Shader_t4dh0"]
