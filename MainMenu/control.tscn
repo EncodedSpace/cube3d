@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://jv7lsdtmedg4"]
+
+[node name="Control" type="Control" unique_id=1782342522]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1225469795]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 338.0
+alignment = 1
+
+[node name="Button" type="Button" parent="HBoxContainer" unique_id=1933466326]
+layout_mode = 2
+text = "教学关卡"
+
+[node name="Button2" type="Button" parent="HBoxContainer" unique_id=650773426]
+layout_mode = 2
+
+[node name="Button3" type="Button" parent="HBoxContainer" unique_id=895095743]
+layout_mode = 2
+
+[node name="Button4" type="Button" parent="HBoxContainer" unique_id=2049334263]
+layout_mode = 2
+
+[node name="Button5" type="Button" parent="HBoxContainer" unique_id=1274721732]
+layout_mode = 2
