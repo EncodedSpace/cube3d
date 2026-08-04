@@ -242,6 +242,23 @@ func reset_level() -> void:
 	if tree == null:
 		return
 	tree.paused = false
+	won = false
+
+	# 优先用 cube 的 reset_to_start（zen 模式保留已生成地图）
+	var cube := get_parent().get_node_or_null("Node3D")
+	if cube != null and cube.has_method("reset_to_start"):
+		cube.reset_to_start()
+		# 重置 movable box + player 状态
+		for box in _movable_boxes():
+			if box.has_method("reset_to_start"):
+				box.reset_to_start()
+			box.freeze = false
+		var player := get_parent().get_node_or_null("Player")
+		if player != null and player.has_method("reset_to_start"):
+			player.reset_to_start()
+			player.set_physics_process(true)
+		return
+
 	tree.reload_current_scene()
 
 

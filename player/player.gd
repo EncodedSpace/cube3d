@@ -68,6 +68,17 @@ var start_visual_body_position: Vector3
 var start_collision_position: Vector3
 var start_collision_size: Vector3
 
+## 返回 XZ 平面的格子对齐步长。
+## 偶数尺寸（6,8,10,12）：块中心在 .5 半整数位 → 步长 0.5
+## 奇数尺寸（7,9,11）：块中心在整数位 → 步长 1.0
+func get_grid_align() -> float:
+	if cube_world != null and "n" in cube_world:
+		var n_val: int = cube_world.n
+		if n_val > 0 and n_val % 2 == 0:
+			return 0.5
+	return 1.0
+
+
 func _ready() -> void:
 	jump_enabled = jump_enabled_by_default
 	
@@ -120,8 +131,9 @@ func reset_to_start() -> void:
 	roll_controller.cancel()
 
 	global_transform = start_transform
-	# 重置后 XZ 校准到整数格，Y 不变。
-	global_position = Vector3(roundf(global_position.x), global_position.y, roundf(global_position.z))
+	# XZ 按格子对齐步长校准（偶数关 .5，奇数关 1.0），Y 不变。
+	var grid := get_grid_align()
+	global_position = Vector3(snappedf(global_position.x, grid), global_position.y, snappedf(global_position.z, grid))
 	velocity = Vector3.ZERO
 	was_on_floor = true
 
@@ -138,8 +150,9 @@ func sync_move_from_facing() -> void:
 	roll_controller.cancel()
 
 	velocity = Vector3.ZERO
-	# 翻转后 XZ 校准到整数格，Y 不变。
-	global_position = Vector3(roundf(global_position.x), global_position.y, roundf(global_position.z))
+	# XZ 按格子对齐步长校准（偶数关 .5，奇数关 1.0），Y 不变。
+	var grid := get_grid_align()
+	global_position = Vector3(snappedf(global_position.x, grid), global_position.y, snappedf(global_position.z, grid))
 	_reset_visual_state()
 
 	was_on_floor = (

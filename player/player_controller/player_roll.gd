@@ -24,6 +24,17 @@ var active := false
 var _request_id := 0
 
 
+## 返回 XZ 平面的格子对齐步长。
+## 偶数尺寸（6,8,10,12）：块中心在 .5 半整数位 → 步长 0.5
+## 奇数尺寸（7,9,11）：块中心在整数位 → 步长 1.0
+func _get_grid_align() -> float:
+	if cube_world != null and "n" in cube_world:
+		var n_val: int = cube_world.n
+		if n_val > 0 and n_val % 2 == 0:
+			return 0.5
+	return 1.0
+
+
 func setup(
 	player_node: CharacterBody3D,
 	body_node: Node3D,
@@ -139,9 +150,10 @@ func start(
 	var on_floor: bool = bool(player.has_floor_below())
 
 	if on_floor:
-		# 校准 XZ 到整数格，Y 不变（玩家站在方块顶面，Y 偏移 0.5）。
+		# 校准 XZ 到格子对齐步长，Y 不变（玩家站在方块顶面，Y 偏移 0.5）。
+		var grid := _get_grid_align()
 		var p := player.global_position
-		player.global_position = Vector3(roundf(p.x), p.y, roundf(p.z))
+		player.global_position = Vector3(snappedf(p.x, grid), p.y, snappedf(p.z, grid))
 		await visual_body.end_squash()
 
 		if not _is_request_active(current_request):
@@ -157,9 +169,10 @@ func _roll_step(
 	step_distance: float,
 	request_id: int
 ) -> bool:
-	# 校准 XZ 到整数格，Y 不变（玩家站在方块顶面）。
+	# 校准 XZ 到格子对齐步长，Y 不变（玩家站在方块顶面）。
+	var grid := _get_grid_align()
 	var p := player.global_position
-	var start_position := Vector3(roundf(p.x), p.y, roundf(p.z))
+	var start_position := Vector3(snappedf(p.x, grid), p.y, snappedf(p.z, grid))
 	player.global_position = start_position
 	var start_body_basis := visual_body.basis
 

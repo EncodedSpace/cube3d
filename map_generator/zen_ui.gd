@@ -158,11 +158,6 @@ func _generate_with_size(size: int) -> void:
 	_shared_ui.set("is_zen_mode", true)
 	get_parent().add_child(_shared_ui)
 
-	# Connect the exit signal from Node3D/staticboxes/StaticBox_EXIT → shared UI
-	var exit_area := _cube.get_node_or_null("staticboxes/StaticBox_EXIT") as Area3D
-	if exit_area != null:
-		if not exit_area.body_entered.is_connected(_shared_ui._on_exit_body_entered):
-			exit_area.body_entered.connect(_shared_ui._on_exit_body_entered)
 
 
 ## 从共享 UI 的“重新生成”按钮调用：回到尺寸选择界面。
