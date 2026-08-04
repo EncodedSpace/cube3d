@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" uid="uid://crdioc5gl6y26" path="res://ui_scene/ui_ingame.gd" id="1_f8os5"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_0kaxw"]
+[ext_resource type="Theme" path="res://Fonts/ui_theme.tres" id="3_theme"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
 bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
 
 [node name="ui_ingame" type="CanvasLayer" unique_id=1065938345]
 script = ExtResource("1_f8os5")
+theme = ExtResource("3_theme")
 
 [node name="welcome" type="Label" parent="." unique_id=342224486]
 offset_top = 465.0
