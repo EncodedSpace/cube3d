@@ -72,6 +72,9 @@ func _ready() -> void:
 		for child in walls.get_children():
 			if child is Node3D:
 				(child as Node3D).visible = true
+
+	rng.randomize()
+	generate()
 	await _bootstrap_cutaway()
 
 

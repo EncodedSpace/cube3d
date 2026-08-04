@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+## Resolved .import UID → use path load as fallback when uid:// fails (e.g. Web).
+const FONT_PATH := "res://Fonts/Source Han Sans CN.ttf"
 
 ## 欢迎语，在 _ready 中自动设置到 welcome Label
 @export_multiline var welcome_text: String = "欢迎来到教学关卡！\n请走到绿色出口吧！"
@@ -19,6 +21,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
 
+	_apply_ui_theme()
+
 	$back.visible = false
 	$next.visible = false
 	$next2.visible = false
@@ -27,11 +31,8 @@ func _ready() -> void:
 	$help.visible = false
 	$help_bg.visible = false
 	$welcome.visible = true
-	# 禅模式专属：显示"重新生成"按钮与"地图尺寸"选择菜单（MenuButton 可选）
+	# 禅模式专属：显示"重新生成"按钮
 	$recreate.visible = is_zen_mode
-	var menu_btn := get_node_or_null("MenuButton") as MenuButton
-	if menu_btn != null:
-		menu_btn.visible = is_zen_mode
 
 	$welcome.text = welcome_text
 	$congratulations.text = congrats_text
@@ -42,6 +43,26 @@ func _ready() -> void:
 
 	_setup_succeed_sfx()
 	_hide_welcome_after_delay()
+
+
+## Apply the Chinese font to every Label + Button descendant.
+## Uses `add_theme_font_override("font", …)` directly on each control,
+## which is the most reliable way across all platforms including Web.
+func _apply_ui_theme() -> void:
+	var font := load(FONT_PATH) as Font
+	if font == null:
+		return
+	var controls: Array[Node] = []
+	_gather_text_controls(self, controls)
+	for c in controls:
+		(c as Control).add_theme_font_override("font", font)
+
+
+func _gather_text_controls(node: Node, result: Array[Node]) -> void:
+	for child in node.get_children():
+		if child is Label or child is Button:
+			result.append(child)
+		_gather_text_controls(child, result)
 
 
 func _unhandled_input(event: InputEvent) -> void:
