@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://1is4plx7j8v1"]
 
-[ext_resource type="Script" uid="uid://d1wgfaq162a23" path="res://level1/ui_ingame.gd" id="1_f8os5"]
+[ext_resource type="Script" uid="uid://crdioc5gl6y26" path="res://ui_scene/ui_ingame.gd" id="1_f8os5"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_0kaxw"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
@@ -36,6 +36,14 @@ offset_bottom = 1000.0
 theme_override_font_sizes/font_size = 30
 text = "重置本关"
 
+[node name="recreate" type="Button" parent="." unique_id=252658085]
+offset_left = 1720.0
+offset_top = 840.0
+offset_right = 1920.0
+offset_bottom = 920.0
+theme_override_font_sizes/font_size = 30
+text = "重新生成"
+
 [node name="back" type="Button" parent="." unique_id=467652134]
 offset_left = 710.0
 offset_top = 700.0
@@ -51,6 +59,14 @@ offset_right = 1220.0
 offset_bottom = 800.0
 theme_override_font_sizes/font_size = 30
 text = "下一关"
+
+[node name="next2" type="Button" parent="." unique_id=2146912966]
+offset_left = 934.0
+offset_top = 700.0
+offset_right = 1220.0
+offset_bottom = 800.0
+theme_override_font_sizes/font_size = 30
+text = "下一轮游戏"
 
 [node name="congratulations" type="Label" parent="." unique_id=678298616]
 offset_top = 550.0
@@ -86,6 +102,7 @@ theme_override_font_sizes/font_size = 30
 text = "ZEN MODE"
 
 [node name="help" type="VBoxContainer" parent="." unique_id=521764835]
+visible = false
 offset_left = 710.0
 offset_top = 240.0
 offset_right = 1220.0
@@ -143,7 +160,9 @@ text = "返回游戏"
 
 [connection signal="pressed" from="exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="reload" to="." method="_on_reload_pressed"]
+[connection signal="pressed" from="recreate" to="." method="_on_recreate_pressed"]
 [connection signal="pressed" from="back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="next" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="next2" to="." method="_on_next2_pressed"]
 [connection signal="pressed" from="help_button" to="." method="_on_help_button_pressed"]
 [connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]

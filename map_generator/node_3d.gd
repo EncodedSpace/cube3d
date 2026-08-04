@@ -41,10 +41,21 @@ var path: Array[Vector3i] = []
 var rng := RandomNumberGenerator.new()
 var _last_visited: Dictionary = {}
 var _staticbox_template: StaticBody3D = null
+# 保存最后一次成功生成的布局，供“重置本关”恢复而不是重新随机生成。
+var _saved_matrix: Array = []
+var _saved_start_pos: Vector3i
+var _saved_end_pos: Vector3i
+var _saved_path: Array[Vector3i] = []
+var _map_saved: bool = false
+# 生成时立方体的朝向（重置时恢复，否则用已翻转的坐标系算出生点会出错）。
+var _saved_cube_transform: Transform3D
+# 场景默认的立方体姿态（新地图生成前恢复到标准朝向）。
+var _base_cube_transform: Transform3D
 
 
 func _ready() -> void:
 	start_transform = global_transform
+	_base_cube_transform = global_transform
 	# Disable the reference WALLS8_8 so its collision shapes don't block the player.
 	var ref_walls := get_node_or_null("WALLS8_8")
 	if ref_walls != null:
@@ -109,8 +120,11 @@ func can_flip() -> bool:
 func reset_to_start() -> void:
 	flipping = false
 	_hold_props_frozen = false
-	generate()
-	update_cutaway_visibility()
+	if _map_saved:
+		# 恢复上次生成的地图，而不是重新随机生成。
+		restore_saved_map()
+	else:
+		generate()
 
 
 func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
@@ -708,6 +722,9 @@ func _wait_for_props_to_settle() -> void:
 # ═══════════════════════════════════════════════════════════════
 
 func generate() -> void:
+	# 新地图生成前：恢复到场景默认姿态，避免残留上一局的翻转/旋转。
+	if is_instance_valid(self) and _map_saved:
+		global_transform = _base_cube_transform
 	_clear_generated()
 	rng.randomize()
 
@@ -731,7 +748,45 @@ func generate() -> void:
 
 	cube_half_extent = float(n) / 2.0
 	_wall_props.clear()
-	await _apply_map()
+
+	# 保存当前布局，供“重置本关”恢复同一张地图。
+	_saved_matrix = matrix.duplicate(true)
+	_saved_start_pos = start_pos
+	_saved_end_pos = end_pos
+	_saved_path = path.duplicate()
+	_map_saved = true
+
+	# 同步构建，保证调整相机/放置玩家在返回前完成，避免与下一次生成交错。
+	_apply_map()
+
+	# 记录生成完成后的朝向，重置时恢复（此时未翻转，是标准朝向）。
+	_saved_cube_transform = global_transform
+
+	update_cutaway_visibility()
+	generation_finished.emit()
+
+
+## 用上次保存的布局重建地图（方块、出生点、终点），供“重置本关”恢复。
+func restore_saved_map() -> void:
+	if not _map_saved:
+		generate()
+		return
+
+	# 先清掉上一次生成的克隆体，避免重置时方块重复叠加。
+	_clear_generated()
+
+	matrix = _saved_matrix.duplicate(true)
+	start_pos = _saved_start_pos
+	end_pos = _saved_end_pos
+	path = _saved_path.duplicate()
+	cube_half_extent = float(n) / 2.0
+	_wall_props.clear()
+
+	# 恢复生成时的立方体朝向/位置，避免用已翻转的坐标系放置玩家。
+	if is_instance_valid(self) and _map_saved:
+		global_transform = _saved_cube_transform
+
+	_apply_map()
 	update_cutaway_visibility()
 	generation_finished.emit()
 
@@ -751,31 +806,43 @@ func _apply_map() -> void:
 	# start. Bind boxes now without rotating so world transforms remain stable.
 	_bind_boxes_to_walls()
 
-	# Adjust camera ortho size based on matrix size (n:6->12 maps to size 10->12).
-	# Prefer the viewport's active camera to ensure we modify the camera in use.
-	var cam := get_viewport().get_camera_3d()
-	if cam == null:
-		cam = get_node_or_null("Marker3D/Camera3D") as Camera3D
-		if cam == null:
-			var host := get_parent()
-			if host != null:
-				cam = host.find_child("Camera3D", true, false) as Camera3D
-	if cam != null:
-		var t := (float(n) - 6.0) / 6.0
-		cam.size = 10.0 + t * 2.0
-		# Also set the local Marker3D camera (scene camera) size and make it current
-		var marker_cam := get_node_or_null("Marker3D/Camera3D") as Camera3D
-		if marker_cam != null:
-			marker_cam.size = cam.size
-			# Ensure the scene camera is current so viewport uses it during play
-			marker_cam.current = true
-		# Also ensure the camera we set is made current on the viewport.
-		cam.make_current()
+	# Adjust camera size (10–20) and Marker3D height (y: 0–3) based on n (6–12).
+	adjust_camera()
 
 	# (Already bound above when not rotating.)
 
 	# Place player at the rotated spawn position (convert local → world)
 	_place_player_at(spawn_local, spawn_outward)
+
+
+## 根据矩阵尺寸 n（6–12）调节：
+##  - Marker3D/Camera3D 的 Size：10 → 20
+##  - Marker3D 的 position.y：0 → 3（尺寸越大相机抬得越高，画面更好看）
+## Marker3D 是 Main（本节点的父级）的子节点，因此通过 get_parent() 访问。
+## 公开方法：生成/重置流程都可能调用，保证相机始终跟随当前尺寸。
+func adjust_camera() -> void:
+	var t := clampf((float(n) - 6.0) / 6.0, 0.0, 1.0)
+
+	var marker := get_parent().get_node_or_null("Marker3D") as Marker3D
+	if marker == null:
+		marker = get_node_or_null("Marker3D") as Marker3D
+	if marker != null:
+		var pos := marker.position
+		pos.y = lerpf(0.0, 3.0, t)
+		marker.position = pos
+
+		# 同时调节 Marker3D 下的相机 Size。
+		var cam := marker.get_node_or_null("Camera3D") as Camera3D
+		if cam != null:
+			cam.size = lerpf(10.0, 20.0, t)
+			cam.make_current()
+		return
+
+	# 兜底：找不到 Marker3D 时，仍调节视口当前相机。
+	var active := get_viewport().get_camera_3d()
+	if active != null:
+		active.size = lerpf(10.0, 20.0, t)
+		active.make_current()
 
 
 func _clear_generated() -> void:
@@ -951,8 +1018,10 @@ func _place_player_at(spawn_local: Vector3, outward: Vector3) -> void:
 	# The wall collision top is at y=1.0, but the visual floor plane is at y=0;
 	# the player physics collides with the wall top at y=1.0, so we spawn at
 	# the block center and let gravity settle the player onto the wall.
+	# 保留玩家原有的缩放（0.9），仅覆盖位置与朝向。
+	var player_scale := player.scale
 	var desired_origin := block_center_world
-	var desired_transform := Transform3D(Basis.IDENTITY, desired_origin)
+	var desired_transform := Transform3D(Basis.IDENTITY, desired_origin).scaled(player_scale)
 
 	if player.has_method("set_start_transform"):
 		player.set_start_transform(desired_transform)

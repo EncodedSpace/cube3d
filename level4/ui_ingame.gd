@@ -2,39 +2,23 @@ extends CanvasLayer
 
 const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
 
-## 欢迎语，在 _ready 中自动设置到 welcome Label
-@export_multiline var welcome_text: String = "欢迎来到教学关卡！\n请走到绿色出口吧！"
-## 通关祝贺语
-@export_multiline var congrats_text: String = "恭喜你完成了教学关卡！"
-## 下一关的场景路径，为空则隐藏"下一关"按钮
-@export var next_scene: String = ""
-## 是否为禅模式：true 时显示"重新生成"按钮并隐藏"下一关"
-@export var is_zen_mode: bool = false
-
 var won: bool = false
 var _succeed_sfx: AudioStreamPlayer
 
 
 func _ready() -> void:
+	# Stay interactive while the game tree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# In case previous scene left the tree paused (e.g. teach win → next).
 	get_tree().paused = false
-
 	$back.visible = false
 	$next.visible = false
-	$next2.visible = false
 	$congratulations.visible = false
 	$help.visible = false
 	$help_bg.visible = false
 	$welcome.visible = true
-	# 禅模式专属：显示"重新生成"按钮与"地图尺寸"选择菜单（MenuButton 可选）
-	$recreate.visible = is_zen_mode
-	var menu_btn := get_node_or_null("MenuButton") as MenuButton
-	if menu_btn != null:
-		menu_btn.visible = is_zen_mode
 
-	$welcome.text = welcome_text
-	$congratulations.text = congrats_text
-
+	# Prevent Space/Enter from activating a focused button (would also jump).
 	for child in get_children():
 		if child is BaseButton:
 			(child as BaseButton).focus_mode = Control.FOCUS_NONE
@@ -44,6 +28,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Q = yaw left, E = yaw right. Blocked while paused / on win screen.
 	if get_tree().paused or won:
 		return
 	var cube := get_parent().get_node_or_null("Node3D")
@@ -76,12 +61,7 @@ func _show_win() -> void:
 	_play_succeed_sfx()
 	$congratulations.visible = true
 	$back.visible = true
-	if not next_scene.is_empty():
-		$next.visible = true
-	# 禅模式通关后：显示"下一轮游戏"按钮（作用同"重新生成"）
-	if is_zen_mode:
-		$next2.visible = true
-		$next.visible = false
+	$next.visible = true
 	game_paused()
 
 
@@ -103,33 +83,6 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
-	game_continued()
-
-
-func _on_reload_pressed() -> void:
-	reset_level()
-	game_continued()
-
-
-func _on_next2_pressed() -> void:
-	# 禅模式专属"下一轮游戏"：与"重新生成"一致，弹出尺寸面板重新建图。
-	_on_recreate_pressed()
-
-
-func _on_recreate_pressed() -> void:
-	# 禅模式专属：把请求转发给 ZenUI，让它显示居中的尺寸面板。
-	var zen := get_parent().get_node_or_null("ZenUI")
-	if zen != null and zen.has_method("_on_recreate_pressed"):
-		zen._on_recreate_pressed()
-
-
-func _on_size_menu_pressed(id: int) -> void:
-	# MenuButton 选择尺寸后：禅模式直接按所选尺寸重新生成。
-	var zen := get_parent().get_node_or_null("ZenUI")
-	if zen == null or not zen.has_method("_generate_with_size"):
-		return
-	var size := 6 + id
-	zen._generate_with_size(size)
 
 
 func _on_help_button_pressed() -> void:
@@ -137,11 +90,10 @@ func _on_help_button_pressed() -> void:
 	$help_bg.visible = true
 	game_paused()
 
-
 func game_paused() -> void:
 	$exit.disabled = true
 	$welcome.visible = false
-
+	
 	var player := get_parent().get_node_or_null("Player")
 	if player != null:
 		player.set_physics_process(false)
@@ -152,13 +104,11 @@ func game_paused() -> void:
 		box.freeze = true
 
 	get_tree().paused = true
-
-
+	
 func game_continued() -> void:
 	$exit.disabled = false
 	$back.visible = false
 	$next.visible = false
-	$next2.visible = false
 	$congratulations.visible = false
 	$help.visible = false
 	$help_bg.visible = false
@@ -172,10 +122,8 @@ func game_continued() -> void:
 
 	get_tree().paused = false
 
-
 func _on_back_to_game_pressed() -> void:
 	game_continued()
-
 
 func _on_exit_pressed() -> void:
 	get_tree().quit()
@@ -191,31 +139,13 @@ func _movable_boxes() -> Array[RigidBody3D]:
 			result.append(child as RigidBody3D)
 	return result
 
-
+	
 func reset_level() -> void:
+	# 关卡内道具状态很多（钥匙已吃、门已开、G 已删等），整关重载才能完整复原。
 	get_tree().paused = false
 	won = false
-
-	var cube := get_parent().get_node_or_null("Node3D")
-	if cube != null and cube.has_method("reset_to_start"):
-		cube.reset_to_start()
-
-	for box in _movable_boxes():
-		if box.has_method("reset_to_start"):
-			box.reset_to_start()
-
-	var player := get_parent().get_node_or_null("Player")
-	if player != null and player.has_method("reset_to_start"):
-		player.reset_to_start()
-
-	game_continued()
-
-	# 没有生成器时回退到重载整个场景。
-	if cube == null or not cube.has_method("reset_to_start"):
-		get_tree().reload_current_scene()
-
+	get_tree().reload_current_scene()
 
 func _on_next_pressed() -> void:
 	get_tree().paused = false
-	if not next_scene.is_empty():
-		get_tree().change_scene_to_file(next_scene)
+	get_tree().change_scene_to_file("res://level2/main.tscn")

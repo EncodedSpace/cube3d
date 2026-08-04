@@ -8,8 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://d1tk2ndqo3ifn" path="res://level2/player.tscn" id="7_fywue"]
 [ext_resource type="Script" uid="uid://bp3a80vy04n71" path="res://Tools_B_D_G/d_wall.gd" id="7_iu50b"]
 [ext_resource type="PackedScene" uid="uid://cxsojn8u6mkk1" path="res://Tools_F/Tools_F.tscn" id="8_i3i4i"]
-[ext_resource type="Script" uid="uid://cq0fir3snmfti" path="res://level2/ui_ingame.gd" id="8_xpo1j"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="9_nl25t"]
+[ext_resource type="PackedScene" uid="uid://1is4plx7j8v1" path="res://ui_scene/ui_ingame.tscn" id="13_ui"]
 [ext_resource type="PackedScene" uid="uid://bynpixfcpdb1h" path="res://Tools_B_D_G/Tool_B_D_G.tscn" id="10_7i5fj"]
 [ext_resource type="Script" uid="uid://eq4yj0dlhuvl" path="res://Tools_E/static_box_e1.gd" id="11_e1"]
 [ext_resource type="Script" uid="uid://yeb1qlcx4oin" path="res://Tools_E/static_box_e2.gd" id="12_e2"]
@@ -910,129 +910,10 @@ size = 10.0
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("7_fywue")]
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 1.5, 0.45, 1.5)
 
-[node name="ui_ingame" type="CanvasLayer" parent="." unique_id=1213911550]
-script = ExtResource("8_xpo1j")
-
-[node name="welcome" type="Label" parent="ui_ingame" unique_id=1165800707]
-offset_top = 465.0
-offset_right = 1920.0
-offset_bottom = 615.0
-theme_override_font_sizes/font_size = 50
-theme_override_styles/normal = ExtResource("9_nl25t")
-text = "欢迎来到第一关！
+[node name="ui_ingame" parent="." instance=ExtResource("13_ui")]
+welcome_text = "欢迎来到第二关！
 请走到绿色出口吧！"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="exit" type="Button" parent="ui_ingame" unique_id=802570671]
-offset_left = 1720.0
-offset_top = 1000.0
-offset_right = 1920.0
-offset_bottom = 1080.0
-theme_override_font_sizes/font_size = 30
-text = "退出游戏"
-
-[node name="back" type="Button" parent="ui_ingame" unique_id=294393585]
-offset_left = 710.0
-offset_top = 700.0
-offset_right = 910.0
-offset_bottom = 800.0
-theme_override_font_sizes/font_size = 30
-text = "重新开始"
-
-[node name="next" type="Button" parent="ui_ingame" unique_id=831511248]
-offset_left = 1010.0
-offset_top = 700.0
-offset_right = 1210.0
-offset_bottom = 800.0
-theme_override_font_sizes/font_size = 30
-text = "下一关"
-
-[node name="congratulations" type="Label" parent="ui_ingame" unique_id=27067940]
-offset_top = 550.0
-offset_right = 1920.0
-offset_bottom = 619.0
-theme_override_font_sizes/font_size = 50
-theme_override_styles/normal = ExtResource("9_nl25t")
-text = "恭喜你完成了教学关卡！"
-horizontal_alignment = 1
-
-[node name="help_button" type="Button" parent="ui_ingame" unique_id=40558876]
-offset_left = 1720.0
-offset_right = 1920.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 30
-text = "玩法说明"
-
-[node name="help_bg" type="PanelContainer" parent="ui_ingame" unique_id=1483516532]
-visible = false
-z_index = -1
-offset_left = 710.0
-offset_top = 240.0
-offset_right = 1220.0
-offset_bottom = 816.0
-theme_override_styles/panel = ExtResource("9_nl25t")
-
-[node name="help" type="VBoxContainer" parent="ui_ingame" unique_id=572253042]
-offset_left = 710.0
-offset_top = 240.0
-offset_right = 1220.0
-offset_bottom = 866.0
-theme_override_constants/separation = 30
-
-[node name="Label" type="Label" parent="ui_ingame/help" unique_id=576267847]
-layout_mode = 2
-theme_override_font_sizes/font_size = 50
-theme_override_styles/normal = SubResource("StyleBoxFlat_272bh")
-text = "玩法说明"
-horizontal_alignment = 1
-
-[node name="Label2" type="Label" parent="ui_ingame/help" unique_id=453492531]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "使用WASD控制角色移动"
-horizontal_alignment = 1
-
-[node name="Label3" type="Label" parent="ui_ingame/help" unique_id=875761949]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "按 Q / E 可水平旋转立方体
-移动到另一墙面会发生整体翻转"
-horizontal_alignment = 1
-
-[node name="Label4" type="Label" parent="ui_ingame/help" unique_id=1972886067]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "在空间中走到绿色出口即通关"
-horizontal_alignment = 1
-
-[node name="Label5" type="Label" parent="ui_ingame/help" unique_id=554676803]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "请在倒计时结束前完成当前关卡"
-horizontal_alignment = 1
-
-[node name="Label6" type="Label" parent="ui_ingame/help" unique_id=2062140896]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "依次通关后你才能逃出密室"
-horizontal_alignment = 1
-
-[node name="Label7" type="Label" parent="ui_ingame/help" unique_id=1700119968]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "祝你逃脱顺利！"
-horizontal_alignment = 1
-
-[node name="back_to_game" type="Button" parent="ui_ingame/help" unique_id=1124562750]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "返回游戏"
-
-[connection signal="pressed" from="ui_ingame/exit" to="ui_ingame" method="_on_exit_pressed"]
-[connection signal="pressed" from="ui_ingame/back" to="ui_ingame" method="_on_back_pressed"]
-[connection signal="pressed" from="ui_ingame/next" to="ui_ingame" method="_on_back_pressed"]
-[connection signal="pressed" from="ui_ingame/help_button" to="ui_ingame" method="_on_help_button_pressed"]
-[connection signal="pressed" from="ui_ingame/help/back_to_game" to="ui_ingame" method="_on_back_to_game_pressed"]
+congrats_text = "恭喜你完成了第二关！"
+next_scene = ""
 
 [editable path="Node3D/Tool_B_D_G"]

@@ -6,6 +6,7 @@ const SHARED_UI_PATH := "res://ui_scene/ui_ingame.tscn"
 
 var _cube: Node3D = null
 var _shared_ui: CanvasLayer = null
+var _size_panel: Control = null
 
 
 func _ready() -> void:
@@ -30,10 +31,23 @@ func _ready() -> void:
 # ═══════════════════════════════════════════════════════════════
 
 func _show_size_panel() -> void:
+	# 若已存在面板，先移除旧的，避免重复叠加。
+	var old := get_node_or_null("SizePanel")
+	if old != null:
+		old.queue_free()
+
+	# 铺满屏幕的居中容器，保证面板始终居中。
+	var center := CenterContainer.new()
+	center.name = "SizePanel"
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+
 	var panel := PanelContainer.new()
-	panel.name = "SizePanel"
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.set_size(Vector2(400, 260))
+	panel.name = "Panel"
+	panel.custom_minimum_size = Vector2(420, 280)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	center.add_child(panel)
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.15, 0.15, 0.18, 0.92)
@@ -102,11 +116,15 @@ func _show_size_panel() -> void:
 	back_btn.pressed.connect(_on_back_pressed)
 	btn_box.add_child(back_btn)
 
-	add_child(panel)
+	_size_panel = center
 
 
 func _on_generate_pressed(spin: SpinBox) -> void:
-	var size := int(spin.value)
+	_generate_with_size(int(spin.value))
+
+
+func _generate_with_size(size: int) -> void:
+	get_tree().paused = false
 	_cube.set("n", size)
 	_cube.generate()
 
@@ -119,11 +137,14 @@ func _on_generate_pressed(spin: SpinBox) -> void:
 	await get_tree().process_frame
 
 	# Remove size panel
-	var panel := get_node_or_null("SizePanel")
-	if panel != null:
-		panel.queue_free()
+	if _size_panel != null and is_instance_valid(_size_panel):
+		_size_panel.queue_free()
+	_size_panel = null
 
-	# Instantiate shared UI
+	# (Re)instantiate shared UI
+	if _shared_ui != null and is_instance_valid(_shared_ui):
+		_shared_ui.queue_free()
+
 	var ui_scene := load(SHARED_UI_PATH) as PackedScene
 	if ui_scene == null:
 		push_error("ZenUI: cannot load shared UI scene.")
@@ -134,6 +155,7 @@ func _on_generate_pressed(spin: SpinBox) -> void:
 	_shared_ui.set("welcome_text", "禅模式 · %d×%d×%d\n走向蓝色出口吧！" % [size, size, size])
 	_shared_ui.set("congrats_text", "恭喜你完成了禅模式！")
 	_shared_ui.set("next_scene", "")   # no next level in zen mode
+	_shared_ui.set("is_zen_mode", true)
 	get_parent().add_child(_shared_ui)
 
 	# Connect the exit signal from Node3D/staticboxes/StaticBox_EXIT → shared UI
@@ -141,6 +163,22 @@ func _on_generate_pressed(spin: SpinBox) -> void:
 	if exit_area != null:
 		if not exit_area.body_entered.is_connected(_shared_ui._on_exit_body_entered):
 			exit_area.body_entered.connect(_shared_ui._on_exit_body_entered)
+
+
+## 从共享 UI 的“重新生成”按钮调用：回到尺寸选择界面。
+func _on_recreate_pressed() -> void:
+	get_tree().paused = true
+
+	# 隐藏共享 UI（保留但隐藏，尺寸面板覆盖在上方）
+	if _shared_ui != null and is_instance_valid(_shared_ui):
+		_shared_ui.visible = false
+
+	# 冻结玩家，等待重新生成
+	var player := get_parent().get_node_or_null("Player") as Node3D
+	if player != null:
+		player.set_physics_process(false)
+
+	_show_size_panel()
 
 
 func _on_back_pressed() -> void:

@@ -13,7 +13,8 @@ ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
 sky_material = SubResource("ProceduralSkyMaterial_zen")
 
 [sub_resource type="Environment" id="Environment_zen"]
-background_mode = 2
+background_mode = 1
+background_color = Color(0.7764706, 0.7764706, 0.7764706, 1)
 sky = SubResource("Sky_zen")
 
 [sub_resource type="Shader" id="Shader_t4dh0"]
@@ -164,6 +165,12 @@ size = Vector3(8, 1, 8)
 
 [sub_resource type="BoxMesh" id="BoxMesh_p2lar"]
 material = SubResource("StandardMaterial3D_onvak")
+
+[sub_resource type="BoxMesh" id="BoxMesh_1r6oq"]
+size = Vector3(12, 12, 12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8rpug"]
+size = Vector3(1, 1, 18)
 
 [node name="Main" type="Node3D" unique_id=1354789539]
 
@@ -341,3 +348,16 @@ shape = SubResource("BoxShape3D_sx1oa")
 
 [node name="FryingPan" parent="Node3D/staticboxes/StaticBox_EXIT" unique_id=1299094027 instance=ExtResource("6_vchos")]
 transform = Transform3D(0.97336763, -1.0020823e-08, -0.22924972, -0.22924972, -4.254725e-08, -0.97336763, 0, 1, -4.371139e-08, 0, 0, -0.4)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=516457000]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+visible = false
+mesh = SubResource("BoxMesh_1r6oq")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1451543245]
+visible = false
+mesh = SubResource("BoxMesh_8rpug")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="MeshInstance3D2" unique_id=1403233818]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
+mesh = SubResource("BoxMesh_8rpug")
