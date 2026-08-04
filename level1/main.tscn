@@ -5,10 +5,11 @@
 [ext_resource type="PackedScene" uid="uid://5dwpsxuib8kf" path="res://assets/model/box/cake_chocolate_cut.tscn" id="4_rg5yx"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_jnms4"]
 [ext_resource type="PackedScene" uid="uid://dlkosdoufjssr" path="res://assets/model/box/cinnamon_roll.tscn" id="5_rg5yx"]
-[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="6_mbox"]
+[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://global_script/movable_box.gd" id="6_mbox"]
 [ext_resource type="PackedScene" uid="uid://4lrfobg0ygq8" path="res://assets/model/box/box.tscn" id="6_mnrfm"]
 [ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="7_qfbep"]
 [ext_resource type="PackedScene" uid="uid://bxwg1o4swt0ji" path="res://assets/model/box/frying_pan.tscn" id="7_rg5yx"]
+[ext_resource type="Script" uid="uid://b0yu40hr5sku3" path="res://global_script/crush_detector.gd" id="8_p2avx"]
 [ext_resource type="PackedScene" uid="uid://vtouulnlf386" path="res://Tools_I/Tools_I.tscn" id="9_mnrfm"]
 [ext_resource type="PackedScene" path="res://ui_scene/ui_ingame.tscn" id="10_ui"]
 
@@ -28,7 +29,7 @@ sky = SubResource("Sky_0xm2m")
 size = Vector3(6, 1, 6)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1r6oq"]
-size = Vector3(1, 0.8, 1)
+size = Vector3(0.92, 0.8, 0.92)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_a7i5e"]
 
@@ -40,13 +41,69 @@ material = SubResource("StandardMaterial3D_onvak")
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
 bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fdgck"]
+bg_color = Color(1, 0.9411765, 0.84705883, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0, 0, 0, 0.39215687)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_awgiv"]
+bg_color = Color(0.9137255, 0.52156866, 0.5686275, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.09803922)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nyv7x"]
+bg_color = Color(1, 0.75699997, 0.19, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.09803922)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p2avx"]
+bg_color = Color(1, 0.75699997, 0.19, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.09803922)
+shadow_size = 4
+
 [node name="Main" type="Node3D" unique_id=222267479]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=109826146]
 environment = SubResource("Environment_h2yge")
 
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("7_qfbep")]
-transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -0.5, 0.4, -1.5)
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -0.5, 0.45, -1.5)
 
 [node name="Node3D" type="Node3D" parent="." unique_id=2128679359]
 script = ExtResource("1_onvak")
@@ -109,6 +166,7 @@ shape = SubResource("BoxShape3D_tctkp")
 transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, -3, 3, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m6" unique_id=1067618000]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0062327385, -0.0003888607, 0.0003248453)
 mesh = ExtResource("2_qxp3c")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m6" unique_id=258464847]
@@ -133,14 +191,17 @@ shape = SubResource("BoxShape3D_1r6oq")
 
 [node name="Cinnamon Roll" parent="Node3D/MovableBox2" unique_id=1125339866 instance=ExtResource("5_rg5yx")]
 
-[node name="MovableBox3" type="RigidBody3D" parent="Node3D" unique_id=1671080891]
+[node name="DeadlyBox" type="RigidBody3D" parent="Node3D" unique_id=1671080891]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.5, 0.5)
 script = ExtResource("6_mbox")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/MovableBox3" unique_id=408098935]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/DeadlyBox" unique_id=408098935]
 shape = SubResource("BoxShape3D_1r6oq")
 
-[node name="Box" parent="Node3D/MovableBox3" unique_id=1837806205 instance=ExtResource("6_mnrfm")]
+[node name="Box" parent="Node3D/DeadlyBox" unique_id=1837806205 instance=ExtResource("6_mnrfm")]
+
+[node name="CrushDetector" type="Node" parent="Node3D/DeadlyBox" unique_id=539819504]
+script = ExtResource("8_p2avx")
 
 [node name="staticboxes" type="Node3D" parent="Node3D" unique_id=562611702]
 
@@ -629,7 +690,7 @@ key_position = Vector3(-0.5, 0.45, -1.5)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=666005303]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-light_energy = 1.952
+light_energy = 1.8
 shadow_enabled = true
 
 [node name="Marker3D" type="Marker3D" parent="." unique_id=1916695867]
@@ -647,4 +708,82 @@ welcome_text = "欢迎来到第一关！
 congrats_text = "恭喜你完成了第一关！"
 next_scene = "res://level2/main.tscn"
 
+[node name="GameOverPanel" type="ColorRect" parent="ui_ingame" unique_id=1723698820]
+offset_left = 220.0
+offset_top = 94.0
+offset_right = 1676.0
+offset_bottom = 988.0
+color = Color(1, 1, 1, 0)
+
+[node name="CenterContainer" type="CenterContainer" parent="ui_ingame/GameOverPanel" unique_id=1545602693]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DessertPanel" type="PanelContainer" parent="ui_ingame/GameOverPanel/CenterContainer" unique_id=917009480]
+custom_minimum_size = Vector2(420, 300)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdgck")
+
+[node name="ContentMargin" type="MarginContainer" parent="ui_ingame/GameOverPanel/CenterContainer/DessertPanel" unique_id=244082431]
+layout_mode = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="GameOverContent" type="VBoxContainer" parent="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin" unique_id=1071968889]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="GameOverTitle" type="Label" parent="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=1077092723]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84705883, 0.36078432, 0.41568628, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.3137255)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_outline_size = 10
+theme_override_font_sizes/font_size = 32
+text = "Oops! You Got Squished!"
+horizontal_alignment = 1
+
+[node name="GameOverMessage" type="Label" parent="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=137474993]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.41960785, 0.24705882, 0.19607843, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ready for another roll?"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=947897168]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Try Again"
+
+[node name="QuitButton" type="Button" parent="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=665361691]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Quit Game
+"
+
 [connection signal="body_entered" from="Node3D/staticboxes/StaticBox_EXIT" to="ui_ingame" method="_on_exit_body_entered"]
+[connection signal="pressed" from="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/RestartButton" to="ui_ingame" method="_on_restart_button_pressed"]
+[connection signal="pressed" from="ui_ingame/GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/QuitButton" to="ui_ingame" method="_on_quit_button_pressed"]

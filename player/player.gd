@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+signal died
+var is_dead: bool = false
 
 # 重力与起跳力度。
 @export var fall_acceleration := 75.0
@@ -48,6 +50,12 @@ extends CharacterBody3D
 @onready var cube_world: Node3D = \
 	get_parent().get_node_or_null("Node3D")
 
+@export var jump_enabled_by_default: bool = false
+
+@export_category("Debug")
+@export var allow_jump_cheat: bool = true
+
+var jump_enabled: bool = false
 
 # 用于检测落地瞬间。
 var was_on_floor := true
@@ -55,9 +63,19 @@ var was_on_floor := true
 # 关卡重置位置。
 var start_transform: Transform3D
 
+var start_visual_body_position: Vector3
+
+var start_collision_position: Vector3
+var start_collision_size: Vector3
 
 func _ready() -> void:
+	jump_enabled = jump_enabled_by_default
+	
+	if collision_shape.shape != null:
+		collision_shape.shape = collision_shape.shape.duplicate()
+	
 	start_transform = global_transform
+	start_visual_body_position = visual_body.position
 	add_to_group("player")
 
 	jump_controller.setup(
@@ -77,9 +95,27 @@ func _ready() -> void:
 	roll_controller.finished.connect(
 		_on_roll_finished
 	)
+	
+	start_collision_position = collision_shape.position
+
+	var box_shape := collision_shape.shape as BoxShape3D
+	if box_shape:
+		start_collision_size = box_shape.size
 
 
 func reset_to_start() -> void:
+	# 每次关卡重置后恢复默认跳跃权限。
+	jump_enabled = jump_enabled_by_default
+
+	var box_shape := collision_shape.shape as BoxShape3D
+
+	if box_shape:
+		box_shape.size = start_collision_size
+		collision_shape.position = start_collision_position
+		
+	is_dead = false
+	collision_shape.set_deferred("disabled", false)
+	
 	jump_controller.cancel()
 	roll_controller.cancel()
 
@@ -107,15 +143,22 @@ func sync_move_from_facing() -> void:
 		or has_floor_below()
 	)
 
-
 func _reset_visual_state() -> void:
+	if visual_body.has_method("stop_shape_tween"):
+		visual_body.stop_shape_tween()
+
 	pivot.basis = Basis.IDENTITY
 	visual_root.basis = Basis.IDENTITY
+
+	visual_body.position = start_visual_body_position
 	visual_body.basis = Basis.IDENTITY
 	visual_body.scale = Vector3.ONE
 
-
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		velocity = Vector3.ZERO
+		return
+		
 	if not use_grid_roll:
 		_physics_process_walk(delta)
 		return
@@ -165,8 +208,11 @@ func _physics_process(delta: float) -> void:
 		if velocity.y < 0.0:
 			velocity.y = 0.0
 
-		# 跳跃输入优先于翻滚。
-		if Input.is_action_just_pressed("jump"):
+		# 默认禁止跳跃；只有获得跳跃权限时才允许原地跳或方向跳。
+		if (
+			Input.is_action_just_pressed("jump")
+			and can_jump()
+		):
 			_start_jump(direction)
 			return
 
@@ -201,7 +247,6 @@ func _physics_process(delta: float) -> void:
 
 	was_on_floor = on_floor_now
 
-
 # 开场道路等场景使用普通滑动模式。
 func _physics_process_walk(delta: float) -> void:
 	var direction := _get_walk_direction()
@@ -217,7 +262,10 @@ func _physics_process_walk(delta: float) -> void:
 
 	if not is_on_floor():
 		velocity.y -= fall_acceleration * delta
-	elif Input.is_action_just_pressed("jump"):
+	elif (
+		Input.is_action_just_pressed("jump")
+		and can_jump()
+	):
 		velocity.y = jump_impulse
 		jump_controller.play_jump_sfx()
 	elif velocity.y < 0.0:
@@ -235,7 +283,6 @@ func _physics_process_walk(delta: float) -> void:
 		visual_body.land_squash()
 
 	was_on_floor = on_floor_now
-
 
 func _get_walk_direction() -> Vector3:
 	if screen_relative_move:
@@ -260,10 +307,13 @@ func _get_walk_direction() -> Vector3:
 
 	return input.normalized()
 
-
 func _start_jump(
 	direction: Vector3
 ) -> void:
+	# 防止其他调用路径绕过跳跃权限。
+	if not can_jump():
+		return
+
 	if direction != Vector3.ZERO:
 		visual_face.look_direction(direction)
 
@@ -339,7 +389,6 @@ func get_input_direction() -> Vector3:
 		world.normalized()
 	)
 
-
 func _get_screen_move_axes() -> Array[Vector3]:
 	var screen_up := Vector3(
 		0.0,
@@ -391,7 +440,6 @@ func _get_screen_move_axes() -> Array[Vector3]:
 		screen_right
 	]
 
-
 func _snap_horizontal_axis(
 	value: Vector3
 ) -> Vector3:
@@ -407,3 +455,101 @@ func _snap_horizontal_axis(
 		0.0,
 		signf(value.z)
 	)
+
+func die() -> void:
+	if is_dead:
+		return
+
+	is_dead = true
+	velocity = Vector3.ZERO
+
+	if is_instance_valid(jump_controller):
+		jump_controller.cancel()
+
+	if is_instance_valid(roll_controller):
+		roll_controller.cancel()
+	
+	# 死亡时让身体重新对齐世界坐标，
+	# 保证压扁方向永远朝向地面。
+	visual_body.basis = Basis.IDENTITY
+	
+
+	var box_shape := collision_shape.shape as BoxShape3D
+
+	if box_shape:
+		var height_scale: float = visual_body.death_height_scale
+		var original_height: float = 1.0
+		var new_height: float = original_height * height_scale
+
+		box_shape.size.y = new_height
+
+		# 保持碰撞体底面位置不变。
+		collision_shape.position.y = -(
+			original_height - new_height
+		) * 0.5
+	
+	await visual_body.death_squash()
+	
+	died.emit()
+
+# 临时测试：按 K 触发死亡。
+func _unhandled_input(event: InputEvent) -> void:
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_K
+	):
+		die()
+
+func get_death_height_scale() -> float:
+	return visual_body.death_height_scale
+
+# 由弹跳板等机关调用：只控制“能否开始新的跳跃”。
+# 离开弹跳板后不会打断已经开始的跳跃。
+func set_jump_enabled(enabled: bool) -> void:
+	jump_enabled = enabled
+
+	# 若权限在蓄力阶段被收回，则取消尚未真正起跳的动作。
+	if (
+		not jump_enabled
+		and is_instance_valid(jump_controller)
+		and jump_controller.preparing
+	):
+		jump_controller.cancel()
+
+
+func is_jump_enabled() -> bool:
+	return jump_enabled
+
+
+# 原地跳和“跳跃 + 移动”统一经过这里。
+func can_jump() -> bool:
+	return (
+		jump_enabled
+		and not is_dead
+		and (
+			is_on_floor()
+			or has_floor_below()
+		)
+		and not roll_controller.active
+		and not jump_controller.preparing
+		and not jump_controller.active
+	)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not allow_jump_cheat:
+		return
+
+	if is_dead:
+		return
+
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_J
+	):
+		set_jump_enabled(true)
+		print("DEBUG：本关跳跃技能已解锁")
+		get_viewport().set_input_as_handled()

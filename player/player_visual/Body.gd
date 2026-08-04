@@ -1,5 +1,7 @@
 extends Node3D
 
+@export_range(0.1, 1.0, 0.05)
+var death_height_scale: float = 0.5
 
 # 所有身体形变共用一个 Tween。
 var shape_tween: Tween
@@ -120,3 +122,38 @@ func land_squash() -> void:
 		Vector3.ONE,
 		0.22
 	)
+
+# 被重物压扁后的死亡动画。
+# 被重物从上方压扁。
+# 缩放的同时向下移动，保证底面固定在地面上。
+func death_squash() -> void:
+	var tween := _create_shape_tween()
+	var start_position := position
+
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_parallel(true)
+
+	var final_scale := Vector3(1.20, death_height_scale, 1.20)
+
+	# 向下移动，保证底面贴着地面。
+	var final_position := (
+		start_position
+		+ Vector3.DOWN * ((1.0 - final_scale.y) * 0.2)
+	)
+
+	tween.tween_property(
+		self,
+		"scale",
+		final_scale,
+		0.35
+	)
+
+	tween.tween_property(
+		self,
+		"position",
+		final_position,
+		0.35
+	)
+
+	await tween.finished

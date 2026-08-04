@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bxwg1o4swt0ji" path="res://assets/model/box/frying_pan.tscn" id="5_fv4yg"]
 [ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="5_hgqey"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_tlv81"]
-[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="6_mbox"]
+[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://global_script/movable_box.gd" id="6_mbox"]
 [ext_resource type="PackedScene" path="res://ui_scene/ui_ingame.tscn" id="7_ui"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]

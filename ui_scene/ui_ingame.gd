@@ -42,9 +42,20 @@ func _ready() -> void:
 	_setup_succeed_sfx()
 	_hide_welcome_after_delay()
 
+	var game_over := get_node_or_null("GameOverPanel") as CanvasItem
+	if game_over != null:
+		game_over.visible = false
+
+	var player := get_parent().get_node_or_null("Player")
+	if player != null and player.has_signal("died"):
+		player.died.connect(_on_player_died)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if get_tree().paused or won:
+		return
+	var player := get_parent().get_node_or_null("Player")
+	if player != null and player.get("is_dead") == true:
 		return
 	var cube := get_parent().get_node_or_null("Node3D")
 	if cube == null:
@@ -187,7 +198,9 @@ func _movable_boxes() -> Array[RigidBody3D]:
 	if cube == null:
 		return result
 	for child in cube.get_children():
-		if child is RigidBody3D and "MovableBox" in child.name:
+		if child is RigidBody3D and (
+			"MovableBox" in child.name or "DeadlyBox" in child.name
+		):
 			result.append(child as RigidBody3D)
 	return result
 
@@ -219,3 +232,29 @@ func _on_next_pressed() -> void:
 	get_tree().paused = false
 	if not next_scene.is_empty():
 		get_tree().change_scene_to_file(next_scene)
+
+
+func _on_player_died() -> void:
+	var game_over := get_node_or_null("GameOverPanel") as CanvasItem
+	if game_over == null:
+		return
+	for child in get_children():
+		if child is CanvasItem and child != game_over:
+			(child as CanvasItem).visible = false
+	game_over.visible = true
+	get_tree().paused = true
+
+
+func _on_restart_button_pressed() -> void:
+	get_tree().paused = false
+	var level_root := get_parent()
+	var scene_path: String = level_root.scene_file_path if level_root != null else ""
+	if scene_path.is_empty():
+		push_error("无法识别当前关卡场景路径")
+		return
+	get_tree().change_scene_to_file(scene_path)
+
+
+func _on_quit_button_pressed() -> void:
+	get_tree().paused = false
+	get_tree().quit()

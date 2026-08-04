@@ -198,7 +198,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
 			if (
 				(child is StaticBody3D or child is RigidBody3D)
-				and ("StaticBox" in n or "MovableBox" in n)
+				and ("StaticBox" in n or "MovableBox" in n or "DeadlyBox" in n)
 				and "EXIT" not in n
 			):
 				if child.get("allows_player_enter") == true or child.get("is_open") == true:
@@ -281,7 +281,7 @@ func _bind_props_to_walls() -> void:
 				if found not in props:
 					props.append(found)
 
-	for pattern in ["*StaticBox*", "*MovableBox*", "*Portal*", "*F_Trigger*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*DeadlyBox*", "*Portal*", "*F_Trigger*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -292,7 +292,7 @@ func _bind_props_to_walls() -> void:
 		if "StaticBox" in n:
 			if prop.get_parent() != boxes_root:
 				prop.reparent(boxes_root, true)
-		elif "MovableBox" in n:
+		elif "MovableBox" in n or "DeadlyBox" in n:
 			# Keep under cube root so ui_ingame / physics still find them.
 			if prop.get_parent() != self:
 				prop.reparent(self, true)
@@ -309,6 +309,7 @@ func _is_wall_prop_name(n: String) -> bool:
 	return (
 		"StaticBox" in n
 		or "MovableBox" in n
+		or "DeadlyBox" in n
 		or "Portal" in n
 		or n == "F_Trigger"
 		or n.begins_with("F_Trigger")
@@ -418,6 +419,7 @@ func update_cutaway_visibility() -> void:
 		var prop_name := String(prop.name)
 		if (
 			"MovableBox" in prop_name
+			or "DeadlyBox" in prop_name
 			or "Portal" in prop_name
 			or prop_name == "F_Trigger"
 			or prop_name.begins_with("F_Trigger")
@@ -533,6 +535,10 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 
 	player.set_physics_process(true)
 	await _wait_for_props_to_settle()
+
+	if not is_inside_tree():
+		return
+
 	flipping = false
 	flip_finished.emit()
 
@@ -560,7 +566,8 @@ func _gather_fallable_bodies_rec(node: Node, result: Array[RigidBody3D]) -> void
 func _is_fallable_body(rb: RigidBody3D) -> bool:
 	if rb == null or not is_instance_valid(rb):
 		return false
-	return "MovableBox" in String(rb.name)
+	var n := String(rb.name)
+	return "MovableBox" in n or "DeadlyBox" in n
 
 
 func _body_is_settled(rb: RigidBody3D) -> bool:
@@ -583,26 +590,43 @@ func _all_fallable_props_settled() -> bool:
 
 
 func _wait_for_props_to_settle() -> void:
-	await get_tree().physics_frame
 	if not is_inside_tree():
 		return
+
+	var tree := get_tree()
+	if tree == null:
+		return
+
+	await tree.physics_frame
+
+	if not is_inside_tree():
+		return
+
 	var stable := 0
 	var elapsed := 0.0
+
 	while elapsed < settle_timeout:
 		if not is_inside_tree():
 			return
-		if get_tree().paused:
-			await get_tree().process_frame
-			if not is_inside_tree():
-				return
+
+		tree = get_tree()
+		if tree == null:
+			return
+
+		if tree.paused:
+			await tree.process_frame
 			continue
+
 		if _all_fallable_props_settled():
 			stable += 1
 			if stable >= settle_stable_frames:
 				return
 		else:
 			stable = 0
-		await get_tree().physics_frame
+
+		await tree.physics_frame
+
 		if not is_inside_tree():
 			return
+
 		elapsed += get_physics_process_delta_time()

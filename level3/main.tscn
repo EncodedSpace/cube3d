@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dpbhpaxp3oq0v" path="res://level3/cube_world.gd" id="1_djs47"]
 [ext_resource type="PlaneMesh" uid="uid://c5to6sx38627w" path="res://level3/wall_surf1.tres" id="2_6n5l6"]
 [ext_resource type="Shape3D" uid="uid://bjaeep3eiflsg" path="res://level3/wall_cube1.tres" id="3_b3y0m"]
-[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="3_ecgf5"]
+[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://global_script/movable_box.gd" id="3_ecgf5"]
 [ext_resource type="Material" uid="uid://pqmpa718w18o" path="res://material/movable_material.tres" id="4_b3y0m"]
 [ext_resource type="Script" uid="uid://yeb1qlcx4oin" path="res://Tools_E/static_box_e2.gd" id="5_bgku1"]
 [ext_resource type="Script" uid="uid://eq4yj0dlhuvl" path="res://Tools_E/static_box_e1.gd" id="6_s4uq2"]
