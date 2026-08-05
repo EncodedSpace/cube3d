@@ -97,15 +97,21 @@ func _hide_welcome_after_delay() -> void:
 
 
 func _on_exit_body_entered(body: Node) -> void:
+	print("[UI] exit called won=", won, " body=", body.name, " paused=", get_tree().paused)
 	if won or body.name != "Player":
+		print("[UI] exit early return: won=", won, " body=", body.name)
 		return
+	print("[UI] calling _show_win")
 	_show_win()
 
 
 func _show_win() -> void:
+	print("[UI] _show_win entered, won=", won)
 	if won:
+		print("[UI] _show_win already won, returning")
 		return
 	won = true
+	print("[UI] setting congratulations visible, next_scene=", next_scene, " is_zen_mode=", is_zen_mode)
 	_play_succeed_sfx()
 	$congratulations.visible = true
 	$back.visible = true
@@ -116,7 +122,9 @@ func _show_win() -> void:
 	if is_zen_mode:
 		$next2.visible = true
 		$next.visible = false
+	print("[UI] calling game_paused")
 	game_paused()
+	print("[UI] _show_win done")
 
 
 func _setup_succeed_sfx() -> void:
@@ -137,10 +145,12 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
+	game_continued()
 
 
 func _on_reload_pressed() -> void:
 	reset_level()
+	game_continued()
 
 
 func _on_zen_mode_pressed() -> void:
@@ -255,10 +265,10 @@ func reset_level() -> void:
 				box.reset_to_start()
 			box.freeze = false
 		var player := get_parent().get_node_or_null("Player")
-		if player != null and player.has_method("reset_to_start"):
-			player.reset_to_start()
+		if player != null:
 			player.set_physics_process(true)
-		game_continued()
+			if player.has_method("reset_to_start"):
+				player.reset_to_start()
 		return
 
 	# 手写关卡：整关重载，确保钥匙/门等状态完整复原。

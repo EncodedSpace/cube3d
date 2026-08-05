@@ -22,6 +22,7 @@ var flipping: bool = false
 var start_transform: Transform3D
 ## True while cube is rotating: fallable props stay frozen so falls aren't cut mid-air.
 var _hold_props_frozen: bool = false
+var _active_tween: Tween = null
 
 ## Props attached to walls: each entry is { "prop": Node3D, "walls": Array[Node3D] }
 ## A prop can bind to multiple walls when equally close to each. Visible if ANY
@@ -121,6 +122,10 @@ func can_flip() -> bool:
 
 
 func reset_to_start() -> void:
+	# 中断正在运行的旋转 tween，防止动画覆盖重置后的 transform
+	if _active_tween != null and _active_tween.is_valid():
+		_active_tween.kill()
+		_active_tween = null
 	flipping = false
 	_hold_props_frozen = false
 	if _map_saved:
@@ -132,24 +137,20 @@ func reset_to_start() -> void:
 
 func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
 	if flipping:
-		print("[FlipBlocked] reason=flipping")
 		return false
 
 	# Collision normal points toward the player (into the room).
 	# The face's outward direction is the opposite; that should become world down.
 	var outward: Vector3 = _snap_to_axis(-collision_normal)
 	if outward.dot(Vector3.DOWN) > 0.99:
-		print("[FlipBlocked] reason=already_floor outward=", outward, " collision_normal=", collision_normal)
 		return false
 
 	var rotation_quat := Quaternion(outward, Vector3.DOWN)
 	if rotation_quat.get_angle() < 0.01:
-		print("[FlipBlocked] reason=zero_rotation outward=", outward, " collision_normal=", collision_normal)
 		return false
 
 	# Only empty floor-wall junctions can flip (no StaticBox / MovableBox there).
 	if player != null and _is_flip_blocked_by_box(collision_normal, player):
-		print("[FlipBlocked] reason=occupied_junction collision_normal=", collision_normal, " player=", player.global_position)
 		return false
 
 	_animate_flip(rotation_quat, player)
@@ -159,16 +160,13 @@ func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
 ## Orient so this wall becomes the floor (portal teleport). Skips junction-box blocking.
 func request_orient_wall_as_floor(wall: Node3D, player: Node3D) -> bool:
 	if flipping or wall == null:
-		print("[FlipBlocked] reason=flipping_or_null_wall wall=", wall)
 		return false
 	var inward := wall.global_transform.basis.y.normalized()
 	var outward: Vector3 = _snap_to_axis(-inward)
 	if outward.dot(Vector3.DOWN) > 0.99:
-		print("[FlipBlocked] reason=already_floor_wall wall=", wall.name, " outward=", outward)
 		return false
 	var rotation_quat := Quaternion(outward, Vector3.DOWN)
 	if rotation_quat.get_angle() < 0.01:
-		print("[FlipBlocked] reason=zero_rotation_wall wall=", wall.name, " outward=", outward)
 		return false
 	_animate_flip(rotation_quat, player)
 	return true
@@ -208,7 +206,6 @@ func _is_flip_blocked_by_box(collision_normal: Vector3, player: Node3D) -> bool:
 		if absf(offset.dot(toward_wall)) > clearance:
 			blocked = false
 		if blocked:
-			print("[FlipBlocked] box=", box.name, " box_pos=", box.global_position, " player=", player.global_position, " contact=", contact, " toward_wall=", toward_wall, " along_wall=", along_wall, " offset=", offset, " clearance=", clearance)
 			return true
 	return false
 
@@ -223,8 +220,6 @@ func _collect_obstacle_boxes() -> Array[Node3D]:
 func is_passable_for_player(world_pos: Vector3) -> bool:
 	const HALF_CELL := 0.51
 	var passable := _has_passable_prop_at(self, world_pos, HALF_CELL)
-	if passable:
-		print("[PassableCell] world_pos=", world_pos)
 	return passable
 
 
@@ -242,7 +237,6 @@ func _has_passable_prop_at(node: Node, world_pos: Vector3, half_cell: float) -> 
 					and absf(offset.y) < half_cell
 					and absf(offset.z) < half_cell
 				):
-					print("[PassableCell] prop=", n3.name, " prop_pos=", n3.global_position, " world_pos=", world_pos, " offset=", offset)
 					return true
 			if _has_passable_prop_at(child, world_pos, half_cell):
 				return true
@@ -611,6 +605,7 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 		player.jump_preparing = false
 
 	var tween := create_tween()
+	_active_tween = tween
 	tween.set_ease(Tween.EASE_IN_OUT)
 	tween.set_trans(Tween.TRANS_CUBIC)
 	tween.tween_method(
@@ -625,6 +620,7 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 	)
 
 	await tween.finished
+	_active_tween = null
 
 	global_transform.basis = global_transform.basis.orthonormalized()
 
@@ -825,16 +821,12 @@ func _apply_map() -> void:
 	adjust_camera()
 	adjust_light()
 
-	# 玩家始终从底面出生 → 不需要旋转，直接放在 world 坐标
-	_place_player_at()
-
-	# 玩家始终从底面出生 → 不需要旋转，直接放在 world 坐标
 	_place_player_at()
 
 
 ## 根据矩阵尺寸 n（6–12）调节：
-##  - Marker3D/Camera3D 的 Size：10 → 20
-##  - Marker3D 的 position.y：0 → 3（尺寸越大相机抬得越高，画面更好看）
+##  - Marker3D/Camera3D 的 Size：10 → 12
+##  - Marker3D 的 position.y：0 → 2（尺寸越大相机抬得越高，画面更好看）
 ## Marker3D 是 Main（本节点的父级）的子节点，因此通过 get_parent() 访问。
 ## 公开方法：生成/重置流程都可能调用，保证相机始终跟随当前尺寸。
 func adjust_camera() -> void:
@@ -845,20 +837,20 @@ func adjust_camera() -> void:
 		marker = get_node_or_null("Marker3D") as Marker3D
 	if marker != null:
 		var pos := marker.position
-		pos.y = lerpf(0.0, 3.0, t)
+		pos.y = lerpf(0.0, 2.0, t)
 		marker.position = pos
 
 		# 同时调节 Marker3D 下的相机 Size。
 		var cam := marker.get_node_or_null("Camera3D") as Camera3D
 		if cam != null:
-			cam.size = lerpf(10.0, 20.0, t)
+			cam.size = lerpf(10.0, 12.0, t)
 			cam.make_current()
 		return
 
 	# 兜底：找不到 Marker3D 时，仍调节视口当前相机。
 	var active := get_viewport().get_camera_3d()
 	if active != null:
-		active.size = lerpf(10.0, 20.0, t)
+		active.size = lerpf(10.0, 12.0, t)
 		active.make_current()
 
 
@@ -962,12 +954,18 @@ func _clone_wall_boxes() -> void:
 			for z in range(n):
 				if matrix[x][y][z] == 1:
 					var clone := _staticbox_template.duplicate() as StaticBody3D
+					clone.name = "StaticBox" + str(sboxes.get_child_count())
 					clone.position = _wp(x, y, z)
 					clone.scale = Vector3.ONE
+					clone.visible = true
+					# 恢复碰撞体和网格的可见性（模板可能被隐藏了）
+					var col := clone.get_node_or_null("CollisionShape3D") as CollisionShape3D
+					if col != null:
+						col.disabled = false
+					var vis := clone.get_node_or_null("MeshInstance3D") as MeshInstance3D
+					if vis != null:
+						vis.visible = true
 					sboxes.add_child(clone)
-					# Give each clone a unique name that starts with "StaticBox" so
-					# binding/cleanup logic can identify them reliably.
-					clone.name = "StaticBox" + str(sboxes.get_child_count())
 
 	# Hide the template – it's only for cloning, not gameplay
 	if _staticbox_template != null and is_instance_valid(_staticbox_template):
@@ -1020,37 +1018,57 @@ func _position_exit() -> void:
 	exit_area.transform = Transform3D(Basis(rot), pos)
 	exit_area.scale = Vector3.ONE
 
-	# 显式设置碰撞体大小为 1×1×1，占满整个立方格
+	# ---- 完整恢复 EXIT 状态 ----
+	# 1. 碰撞体大小
 	var col_shape := exit_area.get_node_or_null("CollisionShape3D2") as CollisionShape3D
 	if col_shape != null and col_shape.shape is BoxShape3D:
 		(col_shape.shape as BoxShape3D).size = Vector3(1, 1, 1)
+		col_shape.disabled = false  # 强制启用（上一关 cutaway 可能禁用了）
 
-	# 断开旧连接再重新连接，防止 generate/restore 多次调用时重复绑定导致信号失效。
+	# 2. 可见性 / monitoring（cutaway 可能关掉了）
+	exit_area.visible = true
+	exit_area.monitoring = true
+	exit_area.monitorable = true
+
+	# 3. 信号（断开旧连接再重新连接）
 	if exit_area.body_entered.is_connected(_on_exit_body_entered):
 		exit_area.body_entered.disconnect(_on_exit_body_entered)
 	exit_area.body_entered.connect(_on_exit_body_entered)
 
+	print("[ZenExit] positioned at world=", exit_area.global_position, " monitoring=", exit_area.monitoring, " monitorable=", exit_area.monitorable)
+
 
 func _on_exit_body_entered(body: Node) -> void:
+	print("[ZenExit] body entered: name=", body.name)
 	if body.name != "Player":
 		return
+	var player := body as Node3D
+	var exit_node := get_node_or_null("staticboxes/StaticBox_EXIT") as Node3D
+	var exit_pos := exit_node.global_position if exit_node != null else Vector3.ZERO
+	if player != null:
+		var dist := player.global_position.distance_to(exit_pos)
+		print("[ZenExit] TRIGGERED! player=", player.global_position, " exit=", exit_pos, " distance=", dist)
 	var ui := get_parent().get_node_or_null("ui_ingame")
+	print("[ZenExit] ui=", ui, " instance_id=", (ui.get_instance_id() if ui else "null"))
+	print("[ZenExit] parent children:")
+	for c in get_parent().get_children():
+		print("  ", c.name, " : ", c.get_class())
 	if ui != null and ui.has_method("_on_exit_body_entered"):
+		print("[ZenExit] calling ui._on_exit_body_entered")
 		ui._on_exit_body_entered(body)
+	else:
+		print("[ZenExit] ui not found or missing method")
 
 
-
-func _orient_start_as_floor() -> void:
-	## Rotate this node around its geometric center so the start face becomes the floor.
-	var outward: Vector3 = _surface_normal(start_pos)
-	if outward.dot(Vector3.DOWN) > 0.99:
-		return  # 已经是底面，不需要旋转
-	var q := Quaternion(outward, Vector3.DOWN)
-	if q.get_angle() < 0.01:
-		return
-	var center := to_global(Vector3(0.0, cube_half_extent, 0.0))
-	global_transform = _rotated_xform(global_transform, center, q)
-	global_transform.basis = global_transform.basis.orthonormalized()
+## 供 player.gd 的 debug_track_exit 调用，返回终点全局坐标
+func get_exit_global_pos() -> Vector3:
+	var sboxes := get_node_or_null("staticboxes")
+	if sboxes == null:
+		return Vector3.ZERO
+	var exit_area := sboxes.get_node_or_null("StaticBox_EXIT") as Node3D
+	if exit_area == null:
+		return Vector3.ZERO
+	return exit_area.global_position
 
 
 func _place_player_at() -> void:
@@ -1058,10 +1076,11 @@ func _place_player_at() -> void:
 	if player == null:
 		return
 
-	# _wp 返回格子的精确中心，用 local 坐标转 world
-	var world_pos := to_global(_wp(start_pos.x, start_pos.y, start_pos.z))
-	world_pos.y = 0.55  # 底面碰撞壳顶部（壳厚1，-0.5~0.5）
-	# x/z 保持 _wp 返回的精确中心值（不 snapped）
+	# 计算起点格子中心（局部坐标），向内偏移 0.55 放在格子内表面
+	var outward: Vector3 = _surface_normal(start_pos)
+	var inward: Vector3 = -outward
+	var local_spawn := _wp(start_pos.x, start_pos.y, start_pos.z) + inward * 0.55
+	var world_pos := to_global(local_spawn)
 
 	var player_scale := player.scale
 	var xform := Transform3D(Basis.IDENTITY, world_pos).scaled(player_scale)
