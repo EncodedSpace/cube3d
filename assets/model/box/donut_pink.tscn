@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bwxlas2kepj5r"]
+
+[ext_resource type="PackedScene" uid="uid://bo4f7l4s6lxuv" path="res://assets/model/box/source/Donut Pink.glb" id="1_qnxqc"]
+
+[node name="Donut Pink" type="Node3D" unique_id=1051087417]
+
+[node name="Donut Pink" parent="." unique_id=2081953564 instance=ExtResource("1_qnxqc")]
+transform = Transform3D(2.2, 0, 0, 0, 2.2, 0, 0, 0, 2.2, 0, -0.2, 0)

@@ -1,152 +1,52 @@
 [gd_scene format=3 uid="uid://cmweiqu8nsrga"]
 
 [ext_resource type="Script" uid="uid://b8kx2m4npq7vw" path="res://teach/cube_world.gd" id="1_tlv81"]
-[ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_sy78l"]
+[ext_resource type="PackedScene" uid="uid://c4ah64xctwpig" path="res://assets/model/walls/cube_shell_kitchen.tscn" id="2_fv4yg"]
 [ext_resource type="PackedScene" uid="uid://dfeusfyy4sxns" path="res://assets/model/box/bread_half.tscn" id="4_2457s"]
-[ext_resource type="Script" uid="uid://b7sta4rhwntrw" path="res://teach/ui_ingame.gd" id="4_fv4yg"]
+[ext_resource type="PackedScene" uid="uid://bl2up3desqwht" path="res://assets/model/box/static_box_ice.tscn" id="4_raxqm"]
 [ext_resource type="PackedScene" uid="uid://bxwg1o4swt0ji" path="res://assets/model/box/frying_pan.tscn" id="5_fv4yg"]
 [ext_resource type="PackedScene" uid="uid://dfck0ewf8mv4j" path="res://player/player.tscn" id="5_hgqey"]
-[ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="5_tlv81"]
 [ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://global_script/movable_box.gd" id="6_mbox"]
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-
-[sub_resource type="Sky" id="Sky_0xm2m"]
-sky_material = SubResource("ProceduralSkyMaterial_ig7tw")
-
-[sub_resource type="Environment" id="Environment_h2yge"]
-background_mode = 1
-background_color = Color(0.26657522, 0.2665752, 0.2665752, 1)
-sky = SubResource("Sky_0xm2m")
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
-size = Vector3(6, 1, 6)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_a7i5e"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_1r6oq"]
+[ext_resource type="PackedScene" uid="uid://cwgifm70kni8m" path="res://assets/model/box/muffin.tscn" id="7_6rh6t"]
+[ext_resource type="PackedScene" uid="uid://bmmutdrs0ne12" path="res://assets/ui/ui_ingame_shared.tscn" id="10_raxqm"]
+[ext_resource type="PackedScene" uid="uid://dpjdtxojyrf41" path="res://assets/environment/level_environment.tscn" id="11_6rh6t"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1r6oq"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_exit"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sy78l"]
-bg_color = Color(0, 0, 0, 0.39215687)
-border_color = Color(1, 1, 1, 0)
-border_blend = true
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
-bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
-
 [node name="Main2" type="Node3D" unique_id=222267479]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=109826146]
-environment = SubResource("Environment_h2yge")
+[node name="LevelEnvironment" parent="." unique_id=1787964012 instance=ExtResource("11_6rh6t")]
 
 [node name="Node3D" type="Node3D" parent="." unique_id=2128679359]
 script = ExtResource("1_tlv81")
 
-[node name="WALLS" type="Node3D" parent="Node3D" unique_id=77500754]
+[node name="WALLS" parent="Node3D" unique_id=504397160 instance=ExtResource("2_fv4yg")]
 
-[node name="m4" type="StaticBody3D" parent="Node3D/WALLS" unique_id=1588054003]
-transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 6, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m4" unique_id=1160761657]
-mesh = ExtResource("2_sy78l")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m4" unique_id=1978656807]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_tctkp")
-
-[node name="m3" type="StaticBody3D" parent="Node3D/WALLS" unique_id=345914448]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 3, 3, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m3" unique_id=811916308]
-mesh = ExtResource("2_sy78l")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m3" unique_id=1718676878]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_tctkp")
-
-[node name="m1" type="StaticBody3D" parent="Node3D/WALLS" unique_id=2007558521]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m1" unique_id=2080585329]
-mesh = ExtResource("2_sy78l")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m1" unique_id=1868941428]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_tctkp")
-
-[node name="m2" type="StaticBody3D" parent="Node3D/WALLS" unique_id=1173155474]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 3, -3)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m2" unique_id=395511726]
-mesh = ExtResource("2_sy78l")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m2" unique_id=984773444]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_tctkp")
-
-[node name="m5" type="StaticBody3D" parent="Node3D/WALLS" unique_id=1715822497]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 3, 3)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m5" unique_id=1679573345]
-mesh = ExtResource("2_sy78l")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m5" unique_id=311589666]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_tctkp")
-
-[node name="m6" type="StaticBody3D" parent="Node3D/WALLS" unique_id=1029915541]
-transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, -3, 3, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/WALLS/m6" unique_id=1067618000]
-mesh = ExtResource("2_sy78l")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/WALLS/m6" unique_id=258464847]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-shape = SubResource("BoxShape3D_tctkp")
-
-[node name="StaticBox" type="StaticBody3D" parent="Node3D" unique_id=81787765]
+[node name="StaticBox" parent="Node3D" unique_id=1740518764 instance=ExtResource("4_raxqm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 2.5, 0.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox" unique_id=739667159]
-shape = SubResource("BoxShape3D_a7i5e")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBox" unique_id=1639680476]
-mesh = SubResource("BoxMesh_1r6oq")
-
-[node name="StaticBox2" type="StaticBody3D" parent="Node3D" unique_id=1575958335]
+[node name="StaticBox2" parent="Node3D" unique_id=1155754288 instance=ExtResource("4_raxqm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.5, 2.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox2" unique_id=817515965]
-shape = SubResource("BoxShape3D_a7i5e")
+[node name="StaticBox3" parent="Node3D" unique_id=1103132711 instance=ExtResource("4_raxqm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 3.5, 2.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBox2" unique_id=1968239195]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
-mesh = SubResource("BoxMesh_1r6oq")
+[node name="StaticBox8" parent="Node3D" unique_id=465918841 instance=ExtResource("4_raxqm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 4.5, 2.5)
 
-[node name="StaticBox3" type="StaticBody3D" parent="Node3D" unique_id=1818324053]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 2.5, 2.5)
+[node name="StaticBox5" parent="Node3D" unique_id=2120514555 instance=ExtResource("4_raxqm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 3.5, 1.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox3" unique_id=830588883]
-shape = SubResource("BoxShape3D_a7i5e")
+[node name="StaticBox6" parent="Node3D" unique_id=1006646397 instance=ExtResource("4_raxqm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 4.5, 0.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBox3" unique_id=1368474607]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
-mesh = SubResource("BoxMesh_1r6oq")
+[node name="StaticBox7" parent="Node3D" unique_id=1091371530 instance=ExtResource("4_raxqm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 5.5, -0.5)
 
-[node name="StaticBox4" type="StaticBody3D" parent="Node3D" unique_id=1373977003]
+[node name="StaticBox4" parent="Node3D" unique_id=812533376 instance=ExtResource("4_raxqm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 3.5, -2.5)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox4" unique_id=504399312]
-shape = SubResource("BoxShape3D_a7i5e")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBox4" unique_id=1712233345]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00054883957, 0, 0)
-mesh = SubResource("BoxMesh_1r6oq")
 
 [node name="MovableBox" type="RigidBody3D" parent="Node3D" unique_id=2005701679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.5, -2.5)
@@ -157,19 +57,24 @@ shape = SubResource("BoxShape3D_1r6oq")
 
 [node name="BoxVisual" parent="Node3D/MovableBox" unique_id=991388019 instance=ExtResource("4_2457s")]
 
-[node name="StaticBox_EXIT" type="Area3D" parent="Node3D" unique_id=768943197]
+[node name="MovableBox2" type="RigidBody3D" parent="Node3D" unique_id=76784579]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 5.5, 2.5)
+script = ExtResource("6_mbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/MovableBox2" unique_id=1735702155]
+shape = SubResource("BoxShape3D_1r6oq")
+
+[node name="Muffin" parent="Node3D/MovableBox2" unique_id=2137779170 instance=ExtResource("7_6rh6t")]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0)
+
+[node name="Exit" type="Area3D" parent="Node3D" unique_id=768943197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 5.5, 2.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBox_EXIT" unique_id=1730241246]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/Exit" unique_id=1730241246]
 shape = SubResource("SphereShape3D_exit")
 
-[node name="FryingPan" parent="Node3D/StaticBox_EXIT" unique_id=1299094027 instance=ExtResource("5_fv4yg")]
+[node name="FryingPan" parent="Node3D/Exit" unique_id=1299094027 instance=ExtResource("5_fv4yg")]
 transform = Transform3D(-4.371139e-08, 1, 0, -0.83088994, -3.6319353e-08, 0.55643684, 0.55643684, 2.4322627e-08, 0.83088994, -0.4000001, 0, 0)
-
-[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=666005303]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-light_energy = 1.952
-shadow_enabled = true
 
 [node name="Marker3D" type="Marker3D" parent="." unique_id=1916695867]
 transform = Transform3D(0.70710677, -0.40860704, 0.5770964, 0, 0.8161376, 0.5778576, -0.70710677, -0.40860704, 0.5770964, -3, 0, -3)
@@ -183,127 +88,8 @@ size = 10.0
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("5_hgqey")]
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.5, 0.4, 0.5)
 
-[node name="ui_ingame" type="CanvasLayer" parent="." unique_id=1213911550]
-script = ExtResource("4_fv4yg")
-
-[node name="welcome" type="Label" parent="ui_ingame" unique_id=1165800707]
-offset_top = 465.0
-offset_right = 1920.0
-offset_bottom = 615.0
-theme_override_font_sizes/font_size = 50
-theme_override_styles/normal = ExtResource("5_tlv81")
-text = "欢迎进入教学关卡
-请点击查看玩法说明"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="exit" type="Button" parent="ui_ingame" unique_id=802570671]
-offset_left = 1720.0
-offset_top = 1000.0
-offset_right = 1920.0
-offset_bottom = 1080.0
-theme_override_font_sizes/font_size = 30
-text = "退出游戏"
-
-[node name="back" type="Button" parent="ui_ingame" unique_id=294393585]
-offset_left = 710.0
-offset_top = 700.0
-offset_right = 910.0
-offset_bottom = 800.0
-theme_override_font_sizes/font_size = 30
-text = "重新开始"
-
-[node name="next" type="Button" parent="ui_ingame" unique_id=831511248]
-offset_left = 1010.0
-offset_top = 700.0
-offset_right = 1210.0
-offset_bottom = 800.0
-theme_override_font_sizes/font_size = 30
-text = "下一关"
-
-[node name="congratulations" type="Label" parent="ui_ingame" unique_id=27067940]
-offset_top = 550.0
-offset_right = 1920.0
-offset_bottom = 619.0
-theme_override_font_sizes/font_size = 50
-theme_override_styles/normal = ExtResource("5_tlv81")
-text = "恭喜你完成了教学关卡！"
-horizontal_alignment = 1
-
-[node name="help_button" type="Button" parent="ui_ingame" unique_id=40558876]
-offset_left = 1720.0
-offset_right = 1920.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 30
-text = "玩法说明"
-
-[node name="help_bg" type="PanelContainer" parent="ui_ingame" unique_id=1483516532]
-z_index = -1
-offset_left = 710.0
-offset_top = 240.0
-offset_right = 1220.0
-offset_bottom = 816.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_sy78l")
-
-[node name="help" type="VBoxContainer" parent="ui_ingame" unique_id=572253042]
-offset_left = 710.0
-offset_top = 240.0
-offset_right = 1220.0
-offset_bottom = 866.0
-theme_override_constants/separation = 30
-
-[node name="Label" type="Label" parent="ui_ingame/help" unique_id=576267847]
-layout_mode = 2
-theme_override_font_sizes/font_size = 50
-theme_override_styles/normal = SubResource("StyleBoxFlat_272bh")
-text = "玩法说明"
-horizontal_alignment = 1
-
-[node name="Label2" type="Label" parent="ui_ingame/help" unique_id=453492531]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "使用WASD控制角色移动"
-horizontal_alignment = 1
-
-[node name="Label3" type="Label" parent="ui_ingame/help" unique_id=875761949]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "按 Q / E 可水平旋转立方体
-移动到另一墙面会发生整体翻转"
-horizontal_alignment = 1
-
-[node name="Label4" type="Label" parent="ui_ingame/help" unique_id=1972886067]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "在空间中走到绿色出口即通关"
-horizontal_alignment = 1
-
-[node name="Label5" type="Label" parent="ui_ingame/help" unique_id=554676803]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "请在倒计时结束前完成当前关卡"
-horizontal_alignment = 1
-
-[node name="Label6" type="Label" parent="ui_ingame/help" unique_id=2062140896]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "依次通关后你才能逃出密室"
-horizontal_alignment = 1
-
-[node name="Label7" type="Label" parent="ui_ingame/help" unique_id=1700119968]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "祝你逃脱顺利！"
-horizontal_alignment = 1
-
-[node name="back_to_game" type="Button" parent="ui_ingame/help" unique_id=1124562750]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "返回游戏"
-
-[connection signal="body_entered" from="Node3D/StaticBox_EXIT" to="ui_ingame" method="_on_exit_body_entered"]
-[connection signal="pressed" from="ui_ingame/exit" to="ui_ingame" method="_on_exit_pressed"]
-[connection signal="pressed" from="ui_ingame/back" to="ui_ingame" method="_on_back_pressed"]
-[connection signal="pressed" from="ui_ingame/next" to="ui_ingame" method="_on_next_pressed"]
-[connection signal="pressed" from="ui_ingame/help_button" to="ui_ingame" method="_on_help_button_pressed"]
-[connection signal="pressed" from="ui_ingame/help/back_to_game" to="ui_ingame" method="_on_back_to_game_pressed"]
+[node name="ui_ingame2" parent="." unique_id=285500255 instance=ExtResource("10_raxqm")]
+next_scene_path = "uid://ce25twnmqk45"
+welcome_text = "欢迎来到教学关！
+翻转世界，帮助Bready逃离这里吧！"
+welcome_hold_duration = 2.0

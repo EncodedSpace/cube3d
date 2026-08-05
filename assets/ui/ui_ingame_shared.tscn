@@ -1,0 +1,367 @@
+[gd_scene format=3 uid="uid://bmmutdrs0ne12"]
+
+[ext_resource type="Script" uid="uid://bxyxp5ukvautq" path="res://assets/ui/ui_ingame_shared.gd" id="1_dyx3x"]
+[ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_np3f1"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_nyv7x"]
+font_size = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
+bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fdgck"]
+bg_color = Color(1, 0.9411765, 0.84705883, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0, 0, 0, 0.39215687)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_awgiv"]
+bg_color = Color(0.9137255, 0.52156866, 0.5686275, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.09803922)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nyv7x"]
+bg_color = Color(1, 0.75699997, 0.19, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.09803922)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p2avx"]
+bg_color = Color(1, 0.75699997, 0.19, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.09803922)
+shadow_size = 4
+
+[node name="ui_ingame" type="CanvasLayer" unique_id=285500255 groups=["ui_ingame"]]
+script = ExtResource("1_dyx3x")
+succeed_sfx_path = "uid://deh8l1n6y4alj"
+succeed_sfx_volume_db = 0.0
+fail_sfx_path = "uid://bu107omhc4jtg"
+
+[node name="welcome" type="Label" parent="." unique_id=1885276082]
+offset_top = 465.0
+offset_right = 1920.0
+offset_bottom = 615.0
+theme_override_styles/normal = ExtResource("2_np3f1")
+text = "欢迎来到第一关!
+请帮助Bready离开这里！"
+label_settings = SubResource("LabelSettings_nyv7x")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="exit" type="Button" parent="." unique_id=609487195]
+offset_left = 1720.0
+offset_top = 1000.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+theme_override_font_sizes/font_size = 30
+text = "退出游戏"
+
+[node name="back" type="Button" parent="." unique_id=1041020376]
+visible = false
+offset_left = 710.0
+offset_top = 700.0
+offset_right = 910.0
+offset_bottom = 800.0
+theme_override_font_sizes/font_size = 30
+text = "重新开始"
+
+[node name="next" type="Button" parent="." unique_id=791513849]
+visible = false
+offset_left = 1010.0
+offset_top = 700.0
+offset_right = 1210.0
+offset_bottom = 800.0
+theme_override_font_sizes/font_size = 30
+text = "下一关"
+
+[node name="congratulations" type="Label" parent="." unique_id=1449756575]
+visible = false
+offset_top = 550.0
+offset_right = 1920.0
+offset_bottom = 619.0
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = ExtResource("2_np3f1")
+text = "恭喜你完成了教学关卡！"
+horizontal_alignment = 1
+
+[node name="help_button" type="Button" parent="." unique_id=2025213200]
+offset_left = 1720.0
+offset_right = 1920.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 30
+text = "玩法说明"
+
+[node name="help_bg" type="PanelContainer" parent="." unique_id=1477536984]
+visible = false
+z_index = -1
+offset_left = 710.0
+offset_top = 240.0
+offset_right = 1220.0
+offset_bottom = 816.0
+theme_override_styles/panel = ExtResource("2_np3f1")
+
+[node name="help" type="VBoxContainer" parent="." unique_id=770716290]
+visible = false
+offset_left = 710.0
+offset_top = 240.0
+offset_right = 1220.0
+offset_bottom = 866.0
+theme_override_constants/separation = 30
+
+[node name="Label" type="Label" parent="help" unique_id=345273552]
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_272bh")
+text = "玩法说明"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="help" unique_id=829772604]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "使用WASD控制角色移动"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="help" unique_id=1248420257]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "按 Q / E 可水平旋转立方体
+移动到另一墙面会发生整体翻转"
+horizontal_alignment = 1
+
+[node name="Label4" type="Label" parent="help" unique_id=241051495]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "在空间中走到绿色出口即通关"
+horizontal_alignment = 1
+
+[node name="Label5" type="Label" parent="help" unique_id=1716084358]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "请在倒计时结束前完成当前关卡"
+horizontal_alignment = 1
+
+[node name="Label6" type="Label" parent="help" unique_id=1791810667]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "依次通关后你才能逃出密室"
+horizontal_alignment = 1
+
+[node name="Label7" type="Label" parent="help" unique_id=699648148]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "祝你逃脱顺利！"
+horizontal_alignment = 1
+
+[node name="back_to_game" type="Button" parent="help" unique_id=274238025]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "返回游戏"
+
+[node name="GameOverPanel" type="ColorRect" parent="." unique_id=130777193]
+visible = false
+offset_left = 220.0
+offset_top = 94.0
+offset_right = 1676.0
+offset_bottom = 988.0
+color = Color(1, 1, 1, 0)
+
+[node name="CenterContainer" type="CenterContainer" parent="GameOverPanel" unique_id=1092406955]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DessertPanel" type="PanelContainer" parent="GameOverPanel/CenterContainer" unique_id=487915490]
+custom_minimum_size = Vector2(420, 300)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdgck")
+
+[node name="ContentMargin" type="MarginContainer" parent="GameOverPanel/CenterContainer/DessertPanel" unique_id=1209427319]
+layout_mode = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="GameOverContent" type="VBoxContainer" parent="GameOverPanel/CenterContainer/DessertPanel/ContentMargin" unique_id=1701562541]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="GameOverTitle" type="Label" parent="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=61534344]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84705883, 0.36078432, 0.41568628, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.3137255)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_outline_size = 10
+theme_override_font_sizes/font_size = 32
+text = "Oops! You Got Squished!"
+horizontal_alignment = 1
+
+[node name="GameOverMessage" type="Label" parent="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=742539837]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.41960785, 0.24705882, 0.19607843, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ready for another roll?"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=1804914256]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Try Again"
+
+[node name="QuitButton" type="Button" parent="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent" unique_id=683248406]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Quit Game
+"
+
+[node name="VictoryPanel" type="ColorRect" parent="." unique_id=261030245]
+visible = false
+offset_left = 220.0
+offset_top = 94.0
+offset_right = 1676.0
+offset_bottom = 988.0
+color = Color(1, 1, 1, 0)
+
+[node name="CenterContainer" type="CenterContainer" parent="VictoryPanel" unique_id=1996532841]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DessertPanel" type="PanelContainer" parent="VictoryPanel/CenterContainer" unique_id=1142825376]
+custom_minimum_size = Vector2(420, 300)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fdgck")
+
+[node name="ContentMargin" type="MarginContainer" parent="VictoryPanel/CenterContainer/DessertPanel" unique_id=1895493005]
+layout_mode = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VictoryContent" type="VBoxContainer" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin" unique_id=562887058]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="VictoryTitle" type="Label" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=766331724]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84705883, 0.36078432, 0.41568628, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.3137255)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_outline_size = 10
+theme_override_font_sizes/font_size = 32
+text = "Level Complete!"
+horizontal_alignment = 1
+
+[node name="VictorySubtitle" type="Label" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=11715942]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.41960785, 0.24705882, 0.19607843, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ready for the next challenge?"
+horizontal_alignment = 1
+
+[node name="NextLevelButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=1052114713]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Next Level"
+
+[node name="RestartButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=1139008228]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Try Again"
+
+[node name="QuitButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=1124802313]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
+text = "Quit Game
+"
+
+[connection signal="pressed" from="exit" to="." method="_on_exit_pressed"]
+[connection signal="pressed" from="back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="next" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="help_button" to="." method="_on_help_button_pressed"]
+[connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]
+[connection signal="pressed" from="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/QuitButton" to="." method="_on_quit_button_pressed"]

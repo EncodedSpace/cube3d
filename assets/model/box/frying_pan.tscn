@@ -1,8 +1,87 @@
 [gd_scene format=3 uid="uid://bxwg1o4swt0ji"]
 
-[ext_resource type="PackedScene" uid="uid://15kqisetw53g" path="res://assets/model/box/source/Frying Pan.glb" id="1_foq2f"]
+[ext_resource type="PackedScene" uid="uid://cas8dt7dhcib5" path="res://assets/model/box/frying_pan_original.tscn" id="1_qx5br"]
+[ext_resource type="Shader" uid="uid://dw0er13tjuj1k" path="res://assets/material/sh_portal_vortex.gdshader" id="2_i7ynm"]
+[ext_resource type="Shader" uid="uid://dqgjou5u4cto6" path="res://assets/material/sh_portal_beam.gdshader" id="3_qx5br"]
+[ext_resource type="Script" uid="uid://dvyvc2m1h4opj" path="res://global_script/portal_absorb.gd" id="4_s8sb4"]
+[ext_resource type="AudioStream" uid="uid://cbv4sr6yca57" path="res://assets/audio/吸入.MP3" id="5_bjc5h"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_fdgck"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_foq2f"]
+render_priority = 0
+shader = ExtResource("2_i7ynm")
+shader_parameter/inner_color = Color(0.2, 0.95, 1, 1)
+shader_parameter/outer_color = Color(0.25, 0.45, 1, 1)
+shader_parameter/spin_speed = -2.000000067056
+shader_parameter/spiral_count = 5.0
+shader_parameter/brightness = 3.0000000447036
+shader_parameter/hole_size = 0.0999999977648
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_fdgck"]
+height = 2.5
+radial_segments = 32
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qx5br"]
+render_priority = 0
+shader = ExtResource("3_qx5br")
+shader_parameter/beam_color = Color(0.5906889, 0.84843093, 0.9981229, 1)
+shader_parameter/brightness = 0.999999977648
+shader_parameter/opacity = 0.6999999843536
+shader_parameter/fade_power = 0.90000001341107
+shader_parameter/pulse_speed = 1.5
+shader_parameter/pulse_amount = 0.0
+shader_parameter/flow_speed = -1.89999995380628
+shader_parameter/flow_density = 14.0
+shader_parameter/flow_strength = 0.3999999910592
+shader_parameter/invert_fade = true
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_bjc5h"]
+height = 0.3
+radius = 0.45
 
 [node name="FryingPan" type="Node3D" unique_id=1299094027]
 
-[node name="Frying Pan" parent="." unique_id=102665667 instance=ExtResource("1_foq2f")]
+[node name="Frying Pan" parent="." unique_id=102665667 instance=ExtResource("1_qx5br")]
 transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+
+[node name="Vortex" type="MeshInstance3D" parent="." unique_id=870144226]
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 0.1, 0)
+layers = 2
+mesh = SubResource("PlaneMesh_fdgck")
+surface_material_override/0 = SubResource("ShaderMaterial_foq2f")
+
+[node name="PortalBeam" type="MeshInstance3D" parent="." unique_id=1810591153]
+transform = Transform3D(0.85, 0, 0, 0, 0.2, 0, 0, 0, 0.85, 0, 0.38, 0)
+layers = 2
+mesh = SubResource("CylinderMesh_fdgck")
+surface_material_override/0 = SubResource("ShaderMaterial_qx5br")
+
+[node name="PortalFillLight" type="OmniLight3D" parent="." unique_id=39667758]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+light_energy = 0.5
+light_cull_mask = 4294966274
+omni_range = 0.5
+
+[node name="AbsorbPoint" type="Marker3D" parent="." unique_id=699000962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="CaptureArea" type="Area3D" parent="." unique_id=2053711986 node_paths=PackedStringArray("absorb_point")]
+script = ExtResource("4_s8sb4")
+absorb_point = NodePath("../AbsorbPoint")
+float_height = 0.7
+float_duration = 0.15000000000000002
+floating_arc_height = 0.3
+suction_duration = 0.55
+orbit_turns = 1.0
+sink_depth = 0.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CaptureArea" unique_id=830519019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("CylinderShape3D_bjc5h")
+
+[node name="AbsorbSfx" type="AudioStreamPlayer" parent="." unique_id=284716141]
+stream = ExtResource("5_bjc5h")
+volume_db = -4.0

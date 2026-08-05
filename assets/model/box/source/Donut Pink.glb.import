@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dcvtf2hiupfo4"
-path="res://.godot/imported/Pill.glb-721633ed8f95613ac39e3add1742310e.scn"
+uid="uid://bo4f7l4s6lxuv"
+path="res://.godot/imported/Donut Pink.glb-07c0985447ffe0c679ee8c0b5bd501ba.scn"
 
 [deps]
 
-source_file="res://assets/model/box/source/Pill.glb"
-dest_files=["res://.godot/imported/Pill.glb-721633ed8f95613ac39e3add1742310e.scn"]
+source_file="res://assets/model/box/source/Donut Pink.glb"
+dest_files=["res://.godot/imported/Donut Pink.glb-07c0985447ffe0c679ee8c0b5bd501ba.scn"]
 
 [params]
 

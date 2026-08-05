@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://8wi5vgr54q3l"]
+
+[ext_resource type="Shader" uid="uid://pmqdv6nryj8l" path="res://assets/material/sh_wall_tiles.gdshader" id="1_ddvfq"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_ddvfq")
+shader_parameter/tile_color = Color(0.5915, 0.8303751, 0.91, 1)
+shader_parameter/grout_color = Color(0.8627451, 0.9098039, 0.92156863, 1)
+shader_parameter/tile_count = Vector2(6, 6)
+shader_parameter/grout_width = 0.01500000001398
+shader_parameter/corner_radius = 0.02000000095
+shader_parameter/bevel_width = 0.02000000025148
+shader_parameter/bump_strength = 0.50000002375
+shader_parameter/center_bulge = 0.02000000095

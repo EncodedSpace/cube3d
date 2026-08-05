@@ -62,11 +62,15 @@ func _hide_welcome_after_delay() -> void:
 		$welcome.visible = false
 
 
-func _on_exit_body_entered(body: Node) -> void:
-	if won or body.name != "Player":
+#func _on_exit_body_entered(body: Node) -> void:
+	#if won or body.name != "Player":
+		#return
+	#_show_win()
+func _on_exit_absorption_finished() -> void:
+	if won:
 		return
-	_show_win()
 
+	_show_win()
 
 func _show_win() -> void:
 	if won:
