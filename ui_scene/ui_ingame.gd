@@ -97,21 +97,15 @@ func _hide_welcome_after_delay() -> void:
 
 
 func _on_exit_body_entered(body: Node) -> void:
-	print("[UI] exit called won=", won, " body=", body.name, " paused=", get_tree().paused)
 	if won or body.name != "Player":
-		print("[UI] exit early return: won=", won, " body=", body.name)
 		return
-	print("[UI] calling _show_win")
 	_show_win()
 
 
 func _show_win() -> void:
-	print("[UI] _show_win entered, won=", won)
 	if won:
-		print("[UI] _show_win already won, returning")
 		return
 	won = true
-	print("[UI] setting congratulations visible, next_scene=", next_scene, " is_zen_mode=", is_zen_mode)
 	_play_succeed_sfx()
 	$congratulations.visible = true
 	$back.visible = true
@@ -122,9 +116,7 @@ func _show_win() -> void:
 	if is_zen_mode:
 		$next2.visible = true
 		$next.visible = false
-	print("[UI] calling game_paused")
 	game_paused()
-	print("[UI] _show_win done")
 
 
 func _setup_succeed_sfx() -> void:
@@ -145,12 +137,10 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_reload_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_zen_mode_pressed() -> void:
@@ -185,14 +175,22 @@ func _on_size_menu_pressed(id: int) -> void:
 
 
 func _on_help_button_pressed() -> void:
-	$help.visible = true
-	$help_bg.visible = true
+	# Always hide legacy help panel — only show sci-fi HowToPlayLayer.
+	$help.visible = false
+	$help_bg.visible = false
 	game_paused()
+	var help_layer := $HowToPlayLayer as HowToPlayLayer
+	if help_layer:
+		help_layer.open()
+	else:
+		push_error("HowToPlayLayer missing on ui_ingame")
 
 
 func game_paused() -> void:
 	$exit.disabled = true
 	$welcome.visible = false
+	$help.visible = false
+	$help_bg.visible = false
 
 	var player := get_parent().get_node_or_null("Player")
 	if player != null:
@@ -215,6 +213,8 @@ func game_continued() -> void:
 	$congratulations.visible = false
 	$help.visible = false
 	$help_bg.visible = false
+	if has_node("HowToPlayLayer"):
+		$HowToPlayLayer.close()
 
 	var player := get_parent().get_node_or_null("Player")
 	if player != null:
@@ -265,10 +265,10 @@ func reset_level() -> void:
 				box.reset_to_start()
 			box.freeze = false
 		var player := get_parent().get_node_or_null("Player")
-		if player != null:
+		if player != null and player.has_method("reset_to_start"):
+			player.reset_to_start()
 			player.set_physics_process(true)
-			if player.has_method("reset_to_start"):
-				player.reset_to_start()
+		game_continued()
 		return
 
 	# 手写关卡：整关重载，确保钥匙/门等状态完整复原。

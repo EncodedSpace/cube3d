@@ -1,0 +1,222 @@
+[gd_scene format=3 uid="uid://bscifimenulayr01"]
+
+[ext_resource type="Script" path="res://MainMenu/sci_fi_menu_layer.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://duto23x3bjd3c" path="res://inbetween_scene/UI/Source Han Sans CN.ttf" id="2_font"]
+[ext_resource type="PackedScene" path="res://ui_scene/how_to_play_layer.tscn" id="3_howto"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.04, 0.07, 0.12, 0.94)
+
+[sub_resource type="Gradient" id="Gradient_grid"]
+colors = PackedColorArray(0.08, 0.18, 0.28, 0.35, 0.04, 0.07, 0.12, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_grid"]
+gradient = SubResource("Gradient_grid")
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[node name="SciFiMenuLayer" type="CanvasLayer"]
+layer = 20
+visible = false
+script = ExtResource("1_script")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Background" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.06, 0.11, 0.96)
+mouse_filter = 2
+
+[node name="AccentGlow" type="TextureRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_grid")
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
+modulate = Color(0.35, 0.85, 1, 0.45)
+
+[node name="FramePanel" type="Panel" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = 36.0
+offset_right = -48.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="TopBar" type="HBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -420.0
+offset_top = 48.0
+offset_right = -64.0
+offset_bottom = 100.0
+grow_horizontal = 0
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="HelpButton" type="Button" parent="Root/TopBar"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "游戏帮助 ?"
+
+[node name="TitleCenter" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 56.0
+offset_bottom = 200.0
+grow_horizontal = 2
+
+[node name="TitleVBox" type="VBoxContainer" parent="Root/TitleCenter"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="Root/TitleCenter/TitleVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 72
+theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
+text = "三面之外"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Root/TitleCenter/TitleVBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.22, 0.75, 0.85, 0.9)
+text = "BEYOND THREE FACES"
+horizontal_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 180.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="StartButton" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "开始游戏"
+
+[node name="TutorialButton" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "教学关"
+
+[node name="Level1Button" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "第一关"
+
+[node name="Level2Button" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "第二关"
+
+[node name="Level3Button" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "第三关"
+
+[node name="Level4Button" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "第四关"
+
+[node name="Level5Button" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "第五关"
+
+[node name="Level6Button" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "第六关"
+
+[node name="ZenModeButton" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "禅模式"
+
+[node name="QuitButton" type="Button" parent="Root/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(360, 52)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 26
+text = "退出游戏"
+
+[node name="VersionLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -48.0
+offset_right = -56.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.55, 0.7, 0.78, 0.8)
+text = "v1.0.0"
+horizontal_alignment = 2
+
+[node name="HowToPlayLayer" parent="." instance=ExtResource("3_howto")]
