@@ -344,7 +344,7 @@ func _bind_props_to_walls() -> void:
 				if found not in props:
 					props.append(found)
 
-	for pattern in ["*StaticBox*", "*MovableBox*", "*Portal*", "*F_Trigger*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*Portal*", "*F_Trigger*", "*B_Tool*", "*D_Wall*", "*G_Tool*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -373,6 +373,12 @@ func _is_wall_prop_name(n: String) -> bool:
 		"StaticBox" in n
 		or "MovableBox" in n
 		or "Portal" in n
+		or n == "B_Tool"
+		or n.begins_with("B_Tool")
+		or n == "D_Wall"
+		or n.begins_with("D_Wall")
+		or n == "G_Tool"
+		or n.begins_with("G_Tool")
 		or n == "F_Trigger"
 		or n.begins_with("F_Trigger")
 	)
@@ -386,7 +392,7 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 			_gather_wall_props(child, result)
 
 
-## All walls at the minimum plane-distance (equal attach for corners/edges).
+## 等距多面绑定：平面距离在「最小值 + EPS」内的墙全部绑定。
 func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	var dists: Dictionary = {} # wall -> dist
 	var min_dist := INF
@@ -419,28 +425,8 @@ func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	return result
 
 
-## Portal_Key sits on an edge/corner: always bind the two closest faces.
-func _find_n_nearest_walls(prop: Node3D, walls: Node, count: int) -> Array[Node3D]:
-	var scored: Array[Dictionary] = []
-	for child in walls.get_children():
-		var wall := child as Node3D
-		if wall == null:
-			continue
-		var inward: Vector3 = wall.global_transform.basis.y.normalized()
-		var dist := absf(inward.dot(prop.global_position - wall.global_position))
-		scored.append({"d": dist, "wall": wall})
-	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["d"] < b["d"])
-	var result: Array[Node3D] = []
-	for i in range(mini(count, scored.size())):
-		result.append(scored[i]["wall"] as Node3D)
-	return result
-
-
+## 所有道具统一：等距多面绑定；裁切时任一面可见则道具可见。
 func _bound_walls_for_prop(prop: Node3D, walls: Node) -> Array[Node3D]:
-	var n := String(prop.name)
-	# 钥匙固定贴最近两面：任一面裁切亮起即显示。
-	if n == "Portal_Key" or n.begins_with("Portal_Key"):
-		return _find_n_nearest_walls(prop, walls, 2)
 	return _find_nearest_walls(prop, walls)
 
 
@@ -501,8 +487,8 @@ func update_cutaway_visibility() -> void:
 		if prop == null or not is_instance_valid(prop):
 			continue
 
-		var bound: Array = entry["walls"]
-		# Filter out freed walls before use.
+		# 每次刷新等距绑定；绑定面中任一面可见则道具可见。
+		var bound: Array = _bound_walls_for_prop(prop, walls)
 		var valid_bound: Array[Node3D] = []
 		for wall in bound:
 			if wall != null and is_instance_valid(wall) and not wall.is_queued_for_deletion():
@@ -512,7 +498,6 @@ func update_cutaway_visibility() -> void:
 
 		alive_props.append({"prop": prop, "walls": valid_bound})
 
-		# 只要绑定的墙壁中有任意一面是可见的，实体块就显示
 		var show_prop := false
 		for wall in valid_bound:
 			if not hidden_names.has(String(wall.name)):
@@ -527,6 +512,24 @@ func update_cutaway_visibility() -> void:
 func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	if prop == null or not is_instance_valid(prop):
 		return
+	if prop.has_method("should_keep_player_block"):
+		var closed: bool = prop.should_keep_player_block()
+		if not closed:
+			prop.visible = wall_visible
+			_set_d_solid_disabled(prop, true)
+			return
+		prop.visible = wall_visible
+		if wall_visible:
+			if prop.has_method("ensure_player_block"):
+				prop.ensure_player_block()
+		else:
+			_set_d_solid_disabled(prop, true)
+		return
+
+	if prop.has_method("apply_cutaway_visibility"):
+		prop.apply_cutaway_visibility(wall_visible)
+		return
+
 	prop.visible = wall_visible
 	for child in prop.get_children():
 		if child != null and is_instance_valid(child) and child is CollisionShape3D:
@@ -543,6 +546,19 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 		var body := prop as CollisionObject3D
 		body.set_collision_layer_value(1, true)
 		body.set_collision_mask_value(1, true)
+
+
+func _set_d_solid_disabled(d_prop: Node, disabled: bool) -> void:
+	var static_body := d_prop.get_node_or_null("StaticBody3D") as StaticBody3D
+	if static_body == null:
+		return
+	if disabled:
+		static_body.collision_layer = 0
+	else:
+		static_body.collision_layer = 1
+	for child in static_body.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = disabled
 
 
 func get_bound_wall_names_for_prop(prop: Node3D) -> Array[String]:

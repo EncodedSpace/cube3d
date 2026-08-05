@@ -3,7 +3,8 @@ extends Node3D
 
 ## 一对 1×1×1 传送门 + 一枚直径 0.9 的钥匙球。
 ## 玩家先吃掉钥匙，传送门才可传送；传送后以出口门所附着墙面为新地板。
-## 节点名含 Portal，会随附着墙面一起裁切显隐。
+## Portal_A / Portal_B / Portal_Key 各自实现 apply_cutaway_visibility；
+## cube_world 等距多面绑定后，任一面亮起则可见（与其它道具统一）。
 
 
 @export var portal_a_position := Vector3(-1.5, 0.5, -1.5)

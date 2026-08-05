@@ -198,7 +198,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
 			if (
 				(child is StaticBody3D or child is RigidBody3D)
-				and ("StaticBox" in n or "MovableBox" in n or "DeadlyBox" in n)
+				and ("StaticBox" in n or "MovableBox" in n or "DeadlyBox" in n or n == "Tool_Z" or n.begins_with("Tool_Z"))
 				and "EXIT" not in n
 			):
 				if child.get("allows_player_enter") == true or child.get("is_open") == true:
@@ -281,7 +281,7 @@ func _bind_props_to_walls() -> void:
 				if found not in props:
 					props.append(found)
 
-	for pattern in ["*StaticBox*", "*MovableBox*", "*DeadlyBox*", "*Portal*", "*F_Trigger*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*DeadlyBox*", "*Portal*", "*F_Trigger*", "*B_Tool*", "*D_Wall*", "*G_Tool*", "*Tool_X*", "*Tool_Y*", "*Tool_Z*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -311,8 +311,23 @@ func _is_wall_prop_name(n: String) -> bool:
 		or "MovableBox" in n
 		or "DeadlyBox" in n
 		or "Portal" in n
+		or n == "B_Tool"
+		or n.begins_with("B_Tool")
+		or n == "D_Wall"
+		or n.begins_with("D_Wall")
+		or n == "G_Tool"
+		or n.begins_with("G_Tool")
 		or n == "F_Trigger"
 		or n.begins_with("F_Trigger")
+		or _is_xyz_tool_name(n)
+	)
+
+
+func _is_xyz_tool_name(n: String) -> bool:
+	return (
+		n == "Tool_X" or n.begins_with("Tool_X")
+		or n == "Tool_Y" or n.begins_with("Tool_Y")
+		or n == "Tool_Z" or n.begins_with("Tool_Z")
 	)
 
 
@@ -324,7 +339,7 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 			_gather_wall_props(child, result)
 
 
-## All walls at the minimum plane-distance (equal attach for corners/edges).
+## 等距多面绑定：平面距离在「最小值 + EPS」内的墙全部绑定。
 func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	var best_dist := INF
 	var dists: Dictionary = {} # wall -> dist
@@ -352,28 +367,8 @@ func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	return result
 
 
-## Portal_Key sits on an edge/corner: always bind the two closest faces.
-func _find_n_nearest_walls(prop: Node3D, walls: Node, count: int) -> Array[Node3D]:
-	var scored: Array[Dictionary] = []
-	for child in walls.get_children():
-		var wall := child as Node3D
-		if wall == null:
-			continue
-		var inward: Vector3 = wall.global_transform.basis.y.normalized()
-		var dist := absf(inward.dot(prop.global_position - wall.global_position))
-		scored.append({"d": dist, "wall": wall})
-	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["d"] < b["d"])
-	var result: Array[Node3D] = []
-	for i in range(mini(count, scored.size())):
-		result.append(scored[i]["wall"] as Node3D)
-	return result
-
-
+## 所有道具统一：等距多面绑定；裁切时任一面可见则道具可见。
 func _bound_walls_for_prop(prop: Node3D, walls: Node) -> Array[Node3D]:
-	var n := String(prop.name)
-	# 钥匙固定贴最近两面：任一面裁切亮起即显示。
-	if n == "Portal_Key" or n.begins_with("Portal_Key"):
-		return _find_n_nearest_walls(prop, walls, 2)
 	return _find_nearest_walls(prop, walls)
 
 
@@ -415,16 +410,8 @@ func update_cutaway_visibility() -> void:
 			continue
 		alive_props.append(entry)
 
-		# Movable boxes / portals: rebind each update (Portal_Key keeps two faces).
-		var prop_name := String(prop.name)
-		if (
-			"MovableBox" in prop_name
-			or "DeadlyBox" in prop_name
-			or "Portal" in prop_name
-			or prop_name == "F_Trigger"
-			or prop_name.begins_with("F_Trigger")
-		):
-			entry["walls"] = _bound_walls_for_prop(prop, walls)
+		# 每次刷新等距绑定；绑定面中任一面可见则道具可见。
+		entry["walls"] = _bound_walls_for_prop(prop, walls)
 		var bound: Array = entry["walls"]
 		var show_prop := false
 		for wall in bound:
@@ -436,6 +423,25 @@ func update_cutaway_visibility() -> void:
 
 
 func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
+	if prop.has_method("should_keep_player_block"):
+		var closed: bool = prop.should_keep_player_block()
+		if not closed:
+			prop.visible = wall_visible
+			_set_d_solid_disabled(prop, true)
+			return
+		prop.visible = wall_visible
+		if wall_visible:
+			if prop.has_method("ensure_player_block"):
+				prop.ensure_player_block()
+		else:
+			_set_d_solid_disabled(prop, true)
+		return
+
+	# B_Tool / Portal / Portal_Key / E1 / E2：自管碰撞与显隐。
+	if prop.has_method("apply_cutaway_visibility"):
+		prop.apply_cutaway_visibility(wall_visible)
+		return
+
 	prop.visible = wall_visible
 	for child in prop.get_children():
 		if child is CollisionShape3D:
@@ -452,6 +458,20 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 		var body := prop as CollisionObject3D
 		body.set_collision_layer_value(1, true)
 		body.set_collision_mask_value(1, true)
+
+
+## 只开关 D 的固体碰撞，不动 Area（B 检测）。
+func _set_d_solid_disabled(d_prop: Node, disabled: bool) -> void:
+	var static_body := d_prop.get_node_or_null("StaticBody3D") as StaticBody3D
+	if static_body == null:
+		return
+	if disabled:
+		static_body.collision_layer = 0
+	else:
+		static_body.collision_layer = 1
+	for child in static_body.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = disabled
 
 
 ## Rotates cube and player together. Afterward the player stands upright but

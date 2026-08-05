@@ -1,6 +1,8 @@
 extends Area3D
 
 ## 终点大门：1×1×1 检测区。钥匙激活后，玩家进入即通关。
+## 裁切显隐与其它道具统一：等距多面绑定后，由 cube_world 调用
+## apply_cutaway_visibility；任一面亮起则可见。
 
 
 var tools_root: Node3D
@@ -21,9 +23,23 @@ func setup(root: Node3D) -> void:
 	call_deferred("_check_initial_overlaps")
 
 
+## 由 cube_world 裁切刷新调用：跟绑定墙显隐。
+func apply_cutaway_visibility(wall_visible: bool) -> void:
+	visible = wall_visible
+	# 未激活时本来就不能通关；激活后隐藏时也不应误触。
+	monitoring = wall_visible and _active
+	for child in get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = not wall_visible
+
+
 func set_active(active: bool) -> void:
 	_active = active
 	set_active_look(active)
+	# 保持与当前裁切显隐一致。
+	if visible:
+		monitoring = active
+	call_deferred("_check_initial_overlaps")
 
 
 func set_active_look(active: bool) -> void:
@@ -35,14 +51,14 @@ func set_active_look(active: bool) -> void:
 		mat = mesh.get_active_material(0) as StandardMaterial3D
 	if mat == null:
 		return
-	mat.emission_energy_multiplier = 2.0 if active else 0.3
+	mat.emission_energy_multiplier = 2.4 if active else 0.6
 	var c := mat.albedo_color
-	c.a = 0.55 if active else 0.2
+	c.a = 0.85 if active else 0.55
 	mat.albedo_color = c
 
 
 func _check_initial_overlaps() -> void:
-	if not _active:
+	if not _active or not monitoring:
 		return
 	for body in get_overlapping_bodies():
 		if body.is_in_group("player"):

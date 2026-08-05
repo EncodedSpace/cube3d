@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
-## Resolved .import UID → use path load as fallback when uid:// fails (e.g. Web).
+## Resolved .import UID -> use path load as fallback when uid:// fails (e.g. Web).
 const FONT_PATH := "res://Fonts/Source Han Sans CN.ttf"
 
 ## 欢迎语，在 _ready 中自动设置到 welcome Label
@@ -54,7 +54,7 @@ func _ready() -> void:
 
 
 ## Apply the Chinese font to every Label + Button descendant.
-## Uses `add_theme_font_override("font", …)` directly on each control,
+## Uses add_theme_font_override("font", ...) directly on each control,
 ## which is the most reliable way across all platforms including Web.
 func _apply_ui_theme() -> void:
 	var font := load(FONT_PATH) as Font
@@ -238,17 +238,18 @@ func _movable_boxes() -> Array[RigidBody3D]:
 
 
 func reset_level() -> void:
+	# 不要在 reload 之后再调用 game_continued（节点已被释放）。
 	var tree := get_tree()
 	if tree == null:
 		return
 	tree.paused = false
 	won = false
 
-	# 优先用 cube 的 reset_to_start（zen 模式保留已生成地图）
-	var cube := get_parent().get_node_or_null("Node3D")
-	if cube != null and cube.has_method("reset_to_start"):
-		cube.reset_to_start()
-		# 重置 movable box + player 状态
+	# 禅模式：软重置，保留当前生成的地图。
+	if is_zen_mode:
+		var cube := get_parent().get_node_or_null("Node3D")
+		if cube != null and cube.has_method("reset_to_start"):
+			cube.reset_to_start()
 		for box in _movable_boxes():
 			if box.has_method("reset_to_start"):
 				box.reset_to_start()
@@ -257,8 +258,10 @@ func reset_level() -> void:
 		if player != null and player.has_method("reset_to_start"):
 			player.reset_to_start()
 			player.set_physics_process(true)
+		game_continued()
 		return
 
+	# 手写关卡：整关重载，确保钥匙/门等状态完整复原。
 	tree.reload_current_scene()
 
 
@@ -271,17 +274,20 @@ func _on_next_pressed() -> void:
 
 
 func _mark_current_level_complete() -> void:
+	var progress := get_node_or_null("/root/LevelProgress")
+	if progress == null:
+		return
 	match next_scene:
 		"res://level1/main.tscn":
-			LevelProgress.mark_completed("teach")
+			progress.mark_completed("teach")
 		"res://level2/main.tscn":
-			LevelProgress.mark_completed("level1")
+			progress.mark_completed("level1")
 		"res://level3/main.tscn":
-			LevelProgress.mark_completed("level2")
+			progress.mark_completed("level2")
 		"res://level4/main.tscn":
-			LevelProgress.mark_completed("level3")
+			progress.mark_completed("level3")
 		"res://level5/main.tscn":
-			LevelProgress.mark_completed("level4")
+			progress.mark_completed("level4")
 
 
 func _on_player_died() -> void:

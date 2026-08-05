@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://0noc3qe86m53"]
+
+[ext_resource type="Script" path="res://Tools_X_Y_Z/tool_x_y_z.gd" id="1_root"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_x"]
+radius = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x"]
+albedo_color = Color(1, 0.84, 0.2, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(1, 0.75, 0.15, 1)
+emission_energy_multiplier = 1.6
+
+[sub_resource type="SphereMesh" id="SphereMesh_x"]
+material = SubResource("StandardMaterial3D_x")
+radius = 0.25
+height = 0.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_y"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y"]
+transparency = 1
+albedo_color = Color(0.35, 0.75, 1, 0.35)
+emission_enabled = true
+emission = Color(0.25, 0.65, 1, 1)
+emission_energy_multiplier = 1.1
+
+[sub_resource type="BoxMesh" id="BoxMesh_y"]
+material = SubResource("StandardMaterial3D_y")
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_z"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_z"]
+albedo_color = Color(0.72, 0.55, 0.35, 1)
+roughness = 0.55
+
+[sub_resource type="BoxMesh" id="BoxMesh_z"]
+material = SubResource("StandardMaterial3D_z")
+size = Vector3(1, 1, 1)
+
+[node name="ToolsXYZ" type="Node3D"]
+script = ExtResource("1_root")
+
+[node name="Tool_X" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tool_X"]
+shape = SubResource("SphereShape3D_x")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Tool_X"]
+mesh = SubResource("SphereMesh_x")
+
+[node name="Tool_Y" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.5, 0)
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tool_Y"]
+shape = SubResource("BoxShape3D_y")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Tool_Y"]
+mesh = SubResource("BoxMesh_y")
+
+[node name="Tool_Z" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.5, 0)
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tool_Z"]
+shape = SubResource("BoxShape3D_z")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Tool_Z"]
+mesh = SubResource("BoxMesh_z")

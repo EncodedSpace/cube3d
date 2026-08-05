@@ -8,12 +8,11 @@
 [ext_resource type="PackedScene" uid="uid://d1tk2ndqo3ifn" path="res://level2/player.tscn" id="7_fywue"]
 [ext_resource type="Script" uid="uid://bp3a80vy04n71" path="res://Tools_B_D_G/d_wall.gd" id="7_iu50b"]
 [ext_resource type="PackedScene" uid="uid://cxsojn8u6mkk1" path="res://Tools_F/Tools_F.tscn" id="8_i3i4i"]
-[ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="9_nl25t"]
-[ext_resource type="PackedScene" uid="uid://1is4plx7j8v1" path="res://ui_scene/ui_ingame.tscn" id="13_ui"]
 [ext_resource type="PackedScene" uid="uid://bynpixfcpdb1h" path="res://Tools_B_D_G/Tool_B_D_G.tscn" id="10_7i5fj"]
 [ext_resource type="Script" uid="uid://eq4yj0dlhuvl" path="res://Tools_E/static_box_e1.gd" id="11_e1"]
 [ext_resource type="Script" uid="uid://yeb1qlcx4oin" path="res://Tools_E/static_box_e2.gd" id="12_e2"]
 [ext_resource type="PackedScene" uid="uid://y36yjna2dm53" path="res://final_key/Final_Key.tscn" id="13_fkey"]
+[ext_resource type="PackedScene" uid="uid://1is4plx7j8v1" path="res://ui_scene/ui_ingame.tscn" id="13_ui"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -58,9 +57,6 @@ albedo_color = Color(0.8181082, 0.4249597, 0.15981194, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_fywue"]
 material = SubResource("StandardMaterial3D_1r6oq")
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
-bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
 
 [node name="Main" type="Node3D" unique_id=222267479]
 
@@ -910,10 +906,9 @@ size = 10.0
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("7_fywue")]
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 1.5, 0.45, 1.5)
 
-[node name="ui_ingame" parent="." instance=ExtResource("13_ui")]
+[node name="ui_ingame" parent="." unique_id=795806109 instance=ExtResource("13_ui")]
 welcome_text = "欢迎来到第二关！
 请走到绿色出口吧！"
 congrats_text = "恭喜你完成了第二关！"
-next_scene = ""
 
 [editable path="Node3D/Tool_B_D_G"]

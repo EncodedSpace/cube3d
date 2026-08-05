@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bx8j1oyjf84yh" path="res://level5/cube_world.gd" id="1_fobdo"]
 [ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_ayjee"]
-[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://movable_box.gd" id="3_s2l3b"]
+[ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://global_script/movable_box.gd" id="3_s2l3b"]
 [ext_resource type="Material" uid="uid://pqmpa718w18o" path="res://material/movable_material.tres" id="4_h5gko"]
 [ext_resource type="PackedScene" uid="uid://bynpixfcpdb1h" path="res://Tools_B_D_G/Tool_B_D_G.tscn" id="7_k3mig"]
 [ext_resource type="PackedScene" uid="uid://vtouulnlf386" path="res://Tools_I/Tools_I.tscn" id="9_tqn3b"]
