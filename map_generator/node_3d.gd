@@ -137,7 +137,7 @@ func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
 
 	# Collision normal points toward the player (into the room).
 	# The face's outward direction is the opposite; that should become world down.
-	var outward := _snap_to_axis(-collision_normal)
+	var outward: Vector3 = _snap_to_axis(-collision_normal)
 	if outward.dot(Vector3.DOWN) > 0.99:
 		print("[FlipBlocked] reason=already_floor outward=", outward, " collision_normal=", collision_normal)
 		return false
@@ -162,7 +162,7 @@ func request_orient_wall_as_floor(wall: Node3D, player: Node3D) -> bool:
 		print("[FlipBlocked] reason=flipping_or_null_wall wall=", wall)
 		return false
 	var inward := wall.global_transform.basis.y.normalized()
-	var outward := _snap_to_axis(-inward)
+	var outward: Vector3 = _snap_to_axis(-inward)
 	if outward.dot(Vector3.DOWN) > 0.99:
 		print("[FlipBlocked] reason=already_floor_wall wall=", wall.name, " outward=", outward)
 		return false
@@ -777,6 +777,9 @@ func generate() -> void:
 	# 同步构建，保证调整相机/放置玩家在返回前完成，避免与下一次生成交错。
 	_apply_map()
 
+	# 在方块绑定的基础上，额外绑定终点等非方块 props 到墙面可见性。
+	_bind_props_to_walls()
+
 	# 记录生成完成后的朝向，重置时恢复（此时未翻转，是标准朝向）。
 	_saved_cube_transform = global_transform
 
@@ -805,6 +808,10 @@ func restore_saved_map() -> void:
 		global_transform = _saved_cube_transform
 
 	_apply_map()
+
+	# 在方块绑定的基础上，额外绑定终点等非方块 props 到墙面可见性。
+	_bind_props_to_walls()
+
 	update_cutaway_visibility()
 	generation_finished.emit()
 
@@ -817,6 +824,9 @@ func _apply_map() -> void:
 	_bind_boxes_to_walls()
 	adjust_camera()
 	adjust_light()
+
+	# 玩家始终从底面出生 → 不需要旋转，直接放在 world 坐标
+	_place_player_at()
 
 	# 玩家始终从底面出生 → 不需要旋转，直接放在 world 坐标
 	_place_player_at()
@@ -999,23 +1009,26 @@ func _position_exit() -> void:
 	if exit_area == null:
 		return
 
-	var outward := _surface_normal(end_pos)
-	# Offset INWARD so the exit marker pokes into the room from the wall.
-	exit_area.position = _wp(end_pos.x, end_pos.y, end_pos.z) - outward * 0.6
+	# outward: from cube center toward the wall face (perpendicular to wall)
+	var outward: Vector3 = _surface_normal(end_pos)
+	# 直接放在格子中心（和方块克隆位置一致）
+	var pos := _wp(end_pos.x, end_pos.y, end_pos.z)
+
+	# Rotate the exit model so its local -Y (bottom) faces outward = toward the wall.
+	# Quaternion(Vector3.DOWN, outward) maps DOWN → outward.
+	var rot := Quaternion(Vector3.DOWN, outward)
+	exit_area.transform = Transform3D(Basis(rot), pos)
 	exit_area.scale = Vector3.ONE
 
-	# Bind the exit Area to nearest wall(s) so it hides with cutaway.
-	var walls := get_node_or_null("WALLS")
-	if walls != null:
-		var bound := _find_nearest_walls(exit_area as Node3D, walls)
-		if not bound.is_empty():
-			exit_area.add_to_group("wall_prop")
-			_wall_props.append({"prop": exit_area, "walls": bound})
-			_set_prop_visible(exit_area as Node3D, true)
+	# 显式设置碰撞体大小为 1×1×1，占满整个立方格
+	var col_shape := exit_area.get_node_or_null("CollisionShape3D2") as CollisionShape3D
+	if col_shape != null and col_shape.shape is BoxShape3D:
+		(col_shape.shape as BoxShape3D).size = Vector3(1, 1, 1)
 
-	# Forward exit signal to shared UI.
-	if not exit_area.body_entered.is_connected(_on_exit_body_entered):
-		exit_area.body_entered.connect(_on_exit_body_entered)
+	# 断开旧连接再重新连接，防止 generate/restore 多次调用时重复绑定导致信号失效。
+	if exit_area.body_entered.is_connected(_on_exit_body_entered):
+		exit_area.body_entered.disconnect(_on_exit_body_entered)
+	exit_area.body_entered.connect(_on_exit_body_entered)
 
 
 func _on_exit_body_entered(body: Node) -> void:
@@ -1029,7 +1042,7 @@ func _on_exit_body_entered(body: Node) -> void:
 
 func _orient_start_as_floor() -> void:
 	## Rotate this node around its geometric center so the start face becomes the floor.
-	var outward := _surface_normal(start_pos)
+	var outward: Vector3 = _surface_normal(start_pos)
 	if outward.dot(Vector3.DOWN) > 0.99:
 		return  # 已经是底面，不需要旋转
 	var q := Quaternion(outward, Vector3.DOWN)
@@ -1066,6 +1079,7 @@ func _place_player_at() -> void:
 func _wp(x: int, y: int, z: int) -> Vector3:
 	# Block centers sit 0.5 inside each face so 1×1×1 boxes rest on the
 	# shell plane and stay flush with its interior surface.
+	# x/z centered at 0; y=0 → world bottom, so the map sits on the floor.
 	var o := -(n - 1) / 2.0
 	return Vector3(x + o, float(y) + 0.5, z + o)
 
@@ -1219,7 +1233,7 @@ func _bfs() -> Array[Vector3i]:
 
 func _remove_wall() -> void:
 	var list: Array[Vector3i] = []
-	for k in _last_visited.keys():
+	for k: Vector3i in _last_visited.keys():
 		var c: Vector3i = k
 		for d: Vector3i in [Vector3i.RIGHT, Vector3i.LEFT, Vector3i.UP, Vector3i.DOWN, Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
 			var q2: Vector3i = c + d

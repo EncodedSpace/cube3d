@@ -199,7 +199,7 @@ func _remove_wall():
 	for k in _last_visited.keys():
 		var c: Vector3i = k
 		for d: Vector3i in [Vector3i.RIGHT,Vector3i.LEFT,Vector3i.UP,Vector3i.DOWN,Vector3i(0,0,1),Vector3i(0,0,-1)]:
-			var q=c+d
+			var q: Vector3i = c+d
 			if q.x>=0 and q.y>=0 and q.z>=0 and q.x<n and q.y<n and q.z<n:
 				if _is_on_surface(q.x,q.y,q.z) and matrix[q.x][q.y][q.z]==1 and !list.has(q):
 					list.append(q)
