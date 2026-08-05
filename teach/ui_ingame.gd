@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+const SUCCEED_SFX_PATH := "res://assets/audio/通关.mp3"
 
 var won: bool = false
 var _succeed_sfx: AudioStreamPlayer
@@ -135,7 +135,6 @@ func _play_succeed_sfx() -> void:
 
 func _on_back_pressed() -> void:
 	reset_level()
-	game_continued()
 
 
 func _on_help_button_pressed() -> void:

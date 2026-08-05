@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://jv7lsdtmedg4"]
+
+[ext_resource type="FontFile" uid="uid://duto23x3bjd3c" path="res://inbetween_scene/UI/Source Han Sans CN.ttf" id="1_yg0re"]
+[ext_resource type="Theme" uid="uid://dumv41cifgd1e" path="res://inbetween_scene/UI/nenu_theme.tres" id="2_ym3ca"]
+[ext_resource type="Script" path="res://MainMenu/control.gd" id="3_control"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ym3ca"]
+bg_color = Color(0.19607843, 0.19607843, 0.19607843, 0.6156863)
+
+[node name="Control" type="Control" unique_id=1782342522]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_control")
+metadata/_edit_lock_ = true
+
+[node name="zen_mode" type="Button" parent="." unique_id=1902974416]
+layout_mode = 0
+offset_left = 710.0
+offset_top = 816.0
+offset_right = 1220.0
+offset_bottom = 866.0
+theme_override_font_sizes/font_size = 30
+text = "ZEN MODE"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1225469795]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.528
+offset_left = 375.0
+offset_top = 80.0
+offset_right = -371.0
+offset_bottom = 187.76001
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Button" type="Button" parent="HBoxContainer" unique_id=1933466326]
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_font_sizes/font_size = 30
+text = "教学关卡"
+
+[node name="Button2" type="Button" parent="HBoxContainer" unique_id=1233800315]
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_font_sizes/font_size = 30
+text = "  关卡1  "
+
+[node name="Button3" type="Button" parent="HBoxContainer" unique_id=1970053126]
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_font_sizes/font_size = 30
+text = "  关卡2  "
+
+[node name="Button4" type="Button" parent="HBoxContainer" unique_id=575155082]
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_font_sizes/font_size = 30
+text = "  关卡3  "
+
+[node name="Button5" type="Button" parent="HBoxContainer" unique_id=252145782]
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_font_sizes/font_size = 30
+text = "  关卡4  "
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1309298053]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 225.0
+offset_right = 1929.0
+offset_bottom = 494.0
+
+[node name="Title" type="Label" parent="CenterContainer" unique_id=733835300]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_yg0re")
+theme_override_font_sizes/font_size = 150
+theme_override_styles/normal = SubResource("StyleBoxFlat_ym3ca")
+text = "  三 面 之 外  "
+
+[node name="Button" type="Button" parent="." unique_id=282525225]
+layout_mode = 0
+offset_left = 1576.0
+offset_top = 913.0
+offset_right = 1810.0
+offset_bottom = 967.0
+theme = ExtResource("2_ym3ca")
+text = "退出游戏"
+
+[connection signal="pressed" from="zen_mode" to="." method="_on_zen_mode_pressed"]
+[connection signal="pressed" from="HBoxContainer/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/Button2" to="." method="_on_button2_pressed"]
+[connection signal="pressed" from="HBoxContainer/Button3" to="." method="_on_button3_pressed"]
+[connection signal="pressed" from="HBoxContainer/Button4" to="." method="_on_button4_pressed"]
+[connection signal="pressed" from="HBoxContainer/Button5" to="." method="_on_button5_pressed"]
+[connection signal="pressed" from="Button" to="." method="_on_exit_pressed"]

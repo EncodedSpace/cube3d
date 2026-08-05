@@ -36,16 +36,78 @@ func _ready() -> void:
 	add_to_group("cube_world")
 	start_transform = global_transform
 	_bind_props_to_walls()
+	# 入场：先确保 6 面全可见，然后背向相机的 3 面从可见渐变消失
+	await _fade_in_outer_walls()
 	# Camera may not be current on the first frame after a scene change.
 	await _bootstrap_cutaway()
+	# 旋转/渐变全部结束后做最后一次完整的 cutaway 更新
+	update_cutaway_visibility()
+
+
+## 进入关卡时，让玩家看到的外侧 3 面墙 + 附着道具从可见 → 不可见渐变。
+func _fade_in_outer_walls() -> void:
+	for _i in range(12):
+		if _ensure_level_camera() != null:
+			break
+		await get_tree().process_frame
+
+	var walls := get_node_or_null("WALLS")
+	if walls == null:
+		return
+
+	# 1. 全部可见，alpha = 0
+	for child in walls.get_children():
+		var wall := child as Node3D
+		if wall == null:
+			continue
+		_set_wall_alpha(wall, 0.0)
+		for entry in _wall_props:
+			var bound: Array = entry.get("walls", [])
+			if wall in bound:
+				_set_prop_alpha(entry["prop"], 0.0)
+
+	await get_tree().process_frame
+
+	# 2. 找出背向相机的墙
+	var cam := _ensure_level_camera()
+	if cam == null:
+		return
+	var to_camera := (cam.global_position - get_center_global()).normalized()
+	var walls_to_fade: Array[Node3D] = []
+
+	for child in walls.get_children():
+		var wall := child as Node3D
+		if wall == null:
+			continue
+		var outward := -wall.global_transform.basis.y.normalized()
+		if outward.dot(to_camera) > wall_visible_dot:
+			walls_to_fade.append(wall)
+
+	if walls_to_fade.is_empty():
+		return
+
+	# 3. 等半秒，渐变 alpha 0 → 1
+	await get_tree().create_timer(0.5).timeout
+
+	var fade_tween := create_tween().set_parallel(true)
+	fade_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	for wall in walls_to_fade:
+		fade_tween.tween_method(func(val: float): _set_wall_alpha(wall, val), 0.0, 1.0, 2.0)
+		# 附着道具同步渐变
+		for entry in _wall_props:
+			var bound: Array = entry.get("walls", []) as Array
+			if wall in bound:
+				var prop: Node3D = entry.get("prop") as Node3D
+				if prop != null and is_instance_valid(prop):
+					fade_tween.tween_method(func(val: float): _set_prop_alpha(prop, val), 0.0, 1.0, 2.0)
+
+	await fade_tween.finished
 
 
 func _bootstrap_cutaway() -> void:
 	for _i in range(12):
 		_ensure_level_camera()
 		update_cutaway_visibility()
-		if _has_cutaway_applied():
-			return
 		await get_tree().process_frame
 
 
@@ -203,7 +265,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
 			if (
 				(child is StaticBody3D or child is RigidBody3D)
-				and ("StaticBox" in n or "MovableBox" in n)
+				and ("StaticBox" in n or "MovableBox" in n or n == "Tool_Z" or n.begins_with("Tool_Z"))
 				and "EXIT" not in n
 			):
 				if child.get("allows_player_enter") == true or child.get("is_open") == true:
@@ -296,7 +358,7 @@ func _bind_props_to_walls() -> void:
 				if found not in props:
 					props.append(found)
 
-	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*", "*Tool_X*", "*Tool_Y*", "*Tool_Z*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -334,6 +396,15 @@ func _is_wall_prop_name(n: String) -> bool:
 		or n.begins_with("B_Tool")
 		or n.begins_with("G_Tool")
 		or n.begins_with("F_Trigger")
+		or _is_xyz_tool_name(n)
+	)
+
+
+func _is_xyz_tool_name(n: String) -> bool:
+	return (
+		n == "Tool_X" or n.begins_with("Tool_X")
+		or n == "Tool_Y" or n.begins_with("Tool_Y")
+		or n == "Tool_Z" or n.begins_with("Tool_Z")
 	)
 
 
@@ -345,7 +416,7 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 			_gather_wall_props(child, result)
 
 
-## All walls at the minimum plane-distance (equal attach for corners/edges).
+## 等距多面绑定：平面距离在「最小值 + EPS」内的墙全部绑定。
 func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	var best_dist := INF
 	var dists: Dictionary = {} # wall -> dist
@@ -373,34 +444,42 @@ func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	return result
 
 
-## Portal_Key sits on an edge/corner: always bind the two closest faces.
-func _find_n_nearest_walls(prop: Node3D, walls: Node, count: int) -> Array[Node3D]:
-	var scored: Array[Dictionary] = []
-	for child in walls.get_children():
-		var wall := child as Node3D
-		if wall == null:
-			continue
-		var inward: Vector3 = wall.global_transform.basis.y.normalized()
-		var dist := absf(inward.dot(prop.global_position - wall.global_position))
-		scored.append({"d": dist, "wall": wall})
-	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["d"] < b["d"])
-	var result: Array[Node3D] = []
-	for i in range(mini(count, scored.size())):
-		result.append(scored[i]["wall"] as Node3D)
-	return result
-
-
+## 所有道具统一：等距多面绑定；裁切时任一面可见则道具可见。
 func _bound_walls_for_prop(prop: Node3D, walls: Node) -> Array[Node3D]:
-	var n := String(prop.name)
-	# 钥匙固定贴最近两面：任一面裁切亮起即显示。
-	if n == "Portal_Key" or n.begins_with("Portal_Key"):
-		return _find_n_nearest_walls(prop, walls, 2)
 	return _find_nearest_walls(prop, walls)
 
 
 ## Hide the 3 outer faces that point toward the camera so the room interior
 ## stays visible (needed when wall materials are double-sided).
 ## Props bound to multiple walls stay visible if any bound wall is shown.
+
+## 设置墙面的 alpha（0=完全可见, 1=完全透明），同步附着道具
+func _set_wall_alpha(wall: Node3D, alpha: float) -> void:
+	var mesh := wall.get_node_or_null("MeshInstance3D") as MeshInstance3D
+	if mesh == null:
+		return
+	var mat: Material = mesh.get_surface_override_material(0)
+	if not mat and mesh.mesh and mesh.mesh.surface_get_material(0):
+		mat = mesh.mesh.surface_get_material(0).duplicate()
+		mesh.set_surface_override_material(0, mat)
+	if mat is ShaderMaterial:
+		(mat as ShaderMaterial).set_shader_parameter("albedo:a", 1.0 - alpha)
+	# alpha > 0.98 完全隐藏
+	mesh.visible = alpha < 0.98
+
+
+## 设置道具下所有 MeshInstance3D 的 alpha
+func _set_prop_alpha(prop: Node3D, alpha: float) -> void:
+	for child in prop.find_children("*", "MeshInstance3D", true, false):
+		var mesh := child as MeshInstance3D
+		var mat: Material = mesh.get_surface_override_material(0)
+		if not mat and mesh.mesh and mesh.mesh.surface_get_material(0):
+			mat = mesh.mesh.surface_get_material(0).duplicate()
+			mesh.set_surface_override_material(0, mat)
+		if mat is ShaderMaterial:
+			(mat as ShaderMaterial).set_shader_parameter("albedo:a", 1.0 - alpha)
+
+
 func update_cutaway_visibility() -> void:
 	var cam := _ensure_level_camera()
 	if cam == null:
@@ -417,15 +496,21 @@ func update_cutaway_visibility() -> void:
 		var wall := child as Node3D
 		if wall == null:
 			continue
-		var inward: Vector3 = wall.global_transform.basis.y.normalized()
-		var outward: Vector3 = -inward
+		var outward: Vector3 = -wall.global_transform.basis.y.normalized()
 		var show_wall := outward.dot(to_camera) <= wall_visible_dot
 		wall_shown[wall] = show_wall
 		var mesh := wall.get_node_or_null("MeshInstance3D") as MeshInstance3D
 		if mesh != null:
 			mesh.visible = show_wall
+			# 恢复 alpha = 1（可见时 alpha=1, 不可见时 alpha 无所谓但保持一致）
+			var mat: Material = mesh.get_surface_override_material(0)
+			if not mat and mesh.mesh and mesh.mesh.surface_get_material(0):
+				mat = mesh.mesh.surface_get_material(0).duplicate()
+				mesh.set_surface_override_material(0, mat)
+			if mat is ShaderMaterial:
+				(mat as ShaderMaterial).set_shader_parameter("albedo:a", 1.0)
 
-	# Drop props that were freed (e.g. G_Tool after player collects it).
+	# 同步道具 visible
 	var alive_props: Array[Dictionary] = []
 	for entry in _wall_props:
 		var prop_ref = entry.get("prop")
@@ -436,21 +521,8 @@ func update_cutaway_visibility() -> void:
 			continue
 		alive_props.append(entry)
 
-		# Moving props / portals / D_Wall: refresh nearest walls (keeps multi-face binds).
-		var prop_name := String(prop.name)
-		if (
-			"MovableBox" in prop_name
-			or "Portal" in prop_name
-			or prop_name == "D_Wall"
-			or prop_name.begins_with("D_Wall")
-			or prop_name == "B_Tool"
-			or prop_name == "G_Tool"
-			or prop_name == "F_Trigger"
-			or prop_name.begins_with("B_Tool")
-			or prop_name.begins_with("G_Tool")
-			or prop_name.begins_with("F_Trigger")
-		):
-			entry["walls"] = _bound_walls_for_prop(prop, walls)
+		# 每次刷新等距绑定；绑定面中任一面可见则道具可见。
+		entry["walls"] = _bound_walls_for_prop(prop, walls)
 		var bound: Array = entry["walls"]
 		var show_prop := false
 		for wall in bound:
@@ -458,54 +530,39 @@ func update_cutaway_visibility() -> void:
 				show_prop = true
 				break
 		_set_prop_visible(prop, show_prop)
+		# 恢复道具 alpha
+		if show_prop:
+			_set_prop_alpha(prop, 0.0)
+
 	_wall_props = alive_props
 
 
 func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
-	# Falling B must keep WALLS collision, or it will drop out of the cube.
-	if (
-		prop.is_in_group("b_tool")
-		and prop.get("gravity_enabled") == true
-		and prop.get("adsorbed") != true
-	):
-		prop.visible = true
-		_set_collision_shapes_disabled(prop, false)
-		if prop is RigidBody3D:
-			var b := prop as RigidBody3D
-			if _hold_props_frozen:
-				b.linear_velocity = Vector3.ZERO
-				b.angular_velocity = Vector3.ZERO
-				b.freeze = true
-			elif not get_tree().paused:
-				b.freeze = false
-		return
-
-	# D_Wall:
-	# - before G: any bound face lit → visible + collision
-	# - after G, before open: always visible + collision
-	# - after open: no solid collision
+	# D_Wall / D_Wall2：始终跟随绑定墙裁切；开门后无固体碰撞。
+	# 隐藏时只关 StaticBody，保留 Area。
 	if prop.has_method("should_keep_player_block"):
 		var closed: bool = prop.should_keep_player_block()
 		if not closed:
-			prop.visible = true
-			_set_collision_shapes_disabled(prop, true)
+			prop.visible = wall_visible
+			_set_d_solid_disabled(prop, true)
 			return
 
-		var show_d := wall_visible
-		if prop.has_method("should_force_visible_block") and prop.should_force_visible_block():
-			show_d = true
-
-		prop.visible = show_d
-		if show_d:
+		prop.visible = wall_visible
+		if wall_visible:
 			if prop.has_method("ensure_player_block"):
 				prop.ensure_player_block()
 		else:
-			_set_collision_shapes_disabled(prop, true)
+			_set_d_solid_disabled(prop, true)
+		return
+
+	# B_Tool / Portal / Portal_Key / E1 / E2：自管碰撞与显隐。
+	if prop.has_method("apply_cutaway_visibility"):
+		prop.apply_cutaway_visibility(wall_visible)
 		return
 
 	prop.visible = wall_visible
 	_set_collision_shapes_disabled(prop, not wall_visible)
-	# Only MovableBox uses freeze for cutaway. B_Tool/G_Tool manage freeze themselves.
+	# Only MovableBox uses freeze for cutaway. G_Tool manages freeze itself.
 	if prop is RigidBody3D and "MovableBox" in String(prop.name):
 		var rb := prop as RigidBody3D
 		if not wall_visible or _hold_props_frozen:
@@ -521,6 +578,20 @@ func _set_collision_shapes_disabled(node: Node, disabled: bool) -> void:
 		(node as CollisionShape3D).disabled = disabled
 	for child in node.get_children():
 		_set_collision_shapes_disabled(child, disabled)
+
+
+## 只开关 D 的固体碰撞，不动 Area（B 检测）。
+func _set_d_solid_disabled(d_prop: Node, disabled: bool) -> void:
+	var static_body := d_prop.get_node_or_null("StaticBody3D") as StaticBody3D
+	if static_body == null:
+		return
+	if disabled:
+		static_body.collision_layer = 0
+	else:
+		static_body.collision_layer = 1
+	for child in static_body.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = disabled
 
 
 ## Rotates cube and player together. Afterward the player stands upright but
@@ -666,11 +737,17 @@ func _all_fallable_props_settled() -> bool:
 
 func _wait_for_props_to_settle() -> void:
 	await get_tree().physics_frame
+	if not is_inside_tree():
+		return
 	var stable := 0
 	var elapsed := 0.0
 	while elapsed < settle_timeout:
+		if not is_inside_tree():
+			return
 		if get_tree().paused:
 			await get_tree().process_frame
+			if not is_inside_tree():
+				return
 			continue
 		if _all_fallable_props_settled():
 			stable += 1
@@ -679,6 +756,8 @@ func _wait_for_props_to_settle() -> void:
 		else:
 			stable = 0
 		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
 		elapsed += get_physics_process_delta_time()
 
 func set_portal_locked(value: bool) -> void:

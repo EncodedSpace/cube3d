@@ -233,4 +233,6 @@ next_scene_path = "uid://qse5v65wfo1m"
 welcome_text = "欢迎来到第一关！
 小心头上的箱子..."
 
+[connection signal="body_entered" from="Node3D/StaticBox_EXIT" to="ui_ingame" method="_on_exit_body_entered"]
+
 [editable path="Node3D/StaticBox_EXIT/FryingPan"]

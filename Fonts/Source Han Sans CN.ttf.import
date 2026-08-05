@@ -1,0 +1,36 @@
+[remap]
+
+importer="font_data_dynamic"
+type="FontFile"
+uid="uid://u6l6tfoickg1"
+path="res://.godot/imported/Source Han Sans CN.ttf-80ff5f01b5cb043010bdd9ee4d2f15e8.fontdata"
+
+[deps]
+
+source_file="res://Fonts/Source Han Sans CN.ttf"
+dest_files=["res://.godot/imported/Source Han Sans CN.ttf-80ff5f01b5cb043010bdd9ee4d2f15e8.fontdata"]
+
+[params]
+
+Rendering=null
+antialiasing=1
+generate_mipmaps=false
+disable_embedded_bitmaps=true
+multichannel_signed_distance_field=false
+msdf_pixel_range=8
+msdf_size=48
+allow_system_fallback=true
+force_autohinter=false
+modulate_color_glyphs=false
+hinting=3
+subpixel_positioning=4
+keep_rounding_remainders=true
+oversampling=0.0
+Fallbacks=null
+fallbacks=[]
+Compress=null
+compress=true
+preload=[]
+language_support={}
+script_support={}
+opentype_features={}

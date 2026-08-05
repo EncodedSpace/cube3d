@@ -8,7 +8,7 @@ signal finished(on_floor: bool)
 @export var roll_duration := 0.20
 
 # 玩家向墙面推动达到此强度时，触发世界翻转。
-@export var flip_push_threshold := 0.35
+@export var flip_push_threshold := 0.20
 
 @export_group("翻滚音效")
 
@@ -30,6 +30,19 @@ var active := false
 
 # 用来终止旧的异步翻滚。
 var _request_id := 0
+
+
+## 委托给 player：偶数 n → *.5，奇数 n → 整数。
+func _snap_player_xz() -> void:
+	if player == null:
+		return
+	if player.has_method("snap_grid_xz"):
+		player.global_position = player.snap_grid_xz(player.global_position)
+		return
+	# 兜底：按整数格对齐。
+	var p := player.global_position
+	player.global_position = Vector3(roundf(p.x), p.y, roundf(p.z))
+
 
 func setup(
 	player_node: CharacterBody3D,
@@ -53,9 +66,11 @@ func start(
 	grid_step: float
 ) -> void:
 	if active:
+		print("[RollBlocked] reason=active direction=", first_direction)
 		return
 
 	if first_direction == Vector3.ZERO:
+		print("[RollBlocked] reason=zero_direction")
 		return
 
 	if (
@@ -63,6 +78,7 @@ func start(
 		or visual_body == null
 		or visual_face == null
 	):
+		print("[RollBlocked] reason=missing_refs player=", player, " visual_body=", visual_body, " visual_face=", visual_face)
 		return
 
 	_request_id += 1
@@ -100,8 +116,9 @@ func start(
 
 			# 已打开的通行格（如 E2）：允许滚入，即使身后贴着外墙。
 			if _destination_is_passable(destination):
-				pass
+				print("[RollInfo] passable destination=", destination, " collider=", collider)
 			elif _is_cube_wall_collider(collider):
+				print("[RollBlocked] reason=cube_wall destination=", destination, " normal=", test_collision.get_normal(), " collider=", collider)
 				_try_world_flip(
 					test_collision.get_normal(),
 					direction
@@ -109,6 +126,13 @@ func start(
 				break
 			# D_Wall / StaticBox / other solids: never roll into them.
 			elif _destination_has_obstacle(destination) or collider != null:
+				var collider_node := collider as Node3D
+				var collider_pos := (collider_node.global_position if collider_node != null else Vector3.ZERO)
+				var collider_visible := (collider_node.visible if collider_node != null else false)
+				var bound_walls: Array[String] = []
+				if collider_node != null and cube_world != null and cube_world.has_method("get_bound_wall_names_for_prop"):
+					bound_walls = cube_world.get_bound_wall_names_for_prop(collider_node)
+				print("[RollBlocked] reason=obstacle destination=", destination, " collider=", collider, " collider_pos=", collider_pos, " collider_delta=", (collider_pos - destination), " collider_visible=", collider_visible, " bound_walls=", bound_walls)
 				break
 
 		visual_face.look_direction(direction)
@@ -137,6 +161,8 @@ func start(
 	var on_floor: bool = bool(player.has_floor_below())
 
 	if on_floor:
+		# 校准 XZ 到格子中心，Y 不变（玩家站在方块顶面，Y 偏移约 0.5）。
+		_snap_player_xz()
 		await visual_body.end_squash()
 
 		if not _is_request_active(current_request):
@@ -154,7 +180,10 @@ func _roll_step(
 ) -> bool:
 	_play_roll_sfx()
 		
+	# 校准 XZ 到格子中心，Y 不变（玩家站在方块顶面）。
+	_snap_player_xz()
 	var start_position := player.global_position
+	player.global_position = start_position
 	var start_body_basis := visual_body.basis
 
 	var final_position := (
@@ -281,6 +310,7 @@ func _should_abort_roll_on_collision(
 ) -> bool:
 	# 通行格内碰到外墙不算中断（否则贴墙的开门格永远进不去）。
 	if _destination_is_passable(final_position):
+		print("[RollInfo] ignore_collision_in_passable destination=", final_position, " collider=", collider)
 		return false
 	return (
 		_is_cube_wall_collider(collider)
@@ -290,7 +320,10 @@ func _should_abort_roll_on_collision(
 
 func _destination_is_passable(destination: Vector3) -> bool:
 	if cube_world != null and cube_world.has_method("is_passable_for_player"):
-		return bool(cube_world.is_passable_for_player(destination))
+		var passable := bool(cube_world.is_passable_for_player(destination))
+		if passable:
+			print("[RollInfo] passable_cell destination=", destination)
+		return passable
 	return false
 
 
@@ -375,6 +408,11 @@ func _destination_has_obstacle(
 			and absf(offset.y) < HALF_CELL
 			and absf(offset.z) < HALF_CELL
 		):
+			var visible_state: bool = bool(box.visible)
+			var bound_walls: Array[String] = []
+			if cube_world != null and cube_world.has_method("get_bound_wall_names_for_prop"):
+				bound_walls = cube_world.get_bound_wall_names_for_prop(box)
+			print("[RollInfo] obstacle_match destination=", destination, " box=", box.name, " visible=", visible_state, " box_pos=", box.global_position, " offset=", offset, " bound_walls=", bound_walls)
 			return true
 
 	return false
@@ -386,16 +424,20 @@ func _try_world_flip(
 	input_direction: Vector3
 ) -> void:
 	if cube_world == null:
+		print("[FlipBlocked] reason=no_cube_world")
 		return
 
 	if not cube_world.has_method("can_flip"):
+		print("[FlipBlocked] reason=no_can_flip_method")
 		return
 
 	if not cube_world.can_flip():
+		print("[FlipBlocked] reason=world_cannot_flip")
 		return
 
 	# 地面不触发世界翻转。
 	if normal.y > 0.55:
+		print("[FlipBlocked] reason=ground_hit normal=", normal, " input_direction=", input_direction)
 		return
 
 	var push_strength := (
@@ -403,6 +445,7 @@ func _try_world_flip(
 	)
 
 	if push_strength < flip_push_threshold:
+		print("[FlipBlocked] reason=low_push normal=", normal, " input_direction=", input_direction, " push_strength=", push_strength, " threshold=", flip_push_threshold)
 		return
 
 	cube_world.request_flip(

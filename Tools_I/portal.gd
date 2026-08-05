@@ -2,6 +2,8 @@ extends Area3D
 
 ## 单扇传送门：1×1×1 检测体。
 ## 玩家进入后，由根节点传送到配对门（需先收集钥匙）。
+## 裁切显隐与其它道具统一：等距多面绑定后，由 cube_world 调用
+## apply_cutaway_visibility；任一面亮起则可见。
 
 
 var tools_root: Node3D
@@ -21,6 +23,15 @@ func setup(root: Node3D, other: Area3D) -> void:
 		body_entered.connect(_on_body_entered)
 
 
+## 由 cube_world 裁切刷新调用：跟绑定墙显隐。
+func apply_cutaway_visibility(wall_visible: bool) -> void:
+	visible = wall_visible
+	monitoring = wall_visible
+	for child in get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = not wall_visible
+
+
 func set_active_look(active: bool) -> void:
 	var mesh := get_node_or_null("MeshInstance3D") as MeshInstance3D
 	if mesh == null or mesh.mesh == null:
@@ -31,9 +42,9 @@ func set_active_look(active: bool) -> void:
 	if mat == null:
 		return
 	# 未解锁：更暗更淡；解锁后恢复高亮。
-	mat.emission_energy_multiplier = 1.5 if active else 0.35
+	mat.emission_energy_multiplier = 2.0 if active else 0.6
 	var c := mat.albedo_color
-	c.a = 0.45 if active else 0.18
+	c.a = 0.75 if active else 0.4
 	mat.albedo_color = c
 
 

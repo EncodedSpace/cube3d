@@ -3,6 +3,8 @@ extends RigidBody3D
 ## B 道具：玩家可自由进出。
 ## 初始冻结；G 被收集后启用真实物理重力，并与 WALLS 碰撞。
 ## 落入 D 空间后被吸附，不再移动。
+## 裁切显隐与其它道具统一：等距多面绑定后，由 cube_world 调用
+## apply_cutaway_visibility；任一面亮起则可见。
 
 
 var gravity_enabled := false
@@ -19,6 +21,48 @@ func _ready() -> void:
 	contact_monitor = true
 	max_contacts_reported = 4
 	add_to_group("b_tool")
+
+
+## 由 cube_world 裁切刷新调用：跟绑定墙显隐（与 Portal / StaticBox 等一致）。
+func apply_cutaway_visibility(wall_visible: bool) -> void:
+	visible = wall_visible
+
+	# 下落中必须保持与墙的碰撞，否则会掉出立方体。
+	if gravity_enabled and not adsorbed:
+		_set_collision_shapes_disabled(false)
+		var hold := _is_cube_holding_fallables()
+		if hold:
+			linear_velocity = Vector3.ZERO
+			angular_velocity = Vector3.ZERO
+			freeze = true
+		elif get_tree() != null and not get_tree().paused:
+			freeze = false
+		return
+
+	# 静止 / 吸附：隐藏时关掉碰撞，与其它道具一致。
+	_set_collision_shapes_disabled(not wall_visible)
+
+
+func _set_collision_shapes_disabled(disabled: bool) -> void:
+	for child in get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).disabled = disabled
+
+
+func _is_cube_holding_fallables() -> bool:
+	var cube := _find_cube_world()
+	if cube == null:
+		return false
+	return bool(cube.get("_hold_props_frozen"))
+
+
+func _find_cube_world() -> Node:
+	var n: Node = self
+	while n != null:
+		if n.has_method("update_cutaway_visibility"):
+			return n
+		n = n.get_parent()
+	return null
 
 
 ## 由 G 道具调用，开启重力。

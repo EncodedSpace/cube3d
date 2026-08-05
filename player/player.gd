@@ -68,6 +68,33 @@ var start_visual_body_position: Vector3
 var start_collision_position: Vector3
 var start_collision_size: Vector3
 
+## 关卡边长 n（格数）。优先 cube_world.n，否则用 cube_half_extent*2。
+func get_map_n() -> int:
+	if cube_world != null:
+		if "n" in cube_world:
+			var n_val := int(cube_world.get("n"))
+			if n_val > 0:
+				return n_val
+		if "cube_half_extent" in cube_world:
+			var n_from_half := int(round(float(cube_world.get("cube_half_extent")) * 2.0))
+			if n_from_half > 0:
+				return n_from_half
+	return 6
+
+
+## 将水平轴校准到格子中心。
+## 偶数 n → *.5；奇数 n → 整数。
+func snap_grid_axis(value: float) -> float:
+	if get_map_n() % 2 == 0:
+		return snappedf(value - 0.5, 1.0) + 0.5
+	return snappedf(value, 1.0)
+
+
+## 只校准 XZ，保留 Y。
+func snap_grid_xz(pos: Vector3) -> Vector3:
+	return Vector3(snap_grid_axis(pos.x), pos.y, snap_grid_axis(pos.z))
+
+
 func _ready() -> void:
 	jump_enabled = jump_enabled_by_default
 	
@@ -120,10 +147,17 @@ func reset_to_start() -> void:
 	roll_controller.cancel()
 
 	global_transform = start_transform
+	# XZ 按奇偶格校准到格子中心，Y 不变。
+	global_position = snap_grid_xz(global_position)
 	velocity = Vector3.ZERO
 	was_on_floor = true
 
 	_reset_visual_state()
+
+
+func set_start_transform(xform: Transform3D) -> void:
+	start_transform = xform
+
 
 # 世界翻转完成后同步角色状态。
 func sync_move_from_facing() -> void:
@@ -131,6 +165,8 @@ func sync_move_from_facing() -> void:
 	roll_controller.cancel()
 
 	velocity = Vector3.ZERO
+	# XZ 按奇偶格校准到格子中心，Y 不变。
+	global_position = snap_grid_xz(global_position)
 	_reset_visual_state()
 
 	was_on_floor = (

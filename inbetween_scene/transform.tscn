@@ -78,6 +78,9 @@ shader_parameter/edge_power = 4.9399999999999995
 [sub_resource type="SphereMesh" id="SphereMesh_a7i5e"]
 material = SubResource("ShaderMaterial_1r6oq")
 
+[sub_resource type="BoxMesh" id="BoxMesh_a7i5e"]
+size = Vector3(6, 6, 6)
+
 [node name="Node3D" type="Node3D" unique_id=1961833260]
 script = ExtResource("1_sc2ue")
 
@@ -358,9 +361,8 @@ projection = 1
 size = 10.0
 
 [node name="Player" parent="." unique_id=1151131115 instance=ExtResource("3_8thna")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 17.792477)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 12.555117)
 screen_relative_move = false
-use_grid_roll = true
 
 [node name="OmniLight3D" type="OmniLight3D" parent="Player" unique_id=963476749]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.999999, 0)
@@ -428,7 +430,7 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("6_sc2ue")
 theme_override_font_sizes/font_size = 150
 theme_override_styles/normal = SubResource("StyleBoxFlat_6dcou")
-text = "三面之外"
+text = "  三 面 之 外  "
 
 [node name="Lable" type="Label" parent="CanvasLayer" unique_id=440282207]
 offset_left = 91.0
@@ -437,12 +439,17 @@ offset_right = 264.0
 offset_bottom = 114.0
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_e4awe")
-text = "· 按WASD移动，探索这片区域"
+text = " · 按WASD移动，探索这片区域"
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1372869028]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 13.398322)
 visible = false
 mesh = SubResource("SphereMesh_a7i5e")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=585664822]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+visible = false
+mesh = SubResource("BoxMesh_a7i5e")
 
 [connection signal="body_entered" from="BOX1/Area3D" to="." method="_on_area_3d_body_entered"]
 [connection signal="body_entered" from="BOX1/Area3D" to="BOX1" method="_on_area_3d_body_entered"]

@@ -90,9 +90,12 @@ func transition_to_box_camera() -> void:
 		box_marker.global_transform,
 		camera_transition_duration
 	)
+	# 插值相机在 Marker 下的局部位置（Player 相机 7 单位 vs Box 相机 310 单位）
+	_camera_tween.tween_property(player_camera, "position", box_camera.position, camera_transition_duration)
 	
 	_camera_tween.tween_property(player_camera, "fov", box_camera.fov, camera_transition_duration)
 	_camera_tween.tween_property(player_camera, "size", box_camera.size, camera_transition_duration)
+	# 关键修复：near/far 也跟随目标相机，防止正交视图深度缓冲区截断
 	_camera_tween.tween_property(player_camera, "near", box_camera.near, camera_transition_duration)
 	_camera_tween.tween_property(player_camera, "far", box_camera.far, camera_transition_duration)
 	_camera_tween.tween_property(player_camera, "h_offset", box_camera.h_offset, camera_transition_duration)
