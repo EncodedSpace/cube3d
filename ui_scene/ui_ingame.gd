@@ -20,6 +20,7 @@ var _succeed_sfx: AudioStreamPlayer
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
+	won = false
 
 	_apply_ui_theme()
 

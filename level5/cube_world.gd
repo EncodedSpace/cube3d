@@ -416,6 +416,14 @@ func update_cutaway_visibility() -> void:
 		# 每次刷新等距绑定；绑定面中任一面可见则道具可见。
 		entry["walls"] = _bound_walls_for_prop(prop, walls)
 		var bound: Array = entry["walls"]
+
+		# MovableBox / B（开重力后）：只绑天花板或已真正下落中时自管显隐。
+		if (
+			prop.has_method("sync_ceiling_fall")
+			and prop.sync_ceiling_fall(bound, _hold_props_frozen)
+		):
+			continue
+
 		var show_prop := false
 		for wall in bound:
 			if wall != null and is_instance_valid(wall) and wall_shown.get(wall, false):
@@ -431,8 +439,11 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	if prop.has_method("should_keep_player_block"):
 		var closed: bool = prop.should_keep_player_block()
 		if not closed:
-			# 已开门：仍跟墙显隐，但不挡人。
-			prop.visible = wall_visible
+			# 已开门：跟墙显隐，不挡人；同步吸附的 B（D+B 合体贴面隐藏）。
+			if prop.has_method("sync_adsorbed_partner_visibility"):
+				prop.sync_adsorbed_partner_visibility(wall_visible)
+			else:
+				prop.visible = wall_visible
 			_set_d_solid_disabled(prop, true)
 			return
 

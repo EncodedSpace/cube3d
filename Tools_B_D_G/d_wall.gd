@@ -9,6 +9,8 @@ extends Node3D
 
 var is_open := false
 var g_collected := false
+## 开门并吸附后的 B，与 D 一起做贴面显隐。
+var _adsorbed_b: Node3D = null
 
 ## B 落在 D 顶面上时，中心距约 1m；邻格同高约 1m，需用「水平贴格」区分。
 @export var adsorb_lateral_max := 0.55
@@ -58,6 +60,7 @@ func notify_g_collected() -> void:
 func restore_after_g_collected() -> void:
 	is_open = false
 	g_collected = true
+	_adsorbed_b = null
 	if static_body:
 		static_body.collision_layer = 1
 		static_body.collision_mask = 1
@@ -137,23 +140,83 @@ func open_door(b_tool: Node3D) -> void:
 		return
 	is_open = true
 	set_physics_process(false)
+	_adsorbed_b = b_tool
 
 	# B 吸附到 D 的位置。
 	if b_tool.has_method("adsorb_to_d"):
-		b_tool.adsorb_to_d(global_position)
+		b_tool.adsorb_to_d(global_position, self)
 
 	# 取消碰撞 —— 玩家可通过。
 	if static_body:
 		static_body.collision_layer = 0
 	_set_blocking_shapes_disabled(true)
 
-	# D 半透明，不消失。
+	# D / B 半透明；显隐由贴面裁切统一控制。
 	if mesh_instance:
 		_set_mesh_transparency(mesh_instance, 0.5)
-
-	# B 也半透明。
 	if b_tool.has_method("set_transparency"):
 		b_tool.set_transparency(0.5)
+
+	# 通知 Tool_B_D_G：可选同步打开同组其它 D。
+	var parent_tool := get_parent()
+	if parent_tool != null and parent_tool.has_method("notify_d_opened"):
+		parent_tool.notify_d_opened(self, b_tool)
+
+	# 立刻按当前绑墙刷新 D+B 显隐。
+	_refresh_cutaway_after_open()
+
+
+## 开门后与吸附的 B 同步贴面显隐（由 cube_world 调用）。
+func sync_adsorbed_partner_visibility(wall_visible: bool) -> void:
+	visible = wall_visible
+	if mesh_instance != null:
+		mesh_instance.visible = wall_visible
+	if _adsorbed_b != null and is_instance_valid(_adsorbed_b):
+		_adsorbed_b.visible = wall_visible
+		if _adsorbed_b is RigidBody3D:
+			var rb := _adsorbed_b as RigidBody3D
+			rb.freeze = true
+			rb.linear_velocity = Vector3.ZERO
+			rb.angular_velocity = Vector3.ZERO
+
+
+func _refresh_cutaway_after_open() -> void:
+	var cube := _find_cube_world()
+	if cube == null:
+		return
+	if cube.has_method("invalidate_prop_cutaway_cache"):
+		cube.invalidate_prop_cutaway_cache(self)
+		if _adsorbed_b is Node3D:
+			cube.invalidate_prop_cutaway_cache(_adsorbed_b as Node3D)
+	# 吸附后 B 位置固定，按固定块绑墙。
+	if cube.has_method("mark_prop_fixed_like_static") and _adsorbed_b is Node3D:
+		cube.mark_prop_fixed_like_static(_adsorbed_b as Node3D)
+	elif cube.has_method("update_cutaway_visibility"):
+		cube.update_cutaway_visibility()
+
+
+func _find_cube_world() -> Node:
+	var n: Node = self
+	while n != null:
+		if n.has_method("update_cutaway_visibility"):
+			return n
+		n = n.get_parent()
+	return null
+
+
+## 仅变为可通行（半透明、关碰撞），不吸附 B。供同组联动开门。
+func open_as_passable() -> void:
+	if is_open:
+		return
+	is_open = true
+	set_physics_process(false)
+	if static_body:
+		static_body.collision_layer = 0
+	_set_blocking_shapes_disabled(true)
+	if mesh_instance:
+		_set_mesh_transparency(mesh_instance, 0.5)
+	if area != null:
+		area.monitoring = false
 
 
 ## 未开门时仍需要挡人。
