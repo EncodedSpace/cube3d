@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://1is4plx7j8v1"]
+[gd_scene load_steps=11 format=3 uid="uid://1is4plx7j8v1"]
 
 [ext_resource type="Script" uid="uid://crdioc5gl6y26" path="res://ui_scene/ui_ingame.gd" id="1_f8os5"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_0kaxw"]
 [ext_resource type="Script" uid="uid://pt5h1lxr0imu" path="res://ui_scene/help_menu_auto.gd.gd" id="3_0kaxw"]
 [ext_resource type="PackedScene" path="res://ui_scene/how_to_play_layer.tscn" id="4_howto"]
 [ext_resource type="Script" path="res://ui_scene/movement_hint.gd" id="5_movement"]
+[ext_resource type="Script" path="res://ui_scene/tool_hint.gd" id="6_tool_hint"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
 bg_color = Color(0.43134022, 0.43134025, 0.43134025, 1)
@@ -168,6 +169,16 @@ offset_bottom = -28.0
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("5_movement")
+
+[node name="ToolHint" type="Control" parent="." unique_id=1485031115]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_tool_hint")
 
 [node name="help_bg" type="PanelContainer" parent="." unique_id=704348181]
 visible = false
