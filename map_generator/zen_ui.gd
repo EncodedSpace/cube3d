@@ -127,36 +127,43 @@ func _generate_with_size(size: int) -> void:
 	get_tree().paused = false
 	_cube.set("n", size)
 	_cube.generate()
+	# node_3d.gd 的内部 generate() 已经包含了 _place_player_at()，无需额外调用。
 
-	# Unfreeze the player now that the map exists
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	if player != null:
 		player.set_physics_process(true)
 
-	# Wait one frame for the scene tree to settle, then show shared UI.
-	await get_tree().process_frame
-
-	# Remove size panel
+	# 先移除大小面板
 	if _size_panel != null and is_instance_valid(_size_panel):
 		_size_panel.queue_free()
 	_size_panel = null
 
-	# (Re)instantiate shared UI
+	# 先彻底移除旧 UI（remove_child 立即生效，queue_free 延迟释放）
 	if _shared_ui != null and is_instance_valid(_shared_ui):
+		var parent_node := _shared_ui.get_parent()
+		if parent_node != null:
+			parent_node.remove_child(_shared_ui)
 		_shared_ui.queue_free()
+		_shared_ui = null
+
+	print("[ZenUI] A: before await")
+	await get_tree().process_frame
+	print("[ZenUI] B: after await")
 
 	var ui_scene := load(SHARED_UI_PATH) as PackedScene
 	if ui_scene == null:
 		push_error("ZenUI: cannot load shared UI scene.")
 		return
 
+	print("[ZenUI] C: creating new UI")
 	_shared_ui = ui_scene.instantiate() as CanvasLayer
 	_shared_ui.name = "ui_ingame"
 	_shared_ui.set("welcome_text", "禅模式 · %d×%d×%d\n走向蓝色出口吧！" % [size, size, size])
 	_shared_ui.set("congrats_text", "恭喜你完成了禅模式！")
-	_shared_ui.set("next_scene", "")   # no next level in zen mode
+	_shared_ui.set("next_scene", "")
 	_shared_ui.set("is_zen_mode", true)
 	get_parent().add_child(_shared_ui)
+	print("[ZenUI] D: added new UI, node=", _shared_ui)
 
 
 

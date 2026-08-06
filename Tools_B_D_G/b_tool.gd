@@ -4,6 +4,14 @@ extends RigidBody3D
 @export var adsorb_lift: float = 0.16
 @export var cage_fade_duration: float = 0.6
 @export_range(0.1, 1.0, 0.01) var cage_end_scale_ratio: float = 0.9
+## B 道具：玩家可自由进出。
+## 初始冻结；G 被收集后启用真实物理重力，并与 WALLS 碰撞。
+## 开重力后贴面显隐 / 天花板下落与 MovableBox 相同：
+## - 只绑天花板 → 强制显示、重力下落
+## - 天花板+侧墙（或地板）→ 普通随墙显隐，不强制显示、不特殊下落
+## - 已经真正掉起来之后，即使中途绑定变化，仍会把这次下落完成
+## 落入 D 后吸附，不再移动。
+## B 砸到 StaticBox 不会让玩家死亡（与 MovableBox 的唯一差异）。
 
 @onready var cage_visual: Node3D = get_node_or_null("CageVisual") as Node3D
 @onready var cage_blocker: StaticBody3D = (
@@ -20,6 +28,14 @@ var _cage_tween: Tween
 var _cage_start_scale := Vector3.ONE
 var _cage_materials: Array[BaseMaterial3D] = []
 var _cage_base_colors: Array[Color] = []
+## 与 MovableBox 相同的天花板下落状态。
+var ceiling_falling := false
+var _has_fallen_from_ceiling := false
+var _settle_frames := 0
+
+const FALL_SPEED := 0.35
+const SETTLE_SPEED := 0.12
+const SETTLE_FRAMES_REQUIRED := 8
 
 
 func _ready() -> void:
@@ -29,8 +45,10 @@ func _ready() -> void:
 	collision_mask = 1
 	lock_rotation = true
 	contact_monitor = true
-	max_contacts_reported = 4
+	max_contacts_reported = 8
+	continuous_cd = true
 	add_to_group("b_tool")
+	set_physics_process(false)
 
 	if cage_visual != null:
 		_cage_start_scale = cage_visual.scale
@@ -62,6 +80,209 @@ func apply_cutaway_visibility(wall_visible: bool) -> void:
 		return
 
 	_set_collision_shapes_disabled(not wall_visible)
+	var hold := _is_cube_holding_fallables()
+	if not wall_visible or hold:
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
+		freeze = true
+	elif get_tree() != null and not get_tree().paused:
+		freeze = false
+		sleeping = false
+
+
+## 由 D_Wall 调用，B 被吸附到 D 上。
+func adsorb_to_d(d_global_pos: Vector3, _host_d: Node3D = null) -> void:
+	adsorbed = true
+	gravity_enabled = false
+	gravity_scale = 0.0
+	_exit_ceiling_fall_mode()
+	freeze = true
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	global_transform.origin = d_global_pos
+	# 可通过合体：不再挡人；显隐交给贴面裁切。
+	collision_layer = 0
+	collision_mask = 0
+	_set_collision_shapes_disabled(true)
+	set_physics_process(false)
+	var cube := _find_cube_world()
+	if cube != null and cube.has_method("invalidate_prop_cutaway_cache"):
+		cube.invalidate_prop_cutaway_cache(self)
+
+
+## 由 G 道具调用，开启重力。
+func enable_gravity() -> void:
+	if adsorbed:
+		return
+	gravity_enabled = true
+	gravity_scale = 1.0
+	collision_layer = 4
+	collision_mask = 1
+	freeze = false
+	sleeping = false
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	_set_collision_shapes_disabled(false)
+	set_physics_process(true)
+	var cube := _find_cube_world()
+	if cube == null:
+		return
+	if cube.has_method("invalidate_prop_cutaway_cache"):
+		cube.invalidate_prop_cutaway_cache(self)
+	# 即便没有缓存 API（如 level5），也要立刻刷新，否则 B 可能一直保持隐藏/冻结观感。
+	if cube.has_method("update_cutaway_visibility"):
+		cube.update_cutaway_visibility()
+
+
+## 复原到「G 已收集、尚未落入 D」：取消吸附、不透明。
+func restore_after_g_collected(defer_gravity: bool = false) -> void:
+	adsorbed = false
+	collision_layer = 4
+	collision_mask = 1
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	_exit_ceiling_fall_mode()
+	set_transparency(1.0)
+	if defer_gravity:
+		gravity_enabled = false
+		gravity_scale = 0.0
+		freeze = true
+		set_physics_process(false)
+	else:
+		enable_gravity()
+
+
+func set_transparency(alpha: float) -> void:
+	var mi := get_node_or_null("MeshInstance3D") as MeshInstance3D
+	if not mi:
+		return
+	var src_mat := mi.get_active_material(0)
+	var mat: StandardMaterial3D
+	if src_mat != null and src_mat is StandardMaterial3D:
+		mat = (src_mat as StandardMaterial3D).duplicate()
+	else:
+		mat = StandardMaterial3D.new()
+		if src_mat != null:
+			mat.albedo_color = src_mat.albedo_color
+	mi.material_override = mat
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color.a = alpha
+
+
+func _update_ceiling_fall_state() -> void:
+	var ceiling_only := _is_ceiling_only_for_fall()
+
+	if ceiling_only:
+		_enter_ceiling_fall_mode()
+		_force_visible_solid()
+		freeze = false
+		sleeping = false
+		return
+
+	if not ceiling_falling:
+		return
+
+	if not _has_fallen_from_ceiling:
+		_exit_ceiling_fall_mode()
+		return
+
+	if not _is_nearly_settled():
+		_force_visible_solid()
+		freeze = false
+		sleeping = false
+		return
+
+	if _settle_frames < SETTLE_FRAMES_REQUIRED:
+		_force_visible_solid()
+		freeze = false
+		sleeping = false
+		return
+
+	# B 不因砸中 StaticBox 弄死玩家；落到地板或停稳有支撑则结束特殊下落。
+	if _has_floor_support_for_fall():
+		_exit_ceiling_fall_mode()
+		return
+
+	# 擦侧墙短暂停稳：继续下落。
+	_force_visible_solid()
+	freeze = false
+	sleeping = false
+	_settle_frames = 0
+
+
+func _is_ceiling_only_for_fall() -> bool:
+	return _is_ceiling_only_bound(_fall_bind_walls())
+
+
+func _fall_bind_walls() -> Array:
+	var cube := _find_cube_world()
+	if cube == null:
+		return []
+	if cube.has_method("get_nearest_walls_for_fall"):
+		return cube.get_nearest_walls_for_fall(self)
+	if cube.has_method("get_nearest_walls_for"):
+		return cube.get_nearest_walls_for(self)
+	return []
+
+
+func _has_floor_support_for_fall() -> bool:
+	for item in _fall_bind_walls():
+		var wall := item as Node3D
+		if wall != null and is_instance_valid(wall) and _wall_is_floor(wall):
+			return true
+	return false
+
+
+func _enter_ceiling_fall_mode() -> void:
+	if not ceiling_falling:
+		_has_fallen_from_ceiling = false
+		_settle_frames = 0
+	ceiling_falling = true
+	gravity_scale = 1.0
+
+
+func _exit_ceiling_fall_mode() -> void:
+	ceiling_falling = false
+	_has_fallen_from_ceiling = false
+	_settle_frames = 0
+	if gravity_enabled and not adsorbed:
+		gravity_scale = 1.0
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+
+
+func _force_visible_solid() -> void:
+	visible = true
+	_set_collision_shapes_disabled(false)
+
+
+func _is_ceiling_only_bound(bound_walls: Array) -> bool:
+	if bound_walls.is_empty():
+		return false
+	var has_ceiling := false
+	for item in bound_walls:
+		var wall := item as Node3D
+		if wall == null or not is_instance_valid(wall):
+			continue
+		if _wall_is_ceiling(wall):
+			has_ceiling = true
+		else:
+			return false
+	return has_ceiling
+
+
+func _wall_is_ceiling(wall: Node3D) -> bool:
+	var outward := -wall.global_transform.basis.y.normalized()
+	return outward.y > 0.7
+
+
+func _wall_is_floor(wall: Node3D) -> bool:
+	var outward := -wall.global_transform.basis.y.normalized()
+	return outward.y < -0.7
+
+
+func _is_nearly_settled() -> bool:
+	return linear_velocity.length() <= SETTLE_SPEED and angular_velocity.length() <= SETTLE_SPEED
 
 
 func enable_gravity() -> void:

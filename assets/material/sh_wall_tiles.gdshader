@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode diffuse_burley, specular_schlick_ggx;
+render_mode diffuse_burley, specular_schlick_ggx, cull_disabled;
 
 uniform vec4 tile_color : source_color = vec4(0.96, 0.95, 0.91, 1.0);
 uniform vec4 grout_color : source_color = vec4(0.67, 0.74, 0.78, 1.0);

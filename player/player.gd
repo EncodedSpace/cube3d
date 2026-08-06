@@ -60,6 +60,10 @@ var jump_enabled: bool = false
 # 用于检测落地瞬间。
 var was_on_floor := true
 
+## 调试：实时打印玩家位置、终点位置和距离
+@export var debug_track_exit: bool = false
+var _debug_track_timer: float = 0.0
+
 # 关卡重置位置。
 var start_transform: Transform3D
 
@@ -186,6 +190,15 @@ func _reset_visual_state() -> void:
 	visual_body.scale = Vector3.ONE
 
 func _physics_process(delta: float) -> void:
+	if debug_track_exit:
+		_debug_track_timer += delta
+		if _debug_track_timer >= 0.5:  # 每 0.5 秒打印一次
+			_debug_track_timer = 0.0
+			if cube_world != null and cube_world.has_method("get_exit_global_pos"):
+				var exit_pos: Vector3 = cube_world.get_exit_global_pos()
+				var dist := global_position.distance_to(exit_pos)
+				print("[ZenTrack] player=", global_position, " exit=", exit_pos, " dist=", dist)
+
 	if is_dead:
 		velocity = Vector3.ZERO
 		return

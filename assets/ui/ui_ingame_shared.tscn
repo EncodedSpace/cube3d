@@ -284,7 +284,6 @@ text = "Quit Game
 "
 
 [node name="VictoryPanel" type="ColorRect" parent="." unique_id=261030245]
-visible = false
 offset_left = 220.0
 offset_top = 94.0
 offset_right = 1676.0
@@ -323,14 +322,13 @@ theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
 theme_override_constants/outline_size = 6
 theme_override_constants/shadow_outline_size = 10
 theme_override_font_sizes/font_size = 32
-text = "Level Complete!"
+text = "恭喜你通关！"
 horizontal_alignment = 1
 
 [node name="VictorySubtitle" type="Label" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=11715942]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.41960785, 0.24705882, 0.19607843, 1)
 theme_override_font_sizes/font_size = 16
-text = "Ready for the next challenge?"
 horizontal_alignment = 1
 
 [node name="NextLevelButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=1052114713]
@@ -344,7 +342,7 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
 theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
-text = "Next Level"
+text = "下一关"
 
 [node name="RestartButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=1139008228]
 custom_minimum_size = Vector2(180, 40)
@@ -357,7 +355,7 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
 theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
-text = "Try Again"
+text = "重新开始"
 
 [node name="QuitButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent" unique_id=1124802313]
 custom_minimum_size = Vector2(180, 40)
@@ -370,7 +368,7 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_awgiv")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
 theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
-text = "Quit Game
+text = "返回主菜单
 "
 
 [node name="Notices" type="Control" parent="." unique_id=663110791 groups=["notice_manager"]]
@@ -415,3 +413,6 @@ text = "出口已激活！"
 [connection signal="pressed" from="help/back_to_game" to="." method="_on_back_to_game_pressed"]
 [connection signal="pressed" from="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/RestartButton" to="." method="_on_restart_button_pressed"]
 [connection signal="pressed" from="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent/NextLevelButton" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent/RestartButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent/QuitButton" to="." method="_on_quit_button_pressed"]

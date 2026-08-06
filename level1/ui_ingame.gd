@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+const SUCCEED_SFX_PATH := "res://assets/audio/succeed.mp3"
 
 var won: bool = false
 var _succeed_sfx: AudioStreamPlayer
@@ -62,15 +62,11 @@ func _hide_welcome_after_delay() -> void:
 		$welcome.visible = false
 
 
-#func _on_exit_body_entered(body: Node) -> void:
-	#if won or body.name != "Player":
-		#return
-	#_show_win()
-func _on_exit_absorption_finished() -> void:
-	if won:
+func _on_exit_body_entered(body: Node) -> void:
+	if won or body.name != "Player":
 		return
-
 	_show_win()
+
 
 func _show_win() -> void:
 	if won:

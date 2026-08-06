@@ -16,6 +16,11 @@ extends Node3D
 @export var g_position := Vector3(2.0, 0.0, 1.5)
 @export var d_position := Vector3(0.0, 0.0, 0.0)
 
+## 任一 D 被 B 打开后，同组其它 D 也一并变为可通行（level7 等多门关卡用）。
+@export var open_all_d_walls_together := false
+## G 收集后，把关卡里的 MovableBox 锁成 StaticBox 一样的固定块（level7）。
+@export var lock_movable_boxes_on_g_collect := false
+
 
 ## B 仍然是受重力控制的刚体。
 @onready var b_tool: RigidBody3D = get_node_or_null(
@@ -77,6 +82,28 @@ func _on_g_collected() -> void:
 	for d in get_all_d_walls():
 		if d.has_method("notify_g_collected"):
 			d.notify_g_collected()
+	if lock_movable_boxes_on_g_collect:
+		_lock_all_movable_boxes_as_static()
+
+
+func _lock_all_movable_boxes_as_static() -> void:
+	var cube := get_parent()
+	if cube == null:
+		return
+	for node in cube.find_children("*MovableBox*", "RigidBody3D", true, false):
+		if node != null and node.has_method("lock_as_static"):
+			node.lock_as_static()
+
+
+## 由某个 D_Wall.open_door 调用：按需同步打开同组其它门（不再吸附 B）。
+func notify_d_opened(opened_wall: Node3D, _b_tool: Node3D) -> void:
+	if not open_all_d_walls_together:
+		return
+	for d in get_all_d_walls():
+		if d == opened_wall:
+			continue
+		if d.has_method("open_as_passable"):
+			d.open_as_passable()
 
 
 ## 复原到“G 已经触发”之后的机关状态。

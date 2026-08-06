@@ -44,7 +44,7 @@ var welcome_fade_out_duration: float = 0.8
 
 @export_file
 var succeed_sfx_path: String = (
-	"res://audio/succeed.mp3"
+	"res://assets/audio/succeed.mp3"
 )
 
 @export_range(-80.0, 24.0, 0.1)
@@ -55,7 +55,7 @@ var succeed_sfx_volume_db: float = -4.0
 
 @export_file
 var fail_sfx_path: String = (
-	"res://audio/fail.mp3"
+	"res://assets/audio/失败1.MP3"
 )
 
 @export_range(-80.0, 24.0, 0.1)
@@ -155,6 +155,7 @@ func _ready() -> void:
 
 	_apply_text()
 	_apply_initial_visibility()
+	_apply_button_styles()
 	_connect_buttons()
 	_connect_player_death_signal()
 	_setup_succeed_sfx()
@@ -162,6 +163,27 @@ func _ready() -> void:
 
 	if show_welcome:
 		_play_welcome_animation()
+
+
+func _apply_button_styles() -> void:
+	var buttons: Array[Node] = []
+	_gather_buttons(self, buttons)
+	for node in buttons:
+		if SciFiButtonStyle.is_under_excluded_panel(node):
+			continue
+		var btn := node as Button
+		var highlight := btn.name in ["next", "back", "zen_mode"]
+		var size := btn.get_theme_font_size("font_size")
+		if size <= 0:
+			size = 26
+		SciFiButtonStyle.apply(btn, size, highlight)
+
+
+func _gather_buttons(node: Node, result: Array[Node]) -> void:
+	for child in node.get_children():
+		if child is Button:
+			result.append(child)
+		_gather_buttons(child, result)
 
 
 func _apply_text() -> void:
@@ -447,6 +469,8 @@ func show_win_after_absorb() -> void:
 
 	if victory_panel != null:
 		victory_panel.visible = true
+		if victory_next_button != null:
+			victory_next_button.visible = not next_scene_path.is_empty()
 
 	_play_succeed_sfx()
 
@@ -455,27 +479,8 @@ func show_win_after_absorb() -> void:
 
 
 func _show_win() -> void:
-	if won:
-		return
-
-	won = true
-
-	_hide_welcome_immediately()
-
-	help_background.visible = false
-	help_panel.visible = false
-	help_button.visible = false
-
-	congratulations_label.visible = true
-	restart_button.visible = true
-
-	# 最后一关没有下一关路径时，自动隐藏按钮。
-	next_button.visible = (
-		not next_scene_path.is_empty()
-	)
-
-	_play_succeed_sfx()
-	game_paused()
+	# Prefer the dessert VictoryPanel (same as portal absorb path).
+	show_win_after_absorb()
 
 
 # ==================================================
@@ -590,7 +595,7 @@ func _on_exit_pressed() -> void:
 # 死亡界面中的退出按钮可以连接到这里。
 func _on_quit_button_pressed() -> void:
 	get_tree().paused = false
-	get_tree().quit()
+	get_tree().change_scene_to_file("res://MainMenu/control.tscn")
 
 
 # ==================================================

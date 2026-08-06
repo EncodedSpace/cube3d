@@ -5,7 +5,7 @@ extends Node
 @export var flip_duration := 0.40
 
 # 跳跃音效：放到 res://audio/jump.mp3（或 .ogg / .wav）
-@export var jump_sfx_path := "res://audio/jump.mp3"
+@export var jump_sfx_path := "res://assets/audio/jump.mp3"
 @export var jump_sfx_volume_db := -4.0
 
 
@@ -117,7 +117,7 @@ func _setup_jump_sfx() -> void:
 	var resolved := jump_sfx_path
 	if not ResourceLoader.exists(resolved):
 		var found := ""
-		for alt in ["res://audio/jump.ogg", "res://audio/jump.mp3", "res://audio/jump.wav"]:
+		for alt in ["res://assets/audio/jump.ogg", "res://assets/audio/jump.mp3", "res://assets/audio/jump.wav"]:
 			if alt != resolved and ResourceLoader.exists(alt):
 				found = alt
 				break

@@ -16,6 +16,10 @@ uniform float ripple_speed = 0.3;
 uniform float glow = 8.0;
 uniform float travel_distance;
 
+uniform vec3 base_color : source_color = vec3(0.12, 0.35, 0.72);
+uniform vec3 accent_color : source_color = vec3(0.45, 0.85, 1.0);
+uniform vec3 bg_color : source_color = vec3(0.02, 0.08, 0.20);
+
 ////////////////////////////////////////////////////////////
 
 float hash(vec2 p){
@@ -156,5 +160,9 @@ void sky(){
 
     col *= glow;
 
-    COLOR = vec3(col);
+    // Blue-dominant palette: dark blue base + cyan accents for bright features.
+    float t = clamp(col * 0.12, 0.0, 1.0);
+    vec3 blue = mix(bg_color, base_color, t);
+    blue = mix(blue, accent_color, clamp(col * 0.04, 0.0, 1.0));
+    COLOR = blue;
 }

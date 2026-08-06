@@ -19,6 +19,7 @@ var roll_sfx_volume_db: float = -8.0
 
 var _roll_sfx_player: AudioStreamPlayer
 
+
 var player: CharacterBody3D
 var visual_body: Node3D
 var visual_face: Node3D
@@ -56,9 +57,8 @@ func setup(
 	visual_face = face_node
 	collision_shape = collision_node
 	cube_world = world_node
-
 	_setup_roll_sfx()
-	
+
 
 # 开始连续格子翻滚。
 func start(
@@ -477,6 +477,7 @@ func _is_request_active(
 		active
 		and request_id == _request_id
 	)
+
 
 func _setup_roll_sfx() -> void:
 	if _roll_sfx_player != null:

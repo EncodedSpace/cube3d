@@ -26,11 +26,14 @@ var _hold_props_frozen: bool = false
 ## bound wall is shown; hidden only when ALL bound walls are cut away.
 var _wall_props: Array[Dictionary] = []
 
+var portal_locked: bool = false
+
 signal flip_started
 signal flip_finished
 
 
 func _ready() -> void:
+	add_to_group("cube_world")
 	start_transform = global_transform
 	_bind_props_to_walls()
 	# Camera may not be current on the first frame after a scene change.
@@ -76,6 +79,8 @@ func get_center_global() -> Vector3:
 
 
 func can_flip() -> bool:
+	if portal_locked:
+		return false
 	return not flipping
 
 
@@ -216,6 +221,8 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 
 
 func _on_left_pressed() -> void:
+	if portal_locked:
+		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_left(player)
 
@@ -234,6 +241,8 @@ func request_rotate_left(player: Node3D) -> bool:
 
 
 func _on_right_pressed() -> void:
+	if portal_locked:
+		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_right(player)
 
@@ -425,6 +434,14 @@ func update_cutaway_visibility() -> void:
 		# 每次刷新等距绑定；绑定面中任一面可见则道具可见。
 		entry["walls"] = _bound_walls_for_prop(prop, walls)
 		var bound: Array = entry["walls"]
+
+		# MovableBox / B（开重力后）：只绑天花板或已真正下落中时自管显隐。
+		if (
+			prop.has_method("sync_ceiling_fall")
+			and prop.sync_ceiling_fall(bound, _hold_props_frozen)
+		):
+			continue
+
 		var show_prop := false
 		for wall in bound:
 			if wall != null and is_instance_valid(wall) and wall_shown.get(wall, false):
@@ -440,8 +457,11 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	if prop.has_method("should_keep_player_block"):
 		var closed: bool = prop.should_keep_player_block()
 		if not closed:
-			# 已开门：仍跟墙显隐，但不挡人。
-			prop.visible = wall_visible
+			# 已开门：跟墙显隐，不挡人；同步吸附的 B（D+B 合体贴面隐藏）。
+			if prop.has_method("sync_adsorbed_partner_visibility"):
+				prop.sync_adsorbed_partner_visibility(wall_visible)
+			else:
+				prop.visible = wall_visible
 			_set_d_solid_disabled(prop, true)
 			return
 
@@ -660,3 +680,6 @@ func _wait_for_props_to_settle() -> void:
 		if not is_inside_tree():
 			return
 		elapsed += get_physics_process_delta_time()
+
+func set_portal_locked(value: bool) -> void:
+	portal_locked = value
