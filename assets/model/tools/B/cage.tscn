@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://nbpd2cd8tv41"]
+
+[ext_resource type="PackedScene" uid="uid://bb88vu7mfdw4" path="res://assets/model/tools/source/Cage.glb" id="1_yuot6"]
+
+[node name="Cage" type="Node3D" unique_id=672888048]
+
+[node name="Cage" parent="." unique_id=33990304 instance=ExtResource("1_yuot6")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)

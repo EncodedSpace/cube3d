@@ -198,7 +198,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
 			if (
 				(child is StaticBody3D or child is RigidBody3D)
-				and ("StaticBox" in n or "MovableBox" in n)
+				and ("StaticBox" in n or "MovableBox" in n or n == "Tool_Z" or n.begins_with("Tool_Z"))
 				and "EXIT" not in n
 			):
 				# E2 解锁后允许玩家进入，不再当翻滚障碍。
@@ -330,7 +330,13 @@ func _is_wall_prop_name(n: String) -> bool:
 		or n.begins_with("B_Tool")
 		or n.begins_with("G_Tool")
 		or n.begins_with("F_Trigger")
-		or n == "Tool_X" or n.begins_with("Tool_X")
+		or _is_xyz_tool_name(n)
+	)
+
+
+func _is_xyz_tool_name(n: String) -> bool:
+	return (
+		n == "Tool_X" or n.begins_with("Tool_X")
 		or n == "Tool_Y" or n.begins_with("Tool_Y")
 		or n == "Tool_Z" or n.begins_with("Tool_Z")
 	)
@@ -345,7 +351,7 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 			_gather_wall_props(child, result)
 
 
-## All walls at the minimum plane-distance (equal attach for corners/edges).
+## 等距多面绑定：平面距离在「最小值 + EPS」内的墙全部绑定。
 func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	var best_dist := INF
 	var dists: Dictionary = {} # wall -> dist
@@ -447,7 +453,7 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 			_set_d_solid_disabled(prop, true)
 		return
 
-	# B_Tool / Portal / Final / E1 / E2：自管碰撞与显隐。
+	# B_Tool / Portal / Portal_Key / E1 / E2：自管碰撞与显隐。
 	if prop.has_method("apply_cutaway_visibility"):
 		prop.apply_cutaway_visibility(wall_visible)
 		return
@@ -632,11 +638,17 @@ func _all_fallable_props_settled() -> bool:
 func _wait_for_props_to_settle() -> void:
 	# Let physics start falling for at least one frame after unfreeze.
 	await get_tree().physics_frame
+	if not is_inside_tree():
+		return
 	var stable := 0
 	var elapsed := 0.0
 	while elapsed < settle_timeout:
+		if not is_inside_tree():
+			return
 		if get_tree().paused:
 			await get_tree().process_frame
+			if not is_inside_tree():
+				return
 			continue
 		if _all_fallable_props_settled():
 			stable += 1
@@ -645,4 +657,6 @@ func _wait_for_props_to_settle() -> void:
 		else:
 			stable = 0
 		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
 		elapsed += get_physics_process_delta_time()

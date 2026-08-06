@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://ysigv6sbk6wm"]
+
+[ext_resource type="PackedScene" uid="uid://bs8bu4iljb7mb" path="res://assets/model/tools/source/Button.glb" id="1_0xbqf"]
+
+[node name="ButtonExit" type="Node3D" unique_id=1275183846]
+
+[node name="Button" parent="." unique_id=1096652900 instance=ExtResource("1_0xbqf")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0.24621654, 0)
+
+[editable path="Button"]

@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bq34acut157ns"]
+
+[ext_resource type="PackedScene" uid="uid://ow0hync2f6py" path="res://assets/model/tools/source/Cupcake.glb" id="1_0kur6"]
+
+[node name="Cupcake" type="Node3D" unique_id=975521940]
+
+[node name="Cupcake" parent="." unique_id=1337896160 instance=ExtResource("1_0kur6")]
+transform = Transform3D(2.5, 0, 0, 0, 1.95, 0, 0, 0, 2.5, 0, -0.45, 0)

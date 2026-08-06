@@ -17,8 +17,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-[autoload]
-
 LevelProgress="*res://MainMenu/level_progress.gd"
 BGM="*res://assets/audio/bgm.gd"
 
@@ -38,6 +36,7 @@ project/assembly_name="3dtest"
 
 player=""
 ui_ingame=""
+notice_manager=""
 
 [input]
 

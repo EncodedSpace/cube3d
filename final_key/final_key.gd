@@ -26,6 +26,11 @@ func _ready() -> void:
 		final_key.setup(self)
 	if final_exit and final_exit.has_method("setup"):
 		final_exit.setup(self)
+
+	# 场景初始状态必须和 exit_unlocked 一致。
+	if final_exit and final_exit.has_method("set_active"):
+		final_exit.set_active(exit_unlocked)
+
 	_refresh_exit_look()
 	set_process(false)
 
@@ -45,10 +50,14 @@ func _apply_positions() -> void:
 func unlock_exit() -> void:
 	if exit_unlocked:
 		return
+
 	exit_unlocked = true
 	_refresh_exit_look()
+
 	if final_exit and final_exit.has_method("set_active"):
 		final_exit.set_active(true)
+
+	_show_exit_unlocked_notice()
 
 
 func can_win() -> bool:
@@ -58,13 +67,22 @@ func can_win() -> bool:
 func trigger_win(player: Node) -> void:
 	if not can_win():
 		return
+
 	var ui := _find_ui_ingame()
+
 	if ui == null:
 		push_warning("Final_Key: 找不到 ui_ingame，无法通关")
 		return
-	if ui.has_method("_show_win"):
+
+	# 锅的吸入动画结束后才会进入这里。
+	if ui.has_method("show_win_after_absorb"):
+		ui.show_win_after_absorb()
+	elif ui.has_method("_show_win"):
 		ui._show_win()
-	elif ui.has_method("_on_exit_body_entered") and player != null:
+	elif (
+		ui.has_method("_on_exit_body_entered")
+		and player != null
+	):
 		ui._on_exit_body_entered(player)
 
 
@@ -84,3 +102,15 @@ func _find_ui_ingame() -> Node:
 	if tree != null and tree.current_scene != null:
 		return tree.current_scene.get_node_or_null("ui_ingame")
 	return null
+
+func _show_exit_unlocked_notice() -> void:
+	var tree := get_tree()
+
+	if tree == null:
+		return
+
+	get_tree().call_group(
+	"notice_manager",
+	"show_notice_from_label",
+	"ExitUnlockedNotice"
+)

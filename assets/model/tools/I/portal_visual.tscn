@@ -1,0 +1,147 @@
+[gd_scene format=3 uid="uid://cog8p3eqg2bvp"]
+
+[ext_resource type="Script" uid="uid://b1avu253hfast" path="res://Tools_I/portal.gd" id="1_lit63"]
+[ext_resource type="Shader" uid="uid://dqgjou5u4cto6" path="res://assets/material/sh_portal_beam.gdshader" id="2_k8j82"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_portal"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_portal_a"]
+transparency = 1
+albedo_color = Color(0.25, 0.85, 1, 0.75)
+emission_enabled = true
+emission = Color(0.2, 0.7, 1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_portal_a"]
+material = SubResource("StandardMaterial3D_portal_a")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_552cn"]
+albedo_color = Color(0.5882353, 0.5058824, 0.9490196, 1)
+metallic = 0.4
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_fdgck"]
+material = SubResource("StandardMaterial3D_552cn")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bla26"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.06067393, 0.039250843, 0.23986343, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_fdgck"]
+material = SubResource("StandardMaterial3D_bla26")
+size = Vector2(0.8, 0.8)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_fgbvq"]
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(0.45, 0.45, 0.03)
+emission_shape = 3
+emission_box_extents = Vector3(1, 1, 1)
+spread = 180.0
+initial_velocity_min = 0.04
+initial_velocity_max = 0.12
+radial_velocity_min = -0.16002235
+radial_velocity_max = -0.08002235
+gravity = Vector3(0, 0, 0)
+radial_accel_min = -2.2351742e-06
+radial_accel_max = -2.2351742e-06
+tangential_accel_min = -2.2351742e-06
+tangential_accel_max = -2.2351742e-06
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sjq0s"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.9098039, 0.9019608, 0.99215686, 0.78431374)
+emission_enabled = true
+emission = Color(0.7878641, 0.6739298, 0.90850616, 1)
+emission_energy_multiplier = 2.0
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_np3f1"]
+material = SubResource("StandardMaterial3D_sjq0s")
+size = Vector2(0.015, 0.015)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bla26"]
+render_priority = 0
+shader = ExtResource("2_k8j82")
+shader_parameter/beam_color = Color(0.5882353, 0.5058824, 0.9490196, 1)
+shader_parameter/brightness = 0.2999999932944
+shader_parameter/opacity = 0.3999999910592
+shader_parameter/fade_power = 1.50000002235179
+shader_parameter/pulse_speed = 3.0000000447036
+shader_parameter/pulse_amount = 0.12
+shader_parameter/flow_speed = 3.0000001192096004
+shader_parameter/flow_density = 6.0
+shader_parameter/flow_strength = 0.21999999508256
+shader_parameter/invert_fade = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_552cn"]
+material = SubResource("ShaderMaterial_bla26")
+size = Vector2(0.8, 0.5)
+
+[node name="PortalUnit" type="Area3D" unique_id=2036086392]
+script = ExtResource("1_lit63")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1353438353]
+shape = SubResource("BoxShape3D_portal")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1244841054]
+visible = false
+mesh = SubResource("BoxMesh_portal_a")
+
+[node name="PortalVisual" type="Node3D" parent="." unique_id=1514709416]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0.45, 0)
+
+[node name="Frame" type="Node3D" parent="PortalVisual" unique_id=286843103]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+
+[node name="FrameTop" type="MeshInstance3D" parent="PortalVisual/Frame" unique_id=616350894]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0.45, 0)
+mesh = SubResource("BoxMesh_fdgck")
+
+[node name="FrameBottom" type="MeshInstance3D" parent="PortalVisual/Frame" unique_id=1926726055]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, -0.45, 0)
+mesh = SubResource("BoxMesh_fdgck")
+
+[node name="FrameLeft" type="MeshInstance3D" parent="PortalVisual/Frame" unique_id=1244287792]
+transform = Transform3D(0.1, 0, 0, 0, 1, 0, 0, 0, 0.1, 0.45, 0, 0)
+mesh = SubResource("BoxMesh_fdgck")
+
+[node name="FrameRight" type="MeshInstance3D" parent="PortalVisual/Frame" unique_id=844413099]
+transform = Transform3D(0.1, 0, 0, 0, 1, 0, 0, 0, 0.1, -0.45, 0, 0)
+mesh = SubResource("BoxMesh_fdgck")
+
+[node name="BlackHole" type="Node3D" parent="PortalVisual" unique_id=1774027421]
+
+[node name="BlackCore" type="MeshInstance3D" parent="PortalVisual/BlackHole" unique_id=726862767]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+mesh = SubResource("QuadMesh_fdgck")
+
+[node name="ParticleLayer" type="GPUParticles3D" parent="PortalVisual/BlackHole" unique_id=293142323]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.05, 0)
+amount = 90
+lifetime = 2.0
+preprocess = 1.5
+speed_scale = 0.5
+randomness = 0.45
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_fgbvq")
+draw_pass_1 = SubResource("QuadMesh_np3f1")
+
+[node name="EdgeBeams" type="Node3D" parent="PortalVisual/BlackHole" unique_id=949586880]
+
+[node name="Top" type="MeshInstance3D" parent="PortalVisual/BlackHole/EdgeBeams" unique_id=1841398195]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0.4)
+mesh = SubResource("QuadMesh_552cn")
+
+[node name="Bottom" type="MeshInstance3D" parent="PortalVisual/BlackHole/EdgeBeams" unique_id=1486659828]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, -0.4)
+mesh = SubResource("QuadMesh_552cn")
+
+[node name="Left" type="MeshInstance3D" parent="PortalVisual/BlackHole/EdgeBeams" unique_id=1060253886]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.4, 0.25, 0)
+mesh = SubResource("QuadMesh_552cn")
+
+[node name="Right" type="MeshInstance3D" parent="PortalVisual/BlackHole/EdgeBeams" unique_id=657225428]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.4, 0.25, 0)
+mesh = SubResource("QuadMesh_552cn")

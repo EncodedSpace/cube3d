@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bxyxp5ukvautq" path="res://assets/ui/ui_ingame_shared.gd" id="1_dyx3x"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_np3f1"]
+[ext_resource type="Script" uid="uid://dc8dpxi4yovsh" path="res://assets/ui/notices.gd" id="3_np3f1"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_nyv7x"]
 font_size = 25
@@ -65,8 +66,22 @@ corner_radius_bottom_left = 18
 shadow_color = Color(0, 0, 0, 0.09803922)
 shadow_size = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dyx3x"]
+bg_color = Color(0.105882354, 0.1254902, 0.1882353, 0.8509804)
+border_color = Color(0.45882353, 0.8745098, 1, 0.5019608)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+expand_margin_left = 18.0
+expand_margin_top = 10.0
+expand_margin_right = 18.0
+expand_margin_bottom = 10.0
+
 [node name="ui_ingame" type="CanvasLayer" unique_id=285500255 groups=["ui_ingame"]]
 script = ExtResource("1_dyx3x")
+welcome_hold_duration = 1.5
+welcome_fade_out_duration = 0.6000000000000001
 succeed_sfx_path = "uid://deh8l1n6y4alj"
 succeed_sfx_volume_db = 0.0
 fail_sfx_path = "uid://bu107omhc4jtg"
@@ -357,6 +372,41 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_nyv7x")
 theme_override_styles/hover = SubResource("StyleBoxFlat_p2avx")
 text = "Quit Game
 "
+
+[node name="Notices" type="Control" parent="." unique_id=663110791 groups=["notice_manager"]]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_np3f1")
+
+[node name="NoticeLabel" type="Label" parent="Notices" unique_id=2098171590]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 140.0
+offset_right = -152.0
+offset_bottom = 174.0
+grow_horizontal = 0
+offset_transform_enabled = true
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_dyx3x")
+text = "传送门已打开！"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ExitUnlockedNotice" type="Label" parent="Notices" unique_id=1026059782]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "出口已激活！"
 
 [connection signal="pressed" from="exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="back" to="." method="_on_back_pressed"]

@@ -290,7 +290,7 @@ func _bind_props_to_walls() -> void:
 					props.append(found)
 
 	# Recover boxes that may still sit under WALLS from older parenting.
-	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*", "*Final_*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*", "*Final_*", "*Tool_X*", "*Tool_Y*", "*Tool_Z*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -330,6 +330,9 @@ func _is_wall_prop_name(n: String) -> bool:
 		or n.begins_with("B_Tool")
 		or n.begins_with("G_Tool")
 		or n.begins_with("F_Trigger")
+		or n == "Tool_X" or n.begins_with("Tool_X")
+		or n == "Tool_Y" or n.begins_with("Tool_Y")
+		or n == "Tool_Z" or n.begins_with("Tool_Z")
 	)
 
 
@@ -444,7 +447,7 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 			_set_d_solid_disabled(prop, true)
 		return
 
-	# B_Tool / Portal / Portal_Key / E1 / E2：自管碰撞与显隐。
+	# B_Tool / Portal / Final / E1 / E2：自管碰撞与显隐。
 	if prop.has_method("apply_cutaway_visibility"):
 		prop.apply_cutaway_visibility(wall_visible)
 		return

@@ -1,77 +1,69 @@
 [gd_scene format=3 uid="uid://vtouulnlf386"]
 
-[ext_resource type="Script" path="res://Tools_I/tools_i.gd" id="1_root"]
-[ext_resource type="Script" path="res://Tools_I/portal.gd" id="2_portal"]
-[ext_resource type="Script" path="res://Tools_I/portal_key.gd" id="3_key"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_portal"]
-size = Vector3(1, 1, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_portal_a"]
-transparency = 1
-albedo_color = Color(0.25, 0.85, 1, 0.75)
-emission_enabled = true
-emission = Color(0.2, 0.7, 1, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_portal_a"]
-material = SubResource("StandardMaterial3D_portal_a")
-size = Vector3(1, 1, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_portal_b"]
-transparency = 1
-albedo_color = Color(0.25, 0.85, 1, 0.75)
-emission_enabled = true
-emission = Color(0.2, 0.7, 1, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_portal_b"]
-material = SubResource("StandardMaterial3D_portal_b")
-size = Vector3(1, 1, 1)
+[ext_resource type="Script" uid="uid://c4yx46w10dt81" path="res://Tools_I/tools_i.gd" id="1_root"]
+[ext_resource type="PackedScene" uid="uid://cog8p3eqg2bvp" path="res://assets/model/tools/I/portal_visual.tscn" id="2_bla26"]
+[ext_resource type="Script" uid="uid://bmv1lmk6ak38g" path="res://Tools_I/portal_key.gd" id="3_key"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_key"]
 radius = 0.45
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_key"]
-albedo_color = Color(1, 0.85, 0.2, 1)
-emission_enabled = true
-emission = Color(1, 0.75, 0.15, 1)
-emission_energy_multiplier = 1.8
+[sub_resource type="BoxMesh" id="BoxMesh_bla26"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_key"]
-material = SubResource("StandardMaterial3D_key")
-radius = 0.45
-height = 0.9
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fgbvq"]
+albedo_color = Color(0.1882353, 0.20392157, 0.23921569, 1)
+metallic = 0.4
+roughness = 0.2
 
-[node name="ToolsI" type="Node3D"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_fdgck"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tsvik"]
+albedo_color = Color(0.9607843, 0.95686275, 0.9372549, 1)
+metallic = 0.4
+roughness = 0.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_myaq6"]
+radius = 0.1
+height = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f3g5p"]
+albedo_color = Color(0.5868166, 0.50504965, 0.94931585, 1)
+metallic = 0.4
+roughness = 0.4
+
+[node name="ToolsI" type="Node3D" unique_id=1307249607]
 script = ExtResource("1_root")
+portal_open_notice = "空间传送装置已启动"
 
-[node name="Portal_A" type="Area3D" parent="."]
+[node name="Portal_A" parent="." unique_id=2036086392 instance=ExtResource("2_bla26")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.5, -1.5)
-script = ExtResource("2_portal")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Portal_A"]
-shape = SubResource("BoxShape3D_portal")
+[node name="Portal_B" parent="." unique_id=1284481122 instance=ExtResource("2_bla26")]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 1.5, 0.5, 1.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Portal_A"]
-mesh = SubResource("BoxMesh_portal_a")
-
-[node name="Portal_B" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.5, 1.5)
-script = ExtResource("2_portal")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Portal_B"]
-shape = SubResource("BoxShape3D_portal")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Portal_B"]
-mesh = SubResource("BoxMesh_portal_b")
-
-[node name="Portal_Key" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+[node name="Portal_Key" type="Area3D" parent="." unique_id=1005612578]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.45, 0)
 script = ExtResource("3_key")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Portal_Key"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Portal_Key" unique_id=1811998220]
 shape = SubResource("SphereShape3D_key")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Portal_Key"]
-mesh = SubResource("SphereMesh_key")
+[node name="SwitchVisual" type="Node3D" parent="Portal_Key" unique_id=1036640703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+
+[node name="Base" type="MeshInstance3D" parent="Portal_Key/SwitchVisual" unique_id=1057536480]
+transform = Transform3D(0.55, 0, 0, 0, 0.1, 0, 0, 0, 0.55, 0, -0.4, 0)
+mesh = SubResource("BoxMesh_bla26")
+surface_material_override/0 = SubResource("StandardMaterial3D_fgbvq")
+
+[node name="LeverPivot" type="Node3D" parent="Portal_Key/SwitchVisual" unique_id=864567176]
+transform = Transform3D(0.90630776, 0.42261827, 0, -0.42261827, 0.90630776, 0, 0, 0, 1, 0, -0.35, 0)
+
+[node name="Handle" type="MeshInstance3D" parent="Portal_Key/SwitchVisual/LeverPivot" unique_id=1785698540]
+transform = Transform3D(0.07250464, -0.105654605, -1.110223e-16, 0.033809472, 0.226577, 2.220446e-16, 1.5247456e-16, 2.6645353e-15, 0.08, -0.08452371, 0.18126166, 0)
+mesh = SubResource("CylinderMesh_fdgck")
+surface_material_override/0 = SubResource("StandardMaterial3D_tsvik")
+
+[node name="Knob" type="MeshInstance3D" parent="Portal_Key/SwitchVisual/LeverPivot" unique_id=794835159]
+transform = Transform3D(1.0875697, -0.5071421, 0, 0.5071421, 1.0875697, 0, 0, 1.7763568e-14, 1.2, -0.2113092, 0.45315403, -5.9604645e-08)
+mesh = SubResource("SphereMesh_myaq6")
+surface_material_override/0 = SubResource("StandardMaterial3D_f3g5p")

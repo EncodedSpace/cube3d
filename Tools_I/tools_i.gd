@@ -19,6 +19,9 @@ extends Node3D
 @onready var portal_b: Area3D = $Portal_B
 @onready var portal_key: Area3D = $Portal_Key
 
+@export_category("UI 提示")
+@export var portal_open_notice: String = "传送门已打开"
+
 var _cooldown_left := 0.0
 var portals_unlocked := false
 
@@ -60,8 +63,10 @@ func _apply_positions() -> void:
 func unlock_portals() -> void:
 	if portals_unlocked:
 		return
+
 	portals_unlocked = true
 	_refresh_portal_look()
+	_show_notice(portal_open_notice)
 
 
 func can_teleport() -> bool:
@@ -151,3 +156,13 @@ func _pick_wall_to_become_floor(cube: Node, exit_portal: Node3D) -> Node3D:
 			best = wall
 
 	return best
+
+func _show_notice(message: String) -> void:
+	var notices := get_tree().get_first_node_in_group("notice_manager")
+
+	if notices == null:
+		push_warning("没有找到 notice_manager 提示节点")
+		return
+
+	if notices.has_method("show_notice"):
+		notices.show_notice(message)

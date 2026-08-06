@@ -11,25 +11,6 @@
 [ext_resource type="PackedScene" uid="uid://bmmutdrs0ne12" path="res://assets/ui/ui_ingame_shared.tscn" id="10_raxqm"]
 [ext_resource type="PackedScene" uid="uid://dpjdtxojyrf41" path="res://assets/environment/level_environment.tscn" id="11_6rh6t"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-
-[sub_resource type="Sky" id="Sky_0xm2m"]
-sky_material = SubResource("ProceduralSkyMaterial_ig7tw")
-
-[sub_resource type="Environment" id="Environment_h2yge"]
-background_mode = 1
-background_color = Color(0.26657522, 0.2665752, 0.2665752, 1)
-sky = SubResource("Sky_0xm2m")
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
-size = Vector3(6, 1, 6)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_a7i5e"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_1r6oq"]
-
 [sub_resource type="BoxShape3D" id="BoxShape3D_1r6oq"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_exit"]
@@ -109,9 +90,6 @@ transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0.5, 0.4, 0.5)
 
 [node name="ui_ingame2" parent="." unique_id=285500255 instance=ExtResource("10_raxqm")]
 next_scene_path = "uid://ce25twnmqk45"
-welcome_text = "欢迎来到教学关！
-翻转世界，帮助Bready逃离这里吧！"
+welcome_text = "欢迎来到教学关『翻转之间』
+翻转世界，帮助Bready逃离这里吧!"
 welcome_hold_duration = 2.0
-
-
-[connection signal="body_entered" from="Node3D/StaticBox_EXIT" to="ui_ingame2" method="_on_exit_body_entered"]

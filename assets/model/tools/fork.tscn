@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://csw2oob750d4r"]
+
+[ext_resource type="PackedScene" uid="uid://dyawtwsb1gyvt" path="res://assets/model/tools/source/Fork.glb" id="1_ck0gj"]
+
+[node name="Fork" type="Node3D" unique_id=1879195813]
+
+[node name="Fork" parent="." unique_id=1817400426 instance=ExtResource("1_ck0gj")]
+transform = Transform3D(0.14142136, 0, 0.14142136, 0, 0.3, 0, -0.14142136, 0, 0.14142136, -0.1527034, 0, 0.13972135)

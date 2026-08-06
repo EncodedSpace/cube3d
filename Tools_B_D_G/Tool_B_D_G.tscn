@@ -3,35 +3,29 @@
 [ext_resource type="Script" uid="uid://ct6thgwaeii38" path="res://Tools_B_D_G/tool_b_d_g.gd" id="1_wuxxf"]
 [ext_resource type="Script" uid="uid://defmt223c0cvi" path="res://Tools_B_D_G/b_tool.gd" id="2_btool"]
 [ext_resource type="Script" uid="uid://bp3a80vy04n71" path="res://Tools_B_D_G/d_wall.gd" id="2_onvv6"]
+[ext_resource type="PackedScene" uid="uid://bq34acut157ns" path="res://assets/model/tools/D/cupcake.tscn" id="3_u36l5"]
 [ext_resource type="Script" uid="uid://bmt42os3ne5si" path="res://Tools_B_D_G/g_tool.gd" id="4_aiee5"]
+[ext_resource type="PackedScene" uid="uid://fb6arofpx2sg" path="res://assets/model/tools/source/Dish.glb" id="4_b6hii"]
+[ext_resource type="PackedScene" uid="uid://csw2oob750d4r" path="res://assets/model/tools/fork.tscn" id="4_u36l5"]
+[ext_resource type="PackedScene" uid="uid://eakdrxpkaaxl" path="res://assets/model/tools/G/Pizza Box.glb" id="5_onvv6"]
+[ext_resource type="PackedScene" uid="uid://nbpd2cd8tv41" path="res://assets/model/tools/B/cage.tscn" id="7_802dc"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5cdc3"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_lr1vn"]
 size = Vector3(1.15, 2.6, 1.15)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1r6oq"]
-albedo_color = Color(0.8181082, 0.4249597, 0.15981194, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_fywue"]
-material = SubResource("StandardMaterial3D_1r6oq")
-
 [sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
-size = Vector3(0.9, 0.9, 0.9)
-
-[sub_resource type="TorusMesh" id="TorusMesh_tctkp"]
-inner_radius = 0.1
-outer_radius = 0.435
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_a7i5e"]
-radius = 0.1
-height = 0.6
+size = Vector3(0.25, 0.9, 0.9)
 
 [node name="Node3D" type="Node3D" unique_id=887628236]
 script = ExtResource("1_wuxxf")
 
 [node name="D_Wall" type="Node3D" parent="." unique_id=596464517]
 script = ExtResource("2_onvv6")
+adsorb_up_max = 0.5
+adsorb_down_max = 0.5
+cake_fade_duration = 0.5
 
 [node name="StaticBody3D" type="StaticBody3D" parent="D_Wall" unique_id=829373557]
 
@@ -46,29 +40,45 @@ collision_mask = 4
 [node name="CollisionShape3D" type="CollisionShape3D" parent="D_Wall/Area3D" unique_id=310689457]
 shape = SubResource("BoxShape3D_lr1vn")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="D_Wall" unique_id=780665315]
-mesh = SubResource("BoxMesh_fywue")
+[node name="PlateVisual" parent="D_Wall" unique_id=153013910 instance=ExtResource("4_b6hii")]
+transform = Transform3D(2.2, 0, 0, 0, -9.616505e-08, -2.2, 0, 2.2, -9.616505e-08, 0, 0, -0.45807225)
+
+[node name="CakeVisual" parent="D_Wall" unique_id=975521940 instance=ExtResource("3_u36l5")]
+transform = Transform3D(0.75, 0, 0, 0, -3.278354e-08, -0.75, 0, 0.75, -3.278354e-08, 0, -0.014246929, -0.07610285)
 
 [node name="B_Tool" type="RigidBody3D" parent="." unique_id=314963699]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 0)
 collision_layer = 4
 script = ExtResource("2_btool")
+adsorb_duration = 4.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="B_Tool" unique_id=67479488]
-transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 0, 0)
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -0.31220365, 0, 0.5)
 shape = SubResource("BoxShape3D_tctkp")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="B_Tool" unique_id=98446302]
-mesh = SubResource("TorusMesh_tctkp")
+[node name="Fork" parent="B_Tool" unique_id=1879195813 instance=ExtResource("4_u36l5")]
+transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -0.2978239, 0, 0.5)
 
-[node name="G_Tool" type="RigidBody3D" parent="." unique_id=1264973914]
+[node name="CageVisual" type="Node3D" parent="B_Tool" unique_id=622563899]
+
+[node name="Cage" parent="B_Tool/CageVisual" unique_id=672888048 instance=ExtResource("7_802dc")]
+transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 1, -0.30534446, 0, 0.5)
+
+[node name="G_Tool" type="AnimatableBody3D" parent="." unique_id=395531251]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1.5)
 collision_layer = 2
 collision_mask = 3
 script = ExtResource("4_aiee5")
+capture_move_duration = 0.4
+capture_arc_height = 0.08
+idle_float_height = 0.03
+idle_float_duration = 1.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="G_Tool" unique_id=237102289]
 shape = SubResource("BoxShape3D_tctkp")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="G_Tool" unique_id=1084645645]
-mesh = SubResource("CapsuleMesh_a7i5e")
+[node name="Pizza Box" parent="G_Tool" unique_id=974405905 instance=ExtResource("5_onvv6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45, 0)
+
+[node name="PizzaSnapPoint" type="Marker3D" parent="G_Tool" unique_id=1780128505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, -0.2, 0)

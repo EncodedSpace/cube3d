@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cmpqtj7c07wx8"]
+
+[ext_resource type="PackedScene" uid="uid://fb6arofpx2sg" path="res://assets/model/tools/source/Dish.glb" id="1_xsbt2"]
+
+[node name="Dish" type="Node3D" unique_id=482540307]
+
+[node name="Dish" parent="." unique_id=153013910 instance=ExtResource("1_xsbt2")]
+transform = Transform3D(2.2, 0, 0, 0, 2.2, 0, 0, 0, 2.2, 0, 0, 0)

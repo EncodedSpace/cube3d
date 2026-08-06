@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dpjdtxojyrf41"]
 
 [ext_resource type="Shader" uid="uid://04tlgnmdx4st" path="res://assets/material/sh_background.gdshader" id="1_xn6tr"]
-[ext_resource type="Texture2D" uid="uid://xgbxlhgwgwn" path="res://assets/bg/bg_02.png" id="2_be1t7"]
+[ext_resource type="Texture2D" uid="uid://b2vkx6mifh1qt" path="res://assets/bg/bg_04.png" id="2_xn6tr"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_xn6tr"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -21,12 +21,12 @@ size = Vector2(18, 10.5)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hvben"]
 render_priority = 0
 shader = ExtResource("1_xn6tr")
-shader_parameter/space_texture = ExtResource("2_be1t7")
-shader_parameter/rotation_speed = -0.00999999884506
-shader_parameter/drift_speed = 0.11999999731776
+shader_parameter/space_texture = ExtResource("2_xn6tr")
+shader_parameter/rotation_speed = 1.6299399954733392e-09
+shader_parameter/drift_speed = 0.1999999955296
 shader_parameter/drift_amount = 0.010000000475
-shader_parameter/zoom = 1.2999999932944
-shader_parameter/brightness = 0.5999999865888
+shader_parameter/zoom = 1.0
+shader_parameter/brightness = 0.999999977648
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_fdgck"]
 direction = Vector3(-1, -1, 1)
@@ -70,6 +70,7 @@ visible = false
 
 [node name="MeteorParticles" type="GPUParticles3D" parent="MeteorSpawner" unique_id=176184904]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -12)
+visible = false
 amount = 1
 lifetime = 3.0
 explosiveness = 1.0
@@ -82,8 +83,9 @@ draw_pass_1 = SubResource("RibbonTrailMesh_552cn")
 [node name="KeyLight" type="OmniLight3D" parent="." unique_id=735416945]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 light_color = Color(0.9448829, 0.9117993, 0.97853726, 1)
-light_energy = 1.6
-light_specular = 0.35
+light_energy = 2.0
+light_specular = 0.25
 shadow_enabled = true
-shadow_opacity = 0.48
-omni_range = 6.0
+shadow_opacity = 0.75
+shadow_blur = 1.5
+omni_range = 7.0
