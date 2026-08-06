@@ -60,27 +60,98 @@ func _ready() -> void:
 	call_deferred("_ignore_player_collision")
 
 
+func _physics_process(_delta: float) -> void:
+	if not gravity_enabled or adsorbed:
+		return
+
+	if _is_cube_holding_fallables():
+		_settle_frames = 0
+		return
+
+	_update_ceiling_fall_state()
+
+	if not ceiling_falling:
+		_settle_frames = 0
+		return
+
+	if not _has_fallen_from_ceiling and linear_velocity.y < -FALL_SPEED:
+		_has_fallen_from_ceiling = true
+		_settle_frames = 0
+
+	if not _has_fallen_from_ceiling:
+		_settle_frames = 0
+		return
+
+	if _is_nearly_settled():
+		_settle_frames += 1
+	else:
+		_settle_frames = 0
+
+
+func is_blocking_cube_motion() -> bool:
+	return gravity_enabled and ceiling_falling and not adsorbed
+
+
+func sync_ceiling_fall(_bound_walls: Array, hold_frozen: bool) -> bool:
+	if not gravity_enabled or adsorbed:
+		_exit_ceiling_fall_mode()
+		return false
+
+	var ceiling_only := _is_ceiling_only_for_fall()
+
+	if ceiling_only:
+		_enter_ceiling_fall_mode()
+	elif ceiling_falling and not _has_fallen_from_ceiling:
+		_exit_ceiling_fall_mode()
+		return false
+
+	if not ceiling_falling:
+		return false
+
+	_force_visible_solid()
+
+	if hold_frozen:
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
+		freeze = true
+	else:
+		freeze = false
+		sleeping = false
+
+	return true
+
+
 func apply_cutaway_visibility(wall_visible: bool) -> void:
+	var hold := _is_cube_holding_fallables()
+
+	if adsorbed:
+		visible = wall_visible
+		_set_collision_shapes_disabled(true)
+		_set_cage_collision_enabled(false)
+		collision_layer = 0
+		collision_mask = 0
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
+		freeze = true
+		return
+
+	if gravity_enabled and sync_ceiling_fall([], hold):
+		_set_collision_shapes_disabled(false)
+		return
+
 	visible = wall_visible
 
 	if not _cage_removed:
 		_set_cage_collision_enabled(wall_visible)
 
-	if gravity_enabled and not adsorbed:
-		_set_collision_shapes_disabled(false)
-
-		if _is_cube_holding_fallables():
-			linear_velocity = Vector3.ZERO
-			angular_velocity = Vector3.ZERO
-			freeze = true
-		elif get_tree() != null and not get_tree().paused:
-			freeze = false
-			sleeping = false
-
+	if not gravity_enabled:
+		_set_collision_shapes_disabled(not wall_visible)
+		linear_velocity = Vector3.ZERO
+		angular_velocity = Vector3.ZERO
+		freeze = true
 		return
 
 	_set_collision_shapes_disabled(not wall_visible)
-	var hold := _is_cube_holding_fallables()
 	if not wall_visible or hold:
 		linear_velocity = Vector3.ZERO
 		angular_velocity = Vector3.ZERO
@@ -91,20 +162,49 @@ func apply_cutaway_visibility(wall_visible: bool) -> void:
 
 
 ## 由 D_Wall 调用，B 被吸附到 D 上。
-func adsorb_to_d(d_global_pos: Vector3, _host_d: Node3D = null) -> void:
+func adsorb_to_d(target_global_position: Vector3, _host_d: Node3D = null) -> void:
+	if adsorbed:
+		return
+
+	_kill_adsorb_tween()
+	_hide_cage_immediately()
+
 	adsorbed = true
 	gravity_enabled = false
+	_unlocking = false
 	gravity_scale = 0.0
 	_exit_ceiling_fall_mode()
-	freeze = true
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
-	global_transform.origin = d_global_pos
-	# 可通过合体：不再挡人；显隐交给贴面裁切。
+	freeze = true
+	sleeping = false
 	collision_layer = 0
 	collision_mask = 0
 	_set_collision_shapes_disabled(true)
 	set_physics_process(false)
+
+	var duration := maxf(adsorb_duration, 0.05)
+	var middle_position := global_position.lerp(
+		target_global_position,
+		0.42
+	)
+	middle_position += Vector3.UP * adsorb_lift
+
+	_adsorb_tween = create_tween()
+	_adsorb_tween.tween_property(
+		self,
+		"global_position",
+		middle_position,
+		duration * 0.42
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	_adsorb_tween.tween_property(
+		self,
+		"global_position",
+		target_global_position,
+		duration * 0.58
+	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+
 	var cube := _find_cube_world()
 	if cube != null and cube.has_method("invalidate_prop_cutaway_cache"):
 		cube.invalidate_prop_cutaway_cache(self)
@@ -112,30 +212,23 @@ func adsorb_to_d(d_global_pos: Vector3, _host_d: Node3D = null) -> void:
 
 ## 由 G 道具调用，开启重力。
 func enable_gravity() -> void:
-	if adsorbed:
+	if adsorbed or gravity_enabled or _unlocking:
 		return
-	gravity_enabled = true
-	gravity_scale = 1.0
-	collision_layer = 4
-	collision_mask = 1
-	freeze = false
-	sleeping = false
-	linear_velocity = Vector3.ZERO
-	angular_velocity = Vector3.ZERO
-	_set_collision_shapes_disabled(false)
-	set_physics_process(true)
-	var cube := _find_cube_world()
-	if cube == null:
+
+	if cage_visual == null or _cage_removed:
+		_set_cage_collision_enabled(false)
+		_activate_gravity()
 		return
-	if cube.has_method("invalidate_prop_cutaway_cache"):
-		cube.invalidate_prop_cutaway_cache(self)
-	# 即便没有缓存 API（如 level5），也要立刻刷新，否则 B 可能一直保持隐藏/冻结观感。
-	if cube.has_method("update_cutaway_visibility"):
-		cube.update_cutaway_visibility()
+
+	_unlocking = true
+	_fade_cage()
 
 
 ## 复原到「G 已收集、尚未落入 D」：取消吸附、不透明。
 func restore_after_g_collected(defer_gravity: bool = false) -> void:
+	_kill_adsorb_tween()
+	_hide_cage_immediately()
+
 	adsorbed = false
 	collision_layer = 4
 	collision_mask = 1
@@ -143,13 +236,15 @@ func restore_after_g_collected(defer_gravity: bool = false) -> void:
 	angular_velocity = Vector3.ZERO
 	_exit_ceiling_fall_mode()
 	set_transparency(1.0)
+	_set_collision_shapes_disabled(false)
+
 	if defer_gravity:
 		gravity_enabled = false
 		gravity_scale = 0.0
 		freeze = true
 		set_physics_process(false)
 	else:
-		enable_gravity()
+		_activate_gravity()
 
 
 func set_transparency(alpha: float) -> void:
@@ -285,75 +380,6 @@ func _is_nearly_settled() -> bool:
 	return linear_velocity.length() <= SETTLE_SPEED and angular_velocity.length() <= SETTLE_SPEED
 
 
-func enable_gravity() -> void:
-	if adsorbed or gravity_enabled or _unlocking:
-		return
-
-	if cage_visual == null or _cage_removed:
-		_set_cage_collision_enabled(false)
-		_activate_gravity()
-		return
-
-	_unlocking = true
-	_fade_cage()
-
-
-func adsorb_to_d(target_global_position: Vector3) -> void:
-	if adsorbed:
-		return
-
-	adsorbed = true
-	gravity_enabled = false
-	_unlocking = false
-	gravity_scale = 0.0
-	linear_velocity = Vector3.ZERO
-	angular_velocity = Vector3.ZERO
-	freeze = true
-	sleeping = false
-	_set_cage_collision_enabled(false)
-
-	_kill_adsorb_tween()
-
-	var duration := maxf(adsorb_duration, 0.05)
-	var middle_position := global_position.lerp(
-		target_global_position,
-		0.42
-	)
-	middle_position += Vector3.UP * adsorb_lift
-
-	_adsorb_tween = create_tween()
-	_adsorb_tween.tween_property(
-		self,
-		"global_position",
-		middle_position,
-		duration * 0.42
-	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-
-	_adsorb_tween.tween_property(
-		self,
-		"global_position",
-		target_global_position,
-		duration * 0.58
-	).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-
-
-func restore_after_g_collected(defer_gravity: bool = false) -> void:
-	_kill_adsorb_tween()
-	_hide_cage_immediately()
-
-	adsorbed = false
-	linear_velocity = Vector3.ZERO
-	angular_velocity = Vector3.ZERO
-	_set_collision_shapes_disabled(false)
-
-	if defer_gravity:
-		gravity_enabled = false
-		gravity_scale = 0.0
-		freeze = true
-	else:
-		_activate_gravity()
-
-
 func _activate_gravity() -> void:
 	if adsorbed:
 		return
@@ -361,16 +387,27 @@ func _activate_gravity() -> void:
 	_unlocking = false
 	gravity_enabled = true
 	gravity_scale = 1.0
+	collision_layer = 4
+	collision_mask = 1
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 	_set_collision_shapes_disabled(false)
 	_set_cage_collision_enabled(false)
+	set_physics_process(true)
 
 	if _is_cube_holding_fallables():
 		freeze = true
 	else:
 		freeze = false
 		sleeping = false
+
+	var cube := _find_cube_world()
+	if cube == null:
+		return
+	if cube.has_method("invalidate_prop_cutaway_cache"):
+		cube.invalidate_prop_cutaway_cache(self)
+	if cube.has_method("update_cutaway_visibility"):
+		cube.update_cutaway_visibility()
 
 
 func _fade_cage() -> void:

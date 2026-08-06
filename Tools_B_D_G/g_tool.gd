@@ -186,8 +186,6 @@ func _begin_capture(pizza: RigidBody3D) -> void:
 
 	_collected = true
 	set_physics_process(false)
-	if _area != null:
-		_area.monitoring = false
 
 	if _detection_area != null:
 		_detection_area.set_deferred("monitoring", false)

@@ -196,8 +196,10 @@ adsorb_duration = 0.4
 
 [node name="G_Tool" parent="Node3D/Tool_B_D_G" index="2" unique_id=395531251]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.5, -1.5)
-b_tool_path = NodePath("../../MovableBox_C/Pizza Slice")
-pizza_snap_point_path = NodePath("")
+capture_move_duration = 0.38
+capture_arc_height = 0.16
+idle_float_height = 0.05
+idle_float_duration = 0.9
 
 [node name="CollisionShape3D" parent="Node3D/Tool_B_D_G/G_Tool" index="0" unique_id=237102289]
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, -0.4, 0)

@@ -17,11 +17,6 @@ extends Node3D
 ## 开门并吸附后的 B，与 D 一起做贴面显隐。
 var _adsorbed_b: Node3D = null
 
-## B 落在 D 顶面上时，中心距约 1m；邻格同高约 1m，需用「水平贴格」区分。
-@export var adsorb_lateral_max := 0.55
-@export var adsorb_up_max := 1.35
-@export var adsorb_down_max := 0.55
-
 @onready var static_body: StaticBody3D = $StaticBody3D
 @onready var area: Area3D = $Area3D
 @onready var cake_visual: Node3D = $CakeVisual
@@ -141,10 +136,10 @@ func open_door(b_tool: Node3D) -> void:
 ## 开门后与吸附的 B 同步贴面显隐（由 cube_world 调用）。
 func sync_adsorbed_partner_visibility(wall_visible: bool) -> void:
 	visible = wall_visible
-	if mesh_instance != null:
-		mesh_instance.visible = wall_visible
+
 	if _adsorbed_b != null and is_instance_valid(_adsorbed_b):
 		_adsorbed_b.visible = wall_visible
+
 		if _adsorbed_b is RigidBody3D:
 			var rb := _adsorbed_b as RigidBody3D
 			rb.freeze = true
@@ -180,15 +175,14 @@ func _find_cube_world() -> Node:
 func open_as_passable() -> void:
 	if is_open:
 		return
+
 	is_open = true
 	set_physics_process(false)
-	if static_body:
-		static_body.collision_layer = 0
-	_set_blocking_shapes_disabled(true)
-	if mesh_instance:
-		_set_mesh_transparency(mesh_instance, 0.5)
-	if area != null:
-		area.monitoring = false
+	_set_blocking_enabled(false)
+	_set_area_enabled(false)
+
+	if cake_visual.visible:
+		_fade_out_cake()
 
 
 func should_keep_player_block() -> bool:
