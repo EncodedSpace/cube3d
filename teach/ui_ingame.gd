@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+const SUCCEED_SFX_PATH := "res://assets/audio/succeed.mp3"
 
 var won: bool = false
 var _succeed_sfx: AudioStreamPlayer

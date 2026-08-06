@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cas8dt7dhcib5"]
+
+[ext_resource type="PackedScene" uid="uid://15kqisetw53g" path="res://assets/model/box/source/Frying Pan.glb" id="1_f2d05"]
+
+[node name="Frying Pan" unique_id=102665667 instance=ExtResource("1_f2d05")]
+
+[node name="fryingPan" parent="." index="0" unique_id=890688268]
+layers = 2

@@ -26,11 +26,14 @@ var _hold_props_frozen: bool = false
 ## bound wall is shown; hidden only when ALL bound walls are cut away.
 var _wall_props: Array[Dictionary] = []
 
+var portal_locked: bool = false
+
 signal flip_started
 signal flip_finished
 
 
 func _ready() -> void:
+	add_to_group("cube_world")
 	start_transform = global_transform
 	_bind_props_to_walls()
 	# Camera may not be current on the first frame after a scene change.
@@ -76,6 +79,8 @@ func get_center_global() -> Vector3:
 
 
 func can_flip() -> bool:
+	if portal_locked:
+		return false
 	return not flipping
 
 
@@ -216,6 +221,8 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 
 
 func _on_left_pressed() -> void:
+	if portal_locked:
+		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_left(player)
 
@@ -234,6 +241,8 @@ func request_rotate_left(player: Node3D) -> bool:
 
 
 func _on_right_pressed() -> void:
+	if portal_locked:
+		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_right(player)
 
@@ -671,3 +680,7 @@ func _wait_for_props_to_settle() -> void:
 		if not is_inside_tree():
 			return
 		elapsed += get_physics_process_delta_time()
+
+func set_portal_locked(value: bool) -> void:
+	portal_locked = value
+

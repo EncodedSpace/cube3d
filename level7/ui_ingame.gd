@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+const SUCCEED_SFX_PATH := "res://assets/audio/succeed.mp3"
 
 var won: bool = false
 var _succeed_sfx: AudioStreamPlayer
@@ -9,7 +9,7 @@ var _succeed_sfx: AudioStreamPlayer
 func _ready() -> void:
 	# Stay interactive while the game tree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# In case previous scene left the tree paused (e.g. teach win → next).
+	# In case previous scene left the tree paused (e.g. teach win �?next).
 	get_tree().paused = false
 	$back.visible = false
 	$next.visible = false
@@ -141,8 +141,7 @@ func _movable_boxes() -> Array[RigidBody3D]:
 
 	
 func reset_level() -> void:
-	# 关卡内道具状态很多（钥匙已吃、门已开、G 已删等），整关重载才能完整复原。
-	get_tree().paused = false
+	# 关卡内道具状态很多（钥匙已吃、门已开、G 已删等），整关重载才能完整复原�?	get_tree().paused = false
 	won = false
 	get_tree().reload_current_scene()
 

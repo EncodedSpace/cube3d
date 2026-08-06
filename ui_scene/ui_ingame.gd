@@ -1,16 +1,15 @@
 extends CanvasLayer
 
-const SUCCEED_SFX_PATH := "res://audio/succeed.mp3"
+const SUCCEED_SFX_PATH := "res://assets/audio/succeed.mp3"
 ## Resolved .import UID -> use path load as fallback when uid:// fails (e.g. Web).
 const FONT_PATH := "res://Fonts/Source Han Sans CN.ttf"
 
-## 欢迎语，在 _ready 中自动设置到 welcome Label
-@export_multiline var welcome_text: String = "欢迎来到教学关卡！\n请走到绿色出口吧！"
-## 通关祝贺语
-@export_multiline var congrats_text: String = "恭喜你完成了教学关卡！"
-## 下一关的场景路径，为空则隐藏"下一关"按钮
+## 欢迎语，�?_ready 中自动设置到 welcome Label
+@export_multiline var welcome_text: String = "欢迎来到教学关卡！\n请走到绿色出口吧�?
+## 通关祝贺�?@export_multiline var congrats_text: String = "恭喜你完成了教学关卡�?
+## 下一关的场景路径，为空则隐藏"下一�?按钮
 @export var next_scene: String = ""
-## 是否为禅模式：true 时显示"重新生成"按钮并隐藏"下一关"
+## 是否为禅模式：true 时显�?重新生成"按钮并隐�?下一�?
 @export var is_zen_mode: bool = false
 
 var won: bool = false
@@ -21,6 +20,9 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
 	won = false
+
+	if not is_in_group("ui_ingame"):
+		add_to_group("ui_ingame")
 
 	_apply_ui_theme()
 
@@ -97,9 +99,19 @@ func _hide_welcome_after_delay() -> void:
 		$welcome.visible = false
 
 
-func _on_exit_body_entered(body: Node) -> void:
+# 兼容旧关�?body_entered 连接。若本关�?portal_absorb，则等吸入结束后再胜利�?func _on_exit_body_entered(body: Node) -> void:
 	if won or body.name != "Player":
 		return
+	if not get_tree().get_nodes_in_group("exit_portal").is_empty():
+		return
+	_show_win()
+
+
+func _on_exit_absorption_finished() -> void:
+	show_win_after_absorb()
+
+
+# 传送门吸入结束后由 portal_absorb 通过 ui_ingame 分组调用�?func show_win_after_absorb() -> void:
 	_show_win()
 
 
@@ -113,8 +125,7 @@ func _show_win() -> void:
 	$zen_mode.visible = true
 	if not next_scene.is_empty():
 		$next.visible = true
-	# 禅模式通关后：显示"下一轮游戏"按钮（作用同"重新生成"）
-	if is_zen_mode:
+	# 禅模式通关后：显示"下一轮游�?按钮（作用同"重新生成"�?	if is_zen_mode:
 		$next2.visible = true
 		$next.visible = false
 	game_paused()
@@ -155,20 +166,17 @@ func _on_main_menu_pressed() -> void:
 
 
 func _on_next2_pressed() -> void:
-	# 禅模式专属"下一轮游戏"：与"重新生成"一致，弹出尺寸面板重新建图。
-	_on_recreate_pressed()
+	# 禅模式专�?下一轮游�?：与"重新生成"一致，弹出尺寸面板重新建图�?	_on_recreate_pressed()
 
 
 func _on_recreate_pressed() -> void:
-	# 禅模式专属：把请求转发给 ZenUI，让它显示居中的尺寸面板。
-	var zen := get_parent().get_node_or_null("ZenUI")
+	# 禅模式专属：把请求转发给 ZenUI，让它显示居中的尺寸面板�?	var zen := get_parent().get_node_or_null("ZenUI")
 	if zen != null and zen.has_method("_on_recreate_pressed"):
 		zen._on_recreate_pressed()
 
 
 func _on_size_menu_pressed(id: int) -> void:
-	# MenuButton 选择尺寸后：禅模式直接按所选尺寸重新生成。
-	var zen := get_parent().get_node_or_null("ZenUI")
+	# MenuButton 选择尺寸后：禅模式直接按所选尺寸重新生成�?	var zen := get_parent().get_node_or_null("ZenUI")
 	if zen == null or not zen.has_method("_generate_with_size"):
 		return
 	var size := 6 + id
@@ -176,7 +184,7 @@ func _on_size_menu_pressed(id: int) -> void:
 
 
 func _on_help_button_pressed() -> void:
-	# Always hide legacy help panel — only show sci-fi HowToPlayLayer.
+	# Always hide legacy help panel �?only show sci-fi HowToPlayLayer.
 	$help.visible = false
 	$help_bg.visible = false
 	game_paused()
@@ -249,15 +257,13 @@ func _movable_boxes() -> Array[RigidBody3D]:
 
 
 func reset_level() -> void:
-	# 不要在 reload 之后再调用 game_continued（节点已被释放）。
-	var tree := get_tree()
+	# 不要�?reload 之后再调�?game_continued（节点已被释放）�?	var tree := get_tree()
 	if tree == null:
 		return
 	tree.paused = false
 	won = false
 
-	# 禅模式：软重置，保留当前生成的地图。
-	if is_zen_mode:
+	# 禅模式：软重置，保留当前生成的地图�?	if is_zen_mode:
 		var cube := get_parent().get_node_or_null("Node3D")
 		if cube != null and cube.has_method("reset_to_start"):
 			cube.reset_to_start()
@@ -272,8 +278,7 @@ func reset_level() -> void:
 		game_continued()
 		return
 
-	# 手写关卡：整关重载，确保钥匙/门等状态完整复原。
-	tree.reload_current_scene()
+	# 手写关卡：整关重载，确保钥匙/门等状态完整复原�?	tree.reload_current_scene()
 
 
 func _on_next_pressed() -> void:

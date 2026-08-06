@@ -18,7 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 LevelProgress="*res://MainMenu/level_progress.gd"
-BGM="*res://audio/bgm.gd"
+BGM="*res://assets/audio/bgm.gd"
 
 [display]
 
@@ -31,6 +31,11 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="3dtest"
+
+[global_group]
+
+player=""
+ui_ingame=""
 
 [input]
 

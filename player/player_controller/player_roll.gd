@@ -10,6 +10,15 @@ signal finished(on_floor: bool)
 # 玩家向墙面推动达到此强度时，触发世界翻转。
 @export var flip_push_threshold := 0.20
 
+@export_group("翻滚音效")
+
+@export var roll_sfx: AudioStream
+
+@export_range(-80.0, 6.0, 0.1)
+var roll_sfx_volume_db: float = -8.0
+
+var _roll_sfx_player: AudioStreamPlayer
+
 
 var player: CharacterBody3D
 var visual_body: Node3D
@@ -48,6 +57,7 @@ func setup(
 	visual_face = face_node
 	collision_shape = collision_node
 	cube_world = world_node
+	_setup_roll_sfx()
 
 
 # 开始连续格子翻滚。
@@ -168,6 +178,7 @@ func _roll_step(
 	step_distance: float,
 	request_id: int
 ) -> bool:
+	_play_roll_sfx()
 	# 校准 XZ 到格子中心，Y 不变（玩家站在方块顶面）。
 	_snap_player_xz()
 	var start_position := player.global_position
@@ -465,3 +476,26 @@ func _is_request_active(
 		active
 		and request_id == _request_id
 	)
+
+
+func _setup_roll_sfx() -> void:
+	if _roll_sfx_player != null:
+		return
+
+	_roll_sfx_player = AudioStreamPlayer.new()
+	_roll_sfx_player.name = "RollSfx"
+	_roll_sfx_player.bus = "Master"
+	_roll_sfx_player.volume_db = roll_sfx_volume_db
+	_roll_sfx_player.stream = roll_sfx
+
+	add_child(_roll_sfx_player)
+
+
+func _play_roll_sfx() -> void:
+	if _roll_sfx_player == null:
+		return
+
+	if _roll_sfx_player.stream == null:
+		return
+
+	_roll_sfx_player.play()

@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://b3b2aeef7xjj0"]
+
+[ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="1_3ru7k"]
+[ext_resource type="Material" uid="uid://8wi5vgr54q3l" path="res://assets/material/mat_floor_tiles.tres" id="2_oesmo"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
+size = Vector3(6, 1, 6)
+
+[node name="Walls" type="Node3D" unique_id=504397160]
+
+[node name="Bottom" type="StaticBody3D" parent="." unique_id=1015829569]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Bottom" unique_id=534019806]
+mesh = ExtResource("1_3ru7k")
+surface_material_override/0 = ExtResource("2_oesmo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bottom" unique_id=1412822628]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
+
+[node name="Top" type="StaticBody3D" parent="." unique_id=1523486450]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 6, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Top" unique_id=619201073]
+mesh = ExtResource("1_3ru7k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Top" unique_id=893978148]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
+
+[node name="Right" type="StaticBody3D" parent="." unique_id=579772850]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 3, 3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Right" unique_id=1203155173]
+mesh = ExtResource("1_3ru7k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Right" unique_id=278037218]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
+
+[node name="Left" type="StaticBody3D" parent="." unique_id=396398792]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, -3, 3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Left" unique_id=107394860]
+mesh = ExtResource("1_3ru7k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Left" unique_id=1559488093]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
+
+[node name="Front" type="StaticBody3D" parent="." unique_id=1152542366]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 3, -3)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Front" unique_id=336481269]
+mesh = ExtResource("1_3ru7k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Front" unique_id=626908399]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
+
+[node name="Back" type="StaticBody3D" parent="." unique_id=522929114]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 3, 3)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Back" unique_id=970696516]
+mesh = ExtResource("1_3ru7k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Back" unique_id=97326359]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
