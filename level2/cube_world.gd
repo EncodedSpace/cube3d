@@ -26,14 +26,11 @@ var _hold_props_frozen: bool = false
 ## bound wall is shown; hidden only when ALL bound walls are cut away.
 var _wall_props: Array[Dictionary] = []
 
-var portal_locked: bool = false
-
 signal flip_started
 signal flip_finished
 
 
 func _ready() -> void:
-	add_to_group("cube_world")
 	start_transform = global_transform
 	_bind_props_to_walls()
 	# Camera may not be current on the first frame after a scene change.
@@ -79,8 +76,6 @@ func get_center_global() -> Vector3:
 
 
 func can_flip() -> bool:
-	if portal_locked:
-		return false
 	return not flipping
 
 
@@ -203,7 +198,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
 			if (
 				(child is StaticBody3D or child is RigidBody3D)
-				and ("StaticBox" in n or "MovableBox" in n or n == "Tool_Z" or n.begins_with("Tool_Z"))
+				and ("StaticBox" in n or "MovableBox" in n)
 				and "EXIT" not in n
 			):
 				# E2 解锁后允许玩家进入，不再当翻滚障碍。
@@ -221,8 +216,6 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 
 
 func _on_left_pressed() -> void:
-	if portal_locked:
-		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_left(player)
 
@@ -241,8 +234,6 @@ func request_rotate_left(player: Node3D) -> bool:
 
 
 func _on_right_pressed() -> void:
-	if portal_locked:
-		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_right(player)
 
@@ -299,7 +290,7 @@ func _bind_props_to_walls() -> void:
 					props.append(found)
 
 	# Recover boxes that may still sit under WALLS from older parenting.
-	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*", "*Final_*", "*Tool_X*", "*Tool_Y*", "*Tool_Z*"]:
+	for pattern in ["*StaticBox*", "*MovableBox*", "*D_Wall*", "*B_Tool*", "*G_Tool*", "*Portal*", "*F_Trigger*", "*Final_*"]:
 		for node in walls.find_children(pattern, "Node3D", true, false):
 			var found := node as Node3D
 			if found != null and found not in props:
@@ -339,15 +330,6 @@ func _is_wall_prop_name(n: String) -> bool:
 		or n.begins_with("B_Tool")
 		or n.begins_with("G_Tool")
 		or n.begins_with("F_Trigger")
-		or _is_xyz_tool_name(n)
-	)
-
-
-func _is_xyz_tool_name(n: String) -> bool:
-	return (
-		n == "Tool_X" or n.begins_with("Tool_X")
-		or n == "Tool_Y" or n.begins_with("Tool_Y")
-		or n == "Tool_Z" or n.begins_with("Tool_Z")
 	)
 
 
@@ -360,7 +342,7 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 			_gather_wall_props(child, result)
 
 
-## 等距多面绑定：平面距离在「最小值 + EPS」内的墙全部绑定。
+## All walls at the minimum plane-distance (equal attach for corners/edges).
 func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	var best_dist := INF
 	var dists: Dictionary = {} # wall -> dist
@@ -658,17 +640,11 @@ func _all_fallable_props_settled() -> bool:
 func _wait_for_props_to_settle() -> void:
 	# Let physics start falling for at least one frame after unfreeze.
 	await get_tree().physics_frame
-	if not is_inside_tree():
-		return
 	var stable := 0
 	var elapsed := 0.0
 	while elapsed < settle_timeout:
-		if not is_inside_tree():
-			return
 		if get_tree().paused:
 			await get_tree().process_frame
-			if not is_inside_tree():
-				return
 			continue
 		if _all_fallable_props_settled():
 			stable += 1
@@ -677,10 +653,4 @@ func _wait_for_props_to_settle() -> void:
 		else:
 			stable = 0
 		await get_tree().physics_frame
-		if not is_inside_tree():
-			return
 		elapsed += get_physics_process_delta_time()
-
-func set_portal_locked(value: bool) -> void:
-	portal_locked = value
-

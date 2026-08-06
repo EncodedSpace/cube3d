@@ -353,12 +353,18 @@ func _bind_props_to_walls() -> void:
 
 
 func _prop_has_fixed_bind(prop: Node3D) -> bool:
-	# StaticBox 永不移动，绑墙一次即可；其余道具 / MovableBox 可能挪位需重算。
-	return "StaticBox" in String(prop.name)
+	# StaticBox / 被锁成固定块的 MovableBox：绑墙一次即可。
+	if "StaticBox" in String(prop.name):
+		return true
+	if prop.has_method("is_locked_as_static") and prop.is_locked_as_static():
+		return true
+	return false
 
 
 func _is_dynamic_fallable_prop(prop: Node) -> bool:
 	if prop == null or not (prop is RigidBody3D):
+		return false
+	if prop.has_method("is_locked_as_static") and prop.is_locked_as_static():
 		return false
 	var n := String(prop.name)
 	if "MovableBox" in n:
@@ -366,6 +372,22 @@ func _is_dynamic_fallable_prop(prop: Node) -> bool:
 	if "B_Tool" in n or prop.is_in_group("b_tool"):
 		return true
 	return false
+
+
+## G 收集后把 MovableBox 标成固定绑墙，并立刻按 StaticBox 方式刷新显隐。
+func mark_prop_fixed_like_static(prop: Node3D) -> void:
+	if prop == null:
+		return
+	var walls := get_node_or_null("WALLS")
+	for entry in _wall_props:
+		if entry.get("prop") != prop:
+			continue
+		entry["fixed_bind"] = true
+		if walls != null:
+			entry["walls"] = _bound_walls_for_prop(prop, walls)
+		entry["shown"] = null
+		break
+	update_cutaway_visibility()
 
 
 func _is_wall_prop_name(n: String) -> bool:
@@ -510,6 +532,7 @@ func update_cutaway_visibility(rebind_props: bool = true) -> void:
 			_set_prop_visible(prop, show_prop)
 			entry["visual_only"] = false
 		else:
+			# 动画中只改可见性，结束时再同步碰撞。
 			prop.visible = show_prop
 			entry["visual_only"] = true
 	_wall_props = alive_props
@@ -518,10 +541,11 @@ func update_cutaway_visibility(rebind_props: bool = true) -> void:
 func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	# D_Wall / D_Wall2：始终跟随绑定墙裁切（与 G 无关）；开门后无固体碰撞。
 	# 隐藏时只关 StaticBody，保留 Area。
+	# 开门并吸附 B 后：D+B 合体一起贴面隐藏。
 	if prop.has_method("should_keep_player_block"):
 		var closed: bool = prop.should_keep_player_block()
 		if not closed:
-			# 已开门：跟墙显隐，不挡人；同步吸附的 B（D+B 合体贴面隐藏）。
+			# 已开门：跟墙显隐，不挡人；同步吸附的 B。
 			if prop.has_method("sync_adsorbed_partner_visibility"):
 				prop.sync_adsorbed_partner_visibility(wall_visible)
 			else:
@@ -549,7 +573,12 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	# 正在天花板下落中：不要被裁切冻住（擦侧墙时尤其容易误冻）。
 	if prop is RigidBody3D and "MovableBox" in String(prop.name):
 		var rb := prop as RigidBody3D
-		if prop.has_meta("locked_in_e1") and bool(prop.get_meta("locked_in_e1")):
+		# 已锁成固定块：始终 freeze，只跟墙显隐/碰撞（与 StaticBox 一致）。
+		if prop.has_method("is_locked_as_static") and prop.is_locked_as_static():
+			rb.linear_velocity = Vector3.ZERO
+			rb.angular_velocity = Vector3.ZERO
+			rb.freeze = true
+		elif prop.has_meta("locked_in_e1") and bool(prop.get_meta("locked_in_e1")):
 			rb.linear_velocity = Vector3.ZERO
 			rb.angular_velocity = Vector3.ZERO
 			rb.freeze = true
@@ -564,7 +593,6 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 			rb.freeze = true
 		elif not get_tree().paused:
 			rb.freeze = false
-			rb.sleeping = false
 			rb.sleeping = false
 
 
@@ -708,6 +736,8 @@ func _gather_fallable_bodies_rec(node: Node, result: Array[RigidBody3D]) -> void
 
 func _is_fallable_body(rb: RigidBody3D) -> bool:
 	if rb == null or not is_instance_valid(rb):
+		return false
+	if rb.has_method("is_locked_as_static") and rb.is_locked_as_static():
 		return false
 	var n := String(rb.name)
 	if "MovableBox" in n:

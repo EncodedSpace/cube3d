@@ -9,7 +9,7 @@ var _succeed_sfx: AudioStreamPlayer
 func _ready() -> void:
 	# Stay interactive while the game tree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# In case previous scene left the tree paused (e.g. teach win �?next).
+	# In case previous scene left the tree paused (e.g. teach win → next).
 	get_tree().paused = false
 	$back.visible = false
 	$next.visible = false
@@ -39,7 +39,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	var player := get_parent().get_node_or_null("Player")
 
-	# 角色死亡后禁�?Q/E 旋转�?	if player != null and player.get("is_dead") == true:
+	# 角色死亡后禁止 Q/E 旋转。
+	if player != null and player.get("is_dead") == true:
 		return
 
 	var cube := get_parent().get_node_or_null("Node3D")
@@ -61,15 +62,11 @@ func _hide_welcome_after_delay() -> void:
 		$welcome.visible = false
 
 
-#func _on_exit_body_entered(body: Node) -> void:
-	#if won or body.name != "Player":
-		#return
-	#_show_win()
-func _on_exit_absorption_finished() -> void:
-	if won:
+func _on_exit_body_entered(body: Node) -> void:
+	if won or body.name != "Player":
 		return
-
 	_show_win()
+
 
 func _show_win() -> void:
 	if won:
@@ -197,7 +194,7 @@ func _on_restart_button_pressed() -> void:
 		push_error("无法识别当前关卡场景路径")
 		return
 
-	print("重新加载关卡�?, scene_path)
+	print("重新加载关卡：", scene_path)
 	get_tree().change_scene_to_file(scene_path)
 	
 

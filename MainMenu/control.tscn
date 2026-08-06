@@ -1,101 +1,101 @@
 [gd_scene format=3 uid="uid://jv7lsdtmedg4"]
 
 [ext_resource type="FontFile" uid="uid://duto23x3bjd3c" path="res://inbetween_scene/UI/Source Han Sans CN.ttf" id="1_font"]
-[ext_resource type="Script" path="res://MainMenu/control.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://b202yt64pdmcb" path="res://MainMenu/control.gd" id="2_script"]
 [ext_resource type="PackedScene" path="res://ui_scene/how_to_play_layer.tscn" id="3_howto"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.035, 0.06, 0.11, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
-bg_color = Color(0.08, 0.12, 0.18, 0.85)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.15, 0.55, 0.62, 0.9)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 18.0
-content_margin_top = 10.0
-content_margin_right = 18.0
-content_margin_bottom = 10.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
-bg_color = Color(0.12, 0.22, 0.30, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.22, 0.92, 0.95, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 18.0
-content_margin_top = 10.0
-content_margin_right = 18.0
-content_margin_bottom = 10.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
-bg_color = Color(0.10, 0.35, 0.40, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.35, 1, 1, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 18.0
-content_margin_top = 10.0
-content_margin_right = 18.0
-content_margin_bottom = 10.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
-bg_color = Color(0.08, 0.08, 0.1, 0.55)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.25, 0.3, 0.35, 0.5)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 18.0
-content_margin_top = 10.0
-content_margin_right = 18.0
-content_margin_bottom = 10.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tutorial"]
-bg_color = Color(0.10, 0.35, 0.40, 0.95)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.22, 0.92, 0.95, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 18.0
-content_margin_top = 10.0
-content_margin_right = 18.0
-content_margin_bottom = 10.0
-
 [sub_resource type="Gradient" id="Gradient_glow"]
-colors = PackedColorArray(0.08, 0.35, 0.45, 0.35, 0.035, 0.06, 0.11, 0)
+colors = PackedColorArray(0.288, 0.475, 0.6, 0.4, 0.08, 0.12, 0.18, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
 gradient = SubResource("Gradient_glow")
 fill_from = Vector2(0.5, 0)
 fill_to = Vector2(0.5, 1)
 
-[node name="Control" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.06, 0.1, 0.16, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.288, 0.475, 0.6, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.288, 0.475, 0.6, 0.95)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.22, 0.38, 0.52, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.7, 0.85, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.36, 0.56, 0.72, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.45, 0.68, 0.88, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.18, 0.24, 0.32, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.42, 0.5, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tutorial"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.22, 0.38, 0.52, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.45, 0.68, 0.88, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="Control" type="Control" unique_id=558011945]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -104,29 +104,29 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=91282952]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.035, 0.06, 0.11, 1)
 mouse_filter = 2
+color = Color(0.06, 0.1, 0.16, 1)
 
-[node name="AccentGlow" type="TextureRect" parent="."]
+[node name="AccentGlow" type="TextureRect" parent="." unique_id=672880785]
+modulate = Color(0.45, 0.68, 0.88, 0.45)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = SubResource("GradientTexture2D_glow")
 expand_mode = 1
-mouse_filter = 2
-modulate = Color(0.4, 0.9, 1, 0.5)
 
-[node name="Frame" type="Panel" parent="."]
+[node name="Frame" type="Panel" parent="." unique_id=512480379]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -140,7 +140,7 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="TopBar" type="HBoxContainer" parent="."]
+[node name="TopBar" type="HBoxContainer" parent="." unique_id=1737710418]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -153,18 +153,18 @@ grow_horizontal = 0
 theme_override_constants/separation = 16
 alignment = 2
 
-[node name="HelpButton" type="Button" parent="TopBar"]
+[node name="HelpButton" type="Button" parent="TopBar" unique_id=627881673]
 custom_minimum_size = Vector2(150, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-text = "游戏帮助 ?"
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "玩法说明"
 
-[node name="TitleCenter" type="CenterContainer" parent="."]
+[node name="TitleCenter" type="CenterContainer" parent="." unique_id=1124224841]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -172,28 +172,28 @@ offset_top = 70.0
 offset_bottom = 210.0
 grow_horizontal = 2
 
-[node name="TitleVBox" type="VBoxContainer" parent="TitleCenter"]
+[node name="TitleVBox" type="VBoxContainer" parent="TitleCenter" unique_id=719633257]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Title" type="Label" parent="TitleCenter/TitleVBox"]
+[node name="Title" type="Label" parent="TitleCenter/TitleVBox" unique_id=397267149]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 72
-theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
 text = "三面之外"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="TitleCenter/TitleVBox"]
+[node name="Subtitle" type="Label" parent="TitleCenter/TitleVBox" unique_id=1105124669]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.68, 0.88, 0.95)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.22, 0.75, 0.85, 0.95)
 text = "BEYOND THREE FACES"
 horizontal_alignment = 1
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1685783973]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -203,147 +203,153 @@ offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=182756386]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1148567567]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 text = "开始游戏"
 
-[node name="TutorialButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="TutorialButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=496407016]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_tutorial")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.95, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.45, 1, 1, 1)
 text = "教学关"
 
-[node name="Level1Button" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Level1Button" type="Button" parent="CenterContainer/VBoxContainer" unique_id=2066989133]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
+disabled = true
 text = "第一关"
 
-[node name="Level2Button" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Level2Button" type="Button" parent="CenterContainer/VBoxContainer" unique_id=689020566]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
+disabled = true
 text = "第二关"
 
-[node name="Level3Button" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Level3Button" type="Button" parent="CenterContainer/VBoxContainer" unique_id=191304740]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
+disabled = true
 text = "第三关"
 
-[node name="Level4Button" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Level4Button" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1215015460]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
+disabled = true
 text = "第四关"
 
-[node name="Level5Button" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Level5Button" type="Button" parent="CenterContainer/VBoxContainer" unique_id=151956639]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
+disabled = true
 text = "第五关"
 
-[node name="Level6Button" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Level6Button" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1055279511]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
-theme_override_colors/font_disabled_color = Color(0.45, 0.5, 0.55, 0.7)
+disabled = true
 text = "第六关"
 
-[node name="ZenModeButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="ZenModeButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=122150700]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_tutorial")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_colors/font_color = Color(0.95, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.45, 1, 1, 1)
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "禅模式"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1188143619]
 custom_minimum_size = Vector2(380, 52)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.93, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_colors/font_color = Color(0.92, 0.97, 1, 1)
-theme_override_colors/font_hover_color = Color(0.22, 0.92, 0.95, 1)
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "退出游戏"
 
-[node name="VersionLabel" type="Label" parent="."]
+[node name="VersionLabel" type="Label" parent="." unique_id=1758064889]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -356,10 +362,11 @@ offset_right = -56.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_colors/font_color = Color(0.55, 0.7, 0.78, 0.8)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.55, 0.7, 0.78, 0.8)
 text = "v1.0.0"
 horizontal_alignment = 2
 
-[node name="HowToPlayLayer" parent="." instance=ExtResource("3_howto")]
+[node name="HowToPlayLayer" parent="." unique_id=97176147 instance=ExtResource("3_howto")]
+layout_mode = 1

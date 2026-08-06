@@ -1,8 +1,7 @@
-[gd_scene load_steps=11 format=3 uid="uid://1is4plx7j8v1"]
+[gd_scene load_steps=10 format=3 uid="uid://1is4plx7j8v1"]
 
 [ext_resource type="Script" uid="uid://crdioc5gl6y26" path="res://ui_scene/ui_ingame.gd" id="1_f8os5"]
 [ext_resource type="StyleBox" uid="uid://b7kvhwnskxjva" path="res://assets/story_style.tres" id="2_0kaxw"]
-[ext_resource type="Script" uid="uid://pt5h1lxr0imu" path="res://ui_scene/help_menu_auto.gd.gd" id="3_0kaxw"]
 [ext_resource type="PackedScene" path="res://ui_scene/how_to_play_layer.tscn" id="4_howto"]
 [ext_resource type="Script" path="res://ui_scene/movement_hint.gd" id="5_movement"]
 [ext_resource type="Script" path="res://ui_scene/tool_hint.gd" id="6_tool_hint"]
@@ -68,14 +67,6 @@ shadow_size = 4
 
 [node name="ui_ingame" type="CanvasLayer" unique_id=1065938345]
 script = ExtResource("1_f8os5")
-
-[node name="HelpGenerator" type="Control" parent="." unique_id=960937429]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 1720.0
-offset_right = 1760.0
-offset_bottom = 40.0
-script = ExtResource("3_0kaxw")
 
 [node name="welcome" type="Label" parent="." unique_id=342224486]
 offset_top = 465.0
@@ -258,6 +249,7 @@ text = "返回游戏"
 
 [node name="GameOverPanel" type="ColorRect" parent="."]
 visible = false
+process_mode = 3
 offset_left = 220.0
 offset_top = 94.0
 offset_right = 1676.0
@@ -332,6 +324,96 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_gameover_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_gameover_btn_hover")
 text = "Quit Game"
 
+
+[node name="VictoryPanel" type="ColorRect" parent="."]
+visible = false
+process_mode = 3
+offset_left = 220.0
+offset_top = 94.0
+offset_right = 1676.0
+offset_bottom = 988.0
+color = Color(1, 1, 1, 0)
+
+[node name="CenterContainer" type="CenterContainer" parent="VictoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DessertPanel" type="PanelContainer" parent="VictoryPanel/CenterContainer"]
+custom_minimum_size = Vector2(420, 300)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_gameover_panel")
+
+[node name="ContentMargin" type="MarginContainer" parent="VictoryPanel/CenterContainer/DessertPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VictoryContent" type="VBoxContainer" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="VictoryTitle" type="Label" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84705883, 0.36078432, 0.41568628, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.3137255)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_outline_size = 10
+theme_override_font_sizes/font_size = 32
+text = "恭喜你通关！"
+horizontal_alignment = 1
+
+[node name="VictorySubtitle" type="Label" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.41960785, 0.24705882, 0.19607843, 1)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="NextLevelButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_gameover_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gameover_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gameover_btn_hover")
+text = "下一关"
+
+[node name="RestartButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_gameover_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gameover_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gameover_btn_hover")
+text = "重新开始"
+
+[node name="QuitButton" type="Button" parent="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.75699997, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.47843137, 0.2627451, 0.18431373, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_gameover_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gameover_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gameover_btn_hover")
+text = "返回主菜单"
+
 [connection signal="pressed" from="exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="reload" to="." method="_on_reload_pressed"]
 [connection signal="pressed" from="recreate" to="." method="_on_recreate_pressed"]
@@ -345,3 +427,6 @@ text = "Quit Game"
 [connection signal="return_requested" from="HowToPlayLayer" to="." method="_on_back_to_game_pressed"]
 [connection signal="pressed" from="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/RestartButton" to="." method="_on_restart_button_pressed"]
 [connection signal="pressed" from="GameOverPanel/CenterContainer/DessertPanel/ContentMargin/GameOverContent/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent/NextLevelButton" to="." method="_on_victory_next_pressed"]
+[connection signal="pressed" from="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent/RestartButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="VictoryPanel/CenterContainer/DessertPanel/ContentMargin/VictoryContent/QuitButton" to="." method="_on_quit_button_pressed"]

@@ -1,7 +1,7 @@
 extends Control
 ## Sci-fi main menu — 三面之外 (default visible page).
 
-const CYAN := Color(0.6, 1.0, 1.0, 1.0)
+const CYAN := Color(0.45, 0.68, 0.88, 1.0)
 
 @onready var help_button: Button = $TopBar/HelpButton
 @onready var start_button: Button = $CenterContainer/VBoxContainer/StartButton
@@ -41,22 +41,31 @@ func _connect_buttons() -> void:
 
 
 func _refresh_unlocks() -> void:
+	# Fresh save: only 教学关 is playable; later levels unlock in order.
 	var progress := get_node_or_null("/root/LevelProgress")
-	tutorial_button.disabled = false
+	_set_level_button_state(tutorial_button, true)
 	if progress == null:
-		level1_button.disabled = true
-		level2_button.disabled = true
-		level3_button.disabled = true
-		level4_button.disabled = true
-		level5_button.disabled = true
-		level6_button.disabled = true
+		_set_level_button_state(level1_button, false)
+		_set_level_button_state(level2_button, false)
+		_set_level_button_state(level3_button, false)
+		_set_level_button_state(level4_button, false)
+		_set_level_button_state(level5_button, false)
+		_set_level_button_state(level6_button, false)
 		return
-	level1_button.disabled = not progress.is_completed("teach")
-	level2_button.disabled = not progress.is_completed("level1")
-	level3_button.disabled = not progress.is_completed("level2")
-	level4_button.disabled = not progress.is_completed("level3")
-	level5_button.disabled = not progress.is_completed("level4")
-	level6_button.disabled = not progress.is_completed("level4")
+	_set_level_button_state(level1_button, progress.is_completed("teach"))
+	_set_level_button_state(level2_button, progress.is_completed("level1"))
+	_set_level_button_state(level3_button, progress.is_completed("level2"))
+	_set_level_button_state(level4_button, progress.is_completed("level3"))
+	_set_level_button_state(level5_button, progress.is_completed("level4"))
+	_set_level_button_state(level6_button, progress.is_completed("level5"))
+
+
+func _set_level_button_state(btn: Button, unlocked: bool) -> void:
+	if btn == null:
+		return
+	btn.disabled = not unlocked
+	btn.focus_mode = Control.FOCUS_ALL if unlocked else Control.FOCUS_NONE
+	btn.modulate = Color(1, 1, 1, 1) if unlocked else Color(0.55, 0.58, 0.62, 0.75)
 
 
 func _button_feedback(btn: BaseButton) -> void:
@@ -109,17 +118,17 @@ func _on_level3_pressed() -> void:
 
 func _on_level4_pressed() -> void:
 	await _button_feedback(level4_button)
-	_go_to_scene("res://level5/main.tscn")
+	_go_to_scene("res://level4/main.tscn")
 
 
 func _on_level5_pressed() -> void:
 	await _button_feedback(level5_button)
-	_go_to_scene("res://level6/main.tscn")
+	_go_to_scene("res://level5/main.tscn")
 
 
 func _on_level6_pressed() -> void:
 	await _button_feedback(level6_button)
-	_go_to_scene("res://level7/main.tscn")
+	_go_to_scene("res://level6/main.tscn")
 
 
 func _on_quit_pressed() -> void:

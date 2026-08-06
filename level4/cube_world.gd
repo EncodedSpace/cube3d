@@ -21,18 +21,19 @@ var start_transform: Transform3D
 ## True while cube is rotating: fallable props stay frozen so falls aren't cut mid-air.
 var _hold_props_frozen: bool = false
 
-## Props attached to walls: each entry is
-## { "prop": Node3D, "walls": Array[Node3D], "fixed_bind": bool, "shown": Variant }
+## Props attached to walls: each entry is { "prop": Node3D, "walls": Array[Node3D] }
 ## A prop can bind to multiple walls when equally close to each. Visible if ANY
 ## bound wall is shown; hidden only when ALL bound walls are cut away.
-## StaticBox 固定绑墙（不会动）；MovableBox / 道具才在刷新时重算绑定。
 var _wall_props: Array[Dictionary] = []
+
+var portal_locked: bool = false
 
 signal flip_started
 signal flip_finished
 
 
 func _ready() -> void:
+	add_to_group("cube_world")
 	start_transform = global_transform
 	_bind_props_to_walls()
 	# Camera may not be current on the first frame after a scene change.
@@ -78,16 +79,9 @@ func get_center_global() -> Vector3:
 
 
 func can_flip() -> bool:
-	if flipping:
+	if portal_locked:
 		return false
-	return not _any_box_blocking_cube_motion()
-
-
-func _any_box_blocking_cube_motion() -> bool:
-	for rb in _gather_fallable_bodies():
-		if rb.has_method("is_blocking_cube_motion") and rb.is_blocking_cube_motion():
-			return true
-	return false
+	return not flipping
 
 
 func reset_to_start() -> void:
@@ -98,7 +92,7 @@ func reset_to_start() -> void:
 
 
 func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
-	if not can_flip():
+	if flipping:
 		return false
 
 	# Collision normal points toward the player (into the room).
@@ -121,7 +115,7 @@ func request_flip(collision_normal: Vector3, player: Node3D) -> bool:
 
 ## Orient so this wall becomes the floor (portal teleport). Skips junction-box blocking.
 func request_orient_wall_as_floor(wall: Node3D, player: Node3D) -> bool:
-	if not can_flip() or wall == null:
+	if flipping or wall == null:
 		return false
 	var inward := wall.global_transform.basis.y.normalized()
 	var outward := _snap_to_axis(-inward)
@@ -140,25 +134,6 @@ func get_nearest_walls_for(prop: Node3D) -> Array[Node3D]:
 		var empty: Array[Node3D] = []
 		return empty
 	return _find_nearest_walls(prop, walls)
-
-
-## 下落判定用：容差更严，避免贴边被裁切容差误判成「天花板+侧墙」而反复不掉。
-func get_nearest_walls_for_fall(prop: Node3D) -> Array[Node3D]:
-	var walls := get_node_or_null("WALLS")
-	if walls == null or prop == null:
-		var empty: Array[Node3D] = []
-		return empty
-	return _find_nearest_walls(prop, walls, 0.05)
-
-
-## 强制下次裁切刷新该道具（G 收集开重力 / 翻转 hold 后用）。
-func invalidate_prop_cutaway_cache(prop: Node3D) -> void:
-	if prop == null:
-		return
-	for entry in _wall_props:
-		if entry.get("prop") == prop:
-			entry["shown"] = null
-			return
 
 
 ## True when a StaticBox/MovableBox occupies the wall junction the player is pressing into.
@@ -228,7 +203,7 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 			# EXIT areas may contain "StaticBox" in the name — skip non-solid props.
 			if (
 				(child is StaticBody3D or child is RigidBody3D)
-				and ("StaticBox" in n or "MovableBox" in n)
+				and ("StaticBox" in n or "MovableBox" in n or n == "Tool_Z" or n.begins_with("Tool_Z"))
 				and "EXIT" not in n
 			):
 				# E2 解锁后允许玩家进入，不再当翻滚障碍。
@@ -246,13 +221,15 @@ func _gather_obstacle_boxes(node: Node, result: Array[Node3D]) -> void:
 
 
 func _on_left_pressed() -> void:
+	if portal_locked:
+		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_left(player)
 
 
 ## Rotate the whole cube (and player) 90° clockwise around world up.
 func request_rotate_left(player: Node3D) -> bool:
-	if not can_flip():
+	if flipping:
 		return false
 	if player == null:
 		return false
@@ -264,13 +241,15 @@ func request_rotate_left(player: Node3D) -> bool:
 
 
 func _on_right_pressed() -> void:
+	if portal_locked:
+		return
 	var player := get_parent().get_node_or_null("Player") as Node3D
 	request_rotate_right(player)
 
 
 ## Rotate the whole cube (and player) 90° counterclockwise around world up.
 func request_rotate_right(player: Node3D) -> bool:
-	if not can_flip():
+	if flipping:
 		return false
 	if player == null:
 		return false
@@ -342,52 +321,8 @@ func _bind_props_to_walls() -> void:
 		if bound_walls.is_empty():
 			continue
 		prop.add_to_group("wall_prop")
-		_wall_props.append({
-			"prop": prop,
-			"walls": bound_walls,
-			"fixed_bind": _prop_has_fixed_bind(prop),
-			"shown": null,
-		})
+		_wall_props.append({"prop": prop, "walls": bound_walls})
 		_set_prop_visible(prop, true)
-		_wall_props[_wall_props.size() - 1]["shown"] = true
-
-
-func _prop_has_fixed_bind(prop: Node3D) -> bool:
-	# StaticBox / 被锁成固定块的 MovableBox：绑墙一次即可。
-	if "StaticBox" in String(prop.name):
-		return true
-	if prop.has_method("is_locked_as_static") and prop.is_locked_as_static():
-		return true
-	return false
-
-
-func _is_dynamic_fallable_prop(prop: Node) -> bool:
-	if prop == null or not (prop is RigidBody3D):
-		return false
-	if prop.has_method("is_locked_as_static") and prop.is_locked_as_static():
-		return false
-	var n := String(prop.name)
-	if "MovableBox" in n:
-		return true
-	if "B_Tool" in n or prop.is_in_group("b_tool"):
-		return true
-	return false
-
-
-## G 收集后把 MovableBox 标成固定绑墙，并立刻按 StaticBox 方式刷新显隐。
-func mark_prop_fixed_like_static(prop: Node3D) -> void:
-	if prop == null:
-		return
-	var walls := get_node_or_null("WALLS")
-	for entry in _wall_props:
-		if entry.get("prop") != prop:
-			continue
-		entry["fixed_bind"] = true
-		if walls != null:
-			entry["walls"] = _bound_walls_for_prop(prop, walls)
-		entry["shown"] = null
-		break
-	update_cutaway_visibility()
 
 
 func _is_wall_prop_name(n: String) -> bool:
@@ -404,7 +339,13 @@ func _is_wall_prop_name(n: String) -> bool:
 		or n.begins_with("B_Tool")
 		or n.begins_with("G_Tool")
 		or n.begins_with("F_Trigger")
-		or n == "Tool_X" or n.begins_with("Tool_X")
+		or _is_xyz_tool_name(n)
+	)
+
+
+func _is_xyz_tool_name(n: String) -> bool:
+	return (
+		n == "Tool_X" or n.begins_with("Tool_X")
 		or n == "Tool_Y" or n.begins_with("Tool_Y")
 		or n == "Tool_Z" or n.begins_with("Tool_Z")
 	)
@@ -419,27 +360,17 @@ func _gather_wall_props(node: Node, result: Array[Node3D]) -> void:
 			_gather_wall_props(child, result)
 
 
-## 绑墙用碰撞中心：MovableBox 常把 CollisionShape 相对刚体原点偏移。
-func _prop_bind_position(prop: Node3D) -> Vector3:
-	for child in prop.get_children():
-		if child is CollisionShape3D and not (child as CollisionShape3D).disabled:
-			return (child as CollisionShape3D).global_position
-	return prop.global_position
-
-
-## All walls at the minimum plane-distance (equal attach for corners/edges).
-## eps：裁切显隐用 0.25（贴边多面仍可见）；下落判定请用更小 eps。
-func _find_nearest_walls(prop: Node3D, walls: Node, eps: float = 0.25) -> Array[Node3D]:
+## 等距多面绑定：平面距离在「最小值 + EPS」内的墙全部绑定。
+func _find_nearest_walls(prop: Node3D, walls: Node) -> Array[Node3D]:
 	var best_dist := INF
 	var dists: Dictionary = {} # wall -> dist
-	var prop_pos := _prop_bind_position(prop)
 
 	for child in walls.get_children():
 		var wall := child as Node3D
 		if wall == null:
 			continue
 		var inward: Vector3 = wall.global_transform.basis.y.normalized()
-		var dist := absf(inward.dot(prop_pos - wall.global_position))
+		var dist := absf(inward.dot(prop.global_position - wall.global_position))
 		dists[wall] = dist
 		if dist < best_dist:
 			best_dist = dist
@@ -448,8 +379,11 @@ func _find_nearest_walls(prop: Node3D, walls: Node, eps: float = 0.25) -> Array[
 	if best_dist == INF:
 		return result
 
+	# 棱/角上等距绑多面。容差要覆盖刚体落稳后的微小偏移，
+	# 否则会从「地板+侧墙」退化成只绑侧墙，侧墙裁切时箱子在亮着的地板上消失。
+	const EPS := 0.25
 	for wall in dists:
-		if dists[wall] <= best_dist + eps:
+		if dists[wall] <= best_dist + EPS:
 			result.append(wall)
 	return result
 
@@ -462,9 +396,7 @@ func _bound_walls_for_prop(prop: Node3D, walls: Node) -> Array[Node3D]:
 ## Hide the 3 outer faces that point toward the camera so the room interior
 ## stays visible (needed when wall materials are double-sided).
 ## Props bound to multiple walls stay visible if any bound wall is shown.
-## rebind_props=false：翻转动画中用，只刷新显隐、不重算绑墙/碰撞。
-## StaticBox 永远不重绑；只对 MovableBox / 道具重算绑墙。
-func update_cutaway_visibility(rebind_props: bool = true) -> void:
+func update_cutaway_visibility() -> void:
 	var cam := _ensure_level_camera()
 	if cam == null:
 		return
@@ -499,19 +431,15 @@ func update_cutaway_visibility(rebind_props: bool = true) -> void:
 			continue
 		alive_props.append(entry)
 
-		var fixed: bool = bool(entry.get("fixed_bind", false))
-		if rebind_props and not fixed:
-			entry["walls"] = _bound_walls_for_prop(prop, walls)
+		# 每次刷新等距绑定；绑定面中任一面可见则道具可见。
+		entry["walls"] = _bound_walls_for_prop(prop, walls)
 		var bound: Array = entry["walls"]
 
-		# MovableBox / B（开重力后）：只绑天花板或已真正下落中时自管显隐；否则普通随墙显隐。
+		# MovableBox / B（开重力后）：只绑天花板或已真正下落中时自管显隐。
 		if (
-			rebind_props
-			and not fixed
-			and prop.has_method("sync_ceiling_fall")
+			prop.has_method("sync_ceiling_fall")
 			and prop.sync_ceiling_fall(bound, _hold_props_frozen)
 		):
-			entry["shown"] = prop.visible
 			continue
 
 		var show_prop := false
@@ -519,33 +447,17 @@ func update_cutaway_visibility(rebind_props: bool = true) -> void:
 			if wall != null and is_instance_valid(wall) and wall_shown.get(wall, false):
 				show_prop = true
 				break
-
-		# 显隐未变则跳过 StaticBox 等，避免百级碰撞开关卡顿。
-		# MovableBox / B_Tool 例外：翻转 hold 或开重力后常仍 freeze，显隐不变会卡死/消失。
-		if entry.get("shown") == show_prop:
-			if rebind_props and _is_dynamic_fallable_prop(prop):
-				_set_prop_visible(prop, show_prop)
-			continue
-		entry["shown"] = show_prop
-
-		if rebind_props:
-			_set_prop_visible(prop, show_prop)
-			entry["visual_only"] = false
-		else:
-			# 动画中只改可见性，结束时再同步碰撞。
-			prop.visible = show_prop
-			entry["visual_only"] = true
+		_set_prop_visible(prop, show_prop)
 	_wall_props = alive_props
 
 
 func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	# D_Wall / D_Wall2：始终跟随绑定墙裁切（与 G 无关）；开门后无固体碰撞。
 	# 隐藏时只关 StaticBody，保留 Area。
-	# 开门并吸附 B 后：D+B 合体一起贴面隐藏。
 	if prop.has_method("should_keep_player_block"):
 		var closed: bool = prop.should_keep_player_block()
 		if not closed:
-			# 已开门：跟墙显隐，不挡人；同步吸附的 B。
+			# 已开门：跟墙显隐，不挡人；同步吸附的 B（D+B 合体贴面隐藏）。
 			if prop.has_method("sync_adsorbed_partner_visibility"):
 				prop.sync_adsorbed_partner_visibility(wall_visible)
 			else:
@@ -561,7 +473,7 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 			_set_d_solid_disabled(prop, true)
 		return
 
-	# B_Tool / Portal / Final / E1 / E2：自管碰撞与显隐。
+	# B_Tool / Portal / Portal_Key / E1 / E2：自管碰撞与显隐。
 	if prop.has_method("apply_cutaway_visibility"):
 		prop.apply_cutaway_visibility(wall_visible)
 		return
@@ -570,30 +482,18 @@ func _set_prop_visible(prop: Node3D, wall_visible: bool) -> void:
 	_set_collision_shapes_disabled(prop, not wall_visible)
 	# Only MovableBox uses freeze for cutaway. G_Tool manages freeze itself.
 	# 锁在 E1 里的箱子保持 freeze，不被裁切逻辑解开。
-	# 正在天花板下落中：不要被裁切冻住（擦侧墙时尤其容易误冻）。
 	if prop is RigidBody3D and "MovableBox" in String(prop.name):
 		var rb := prop as RigidBody3D
-		# 已锁成固定块：始终 freeze，只跟墙显隐/碰撞（与 StaticBox 一致）。
-		if prop.has_method("is_locked_as_static") and prop.is_locked_as_static():
+		if prop.has_meta("locked_in_e1") and bool(prop.get_meta("locked_in_e1")):
 			rb.linear_velocity = Vector3.ZERO
 			rb.angular_velocity = Vector3.ZERO
 			rb.freeze = true
-		elif prop.has_meta("locked_in_e1") and bool(prop.get_meta("locked_in_e1")):
-			rb.linear_velocity = Vector3.ZERO
-			rb.angular_velocity = Vector3.ZERO
-			rb.freeze = true
-		elif bool(prop.get("ceiling_falling")) and not _hold_props_frozen:
-			prop.visible = true
-			_set_collision_shapes_disabled(prop, false)
-			rb.freeze = false
-			rb.sleeping = false
 		elif not wall_visible or _hold_props_frozen:
 			rb.linear_velocity = Vector3.ZERO
 			rb.angular_velocity = Vector3.ZERO
 			rb.freeze = true
 		elif not get_tree().paused:
 			rb.freeze = false
-			rb.sleeping = false
 
 
 func _set_collision_shapes_disabled(node: Node, disabled: bool) -> void:
@@ -656,7 +556,7 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 			var q := Quaternion.IDENTITY.slerp(rot, t)
 			global_transform = _rotated_xform(cube_start, center, q)
 			player.global_transform = _rotated_xform(player_start, center, q)
-			update_cutaway_visibility(false),
+			update_cutaway_visibility(),
 		0.0,
 		1.0,
 		flip_duration
@@ -694,22 +594,10 @@ func _animate_flip(rot: Quaternion, player: Node3D, _keep_relative_facing: bool 
 
 	# Release hold so cutaway can unfreeze visible fallable props; then wait for settle.
 	_hold_props_frozen = false
-	# 翻转 hold 冻过刚体：显隐未变也要强制同步，否则 MovableBox/B 会卡死或消失。
-	for entry in _wall_props:
-		var prop_ref = entry.get("prop")
-		if _is_dynamic_fallable_prop(prop_ref):
-			entry["shown"] = null
-		elif bool(entry.get("visual_only", false)):
-			entry["shown"] = null
-		entry["visual_only"] = false
 	update_cutaway_visibility()
 
 	player.set_physics_process(true)
-	# QE 绕世界 Y 转：重力方向相对箱子不变，无需长时间 settle（最多卡 settle_timeout 秒）。
-	if _keep_relative_facing:
-		await get_tree().physics_frame
-	else:
-		await _wait_for_props_to_settle()
+	await _wait_for_props_to_settle()
 	flipping = false
 	flip_finished.emit()
 
@@ -736,8 +624,6 @@ func _gather_fallable_bodies_rec(node: Node, result: Array[RigidBody3D]) -> void
 
 func _is_fallable_body(rb: RigidBody3D) -> bool:
 	if rb == null or not is_instance_valid(rb):
-		return false
-	if rb.has_method("is_locked_as_static") and rb.is_locked_as_static():
 		return false
 	var n := String(rb.name)
 	if "MovableBox" in n:
@@ -772,11 +658,17 @@ func _all_fallable_props_settled() -> bool:
 func _wait_for_props_to_settle() -> void:
 	# Let physics start falling for at least one frame after unfreeze.
 	await get_tree().physics_frame
+	if not is_inside_tree():
+		return
 	var stable := 0
 	var elapsed := 0.0
 	while elapsed < settle_timeout:
+		if not is_inside_tree():
+			return
 		if get_tree().paused:
 			await get_tree().process_frame
+			if not is_inside_tree():
+				return
 			continue
 		if _all_fallable_props_settled():
 			stable += 1
@@ -785,4 +677,9 @@ func _wait_for_props_to_settle() -> void:
 		else:
 			stable = 0
 		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
 		elapsed += get_physics_process_delta_time()
+
+func set_portal_locked(value: bool) -> void:
+	portal_locked = value

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bscifimenulayr01"]
+[gd_scene format=3 uid="uid://dkwgjohwn4pr1"]
 
 [ext_resource type="Script" path="res://MainMenu/sci_fi_menu_layer.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://duto23x3bjd3c" path="res://inbetween_scene/UI/Source Han Sans CN.ttf" id="2_font"]

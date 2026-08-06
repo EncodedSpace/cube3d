@@ -1,13 +1,13 @@
-[gd_scene format=3 uid="uid://v7rsmrmwdgsn"]
+[gd_scene format=3 uid="uid://d4jf6mkoifiag"]
 
-[ext_resource type="Script" uid="uid://bx8j1oyjf84yh" path="res://level5/cube_world.gd" id="1_fobdo"]
+[ext_resource type="Script" uid="uid://dhcu8iwvfes5d" path="res://level5/cube_world.gd" id="1_fobdo"]
 [ext_resource type="PlaneMesh" uid="uid://bwlkgwred161v" path="res://assets/new_plane_mesh.tres" id="2_ayjee"]
 [ext_resource type="Script" uid="uid://dbbpbcrddn3oq" path="res://global_script/movable_box.gd" id="3_s2l3b"]
 [ext_resource type="Material" uid="uid://pqmpa718w18o" path="res://material/movable_material.tres" id="4_h5gko"]
 [ext_resource type="PackedScene" uid="uid://bynpixfcpdb1h" path="res://Tools_B_D_G/Tool_B_D_G.tscn" id="7_k3mig"]
 [ext_resource type="PackedScene" uid="uid://vtouulnlf386" path="res://Tools_I/Tools_I.tscn" id="9_tqn3b"]
 [ext_resource type="PackedScene" uid="uid://y36yjna2dm53" path="res://final_key/Final_Key.tscn" id="11_f2wbo"]
-[ext_resource type="PackedScene" uid="uid://bekrlx1qpcvou" path="res://level5/player.tscn" id="12_fgll2"]
+[ext_resource type="PackedScene" uid="uid://4yo1kxlrt81" path="res://level5/player.tscn" id="12_fgll2"]
 [ext_resource type="PackedScene" uid="uid://1is4plx7j8v1" path="res://ui_scene/ui_ingame.tscn" id="13_g3a7p"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
@@ -37,7 +37,7 @@ material = ExtResource("4_h5gko")
 [sub_resource type="BoxMesh" id="BoxMesh_1r6oq"]
 material = SubResource("StandardMaterial3D_onvak")
 
-[node name="Main" type="Node3D" unique_id=222267479]
+[node name="Main2" type="Node3D" unique_id=222267479]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=109826146]
 environment = SubResource("Environment_h2yge")
@@ -647,5 +647,6 @@ transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, -0.5, 0.45, -0.5)
 welcome_text = "欢迎来到第二关！
 请走到绿色出口吧！"
 congrats_text = "恭喜你完成了第二关！"
+next_scene = "res://level6/main.tscn"
 
 [editable path="Node3D/Tool_B_D_G"]

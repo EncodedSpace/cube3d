@@ -36,78 +36,16 @@ func _ready() -> void:
 	add_to_group("cube_world")
 	start_transform = global_transform
 	_bind_props_to_walls()
-	# 入场：先确保 6 面全可见，然后背向相机的 3 面从可见渐变消失
-	await _fade_in_outer_walls()
 	# Camera may not be current on the first frame after a scene change.
 	await _bootstrap_cutaway()
-	# 旋转/渐变全部结束后做最后一次完整的 cutaway 更新
-	update_cutaway_visibility()
-
-
-## 进入关卡时，让玩家看到的外侧 3 面墙 + 附着道具从可见 → 不可见渐变。
-func _fade_in_outer_walls() -> void:
-	for _i in range(12):
-		if _ensure_level_camera() != null:
-			break
-		await get_tree().process_frame
-
-	var walls := get_node_or_null("WALLS")
-	if walls == null:
-		return
-
-	# 1. 全部可见，alpha = 0
-	for child in walls.get_children():
-		var wall := child as Node3D
-		if wall == null:
-			continue
-		_set_wall_alpha(wall, 0.0)
-		for entry in _wall_props:
-			var bound: Array = entry.get("walls", [])
-			if wall in bound:
-				_set_prop_alpha(entry["prop"], 0.0)
-
-	await get_tree().process_frame
-
-	# 2. 找出背向相机的墙
-	var cam := _ensure_level_camera()
-	if cam == null:
-		return
-	var to_camera := (cam.global_position - get_center_global()).normalized()
-	var walls_to_fade: Array[Node3D] = []
-
-	for child in walls.get_children():
-		var wall := child as Node3D
-		if wall == null:
-			continue
-		var outward := -wall.global_transform.basis.y.normalized()
-		if outward.dot(to_camera) > wall_visible_dot:
-			walls_to_fade.append(wall)
-
-	if walls_to_fade.is_empty():
-		return
-
-	# 3. 等半秒，渐变 alpha 0 → 1
-	await get_tree().create_timer(0.5).timeout
-
-	var fade_tween := create_tween().set_parallel(true)
-	fade_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	for wall in walls_to_fade:
-		fade_tween.tween_method(func(val: float): _set_wall_alpha(wall, val), 0.0, 1.0, 2.0)
-		# 附着道具同步渐变
-		for entry in _wall_props:
-			var bound: Array = entry.get("walls", []) as Array
-			if wall in bound:
-				var prop: Node3D = entry.get("prop") as Node3D
-				if prop != null and is_instance_valid(prop):
-					fade_tween.tween_method(func(val: float): _set_prop_alpha(prop, val), 0.0, 1.0, 2.0)
-
-	await fade_tween.finished
 
 
 func _bootstrap_cutaway() -> void:
 	for _i in range(12):
 		_ensure_level_camera()
 		update_cutaway_visibility()
+		if _has_cutaway_applied():
+			return
 		await get_tree().process_frame
 
 

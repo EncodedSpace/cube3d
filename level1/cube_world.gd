@@ -662,4 +662,3 @@ func _wait_for_props_to_settle() -> void:
 
 func set_portal_locked(value: bool) -> void:
 	portal_locked = value
-

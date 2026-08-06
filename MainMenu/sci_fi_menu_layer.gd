@@ -3,11 +3,12 @@ extends CanvasLayer
 ## Default hidden — show with show_menu() / hide_menu().
 
 const FONT_PATH := "res://inbetween_scene/UI/Source Han Sans CN.ttf"
-const CYAN := Color(0.22, 0.92, 0.95, 1.0)
-const CYAN_DIM := Color(0.15, 0.55, 0.62, 0.9)
-const BTN_BG := Color(0.08, 0.12, 0.18, 0.82)
-const BTN_BG_HOVER := Color(0.12, 0.22, 0.30, 0.92)
-const BTN_BG_PRESSED := Color(0.10, 0.35, 0.40, 0.95)
+# Welcome / story_style blue palette (matches SciFiButtonStyle).
+const CYAN := Color(0.45, 0.68, 0.88, 1.0)
+const CYAN_DIM := Color(0.288, 0.475, 0.6, 0.95)
+const BTN_BG := Color(0.288, 0.475, 0.6, 0.85)
+const BTN_BG_HOVER := Color(0.36, 0.56, 0.72, 0.95)
+const BTN_BG_PRESSED := Color(0.22, 0.38, 0.52, 0.98)
 
 @onready var _root: Control = $Root
 @onready var _help_button: Button = $Root/TopBar/HelpButton
@@ -62,22 +63,31 @@ func _connect_buttons() -> void:
 
 
 func _refresh_unlocks() -> void:
+	# Fresh save: only 教学关 is playable; later levels unlock in order.
 	var progress := get_node_or_null("/root/LevelProgress")
-	_tutorial_button.disabled = false
+	_set_level_button_state(_tutorial_button, true)
 	if progress == null:
-		_level1_button.disabled = true
-		_level2_button.disabled = true
-		_level3_button.disabled = true
-		_level4_button.disabled = true
-		_level5_button.disabled = true
-		_level6_button.disabled = true
+		_set_level_button_state(_level1_button, false)
+		_set_level_button_state(_level2_button, false)
+		_set_level_button_state(_level3_button, false)
+		_set_level_button_state(_level4_button, false)
+		_set_level_button_state(_level5_button, false)
+		_set_level_button_state(_level6_button, false)
 		return
-	_level1_button.disabled = not progress.is_completed("teach")
-	_level2_button.disabled = not progress.is_completed("level1")
-	_level3_button.disabled = not progress.is_completed("level2")
-	_level4_button.disabled = not progress.is_completed("level3")
-	_level5_button.disabled = not progress.is_completed("level4")
-	_level6_button.disabled = not progress.is_completed("level4")
+	_set_level_button_state(_level1_button, progress.is_completed("teach"))
+	_set_level_button_state(_level2_button, progress.is_completed("level1"))
+	_set_level_button_state(_level3_button, progress.is_completed("level2"))
+	_set_level_button_state(_level4_button, progress.is_completed("level3"))
+	_set_level_button_state(_level5_button, progress.is_completed("level4"))
+	_set_level_button_state(_level6_button, progress.is_completed("level5"))
+
+
+func _set_level_button_state(btn: Button, unlocked: bool) -> void:
+	if btn == null:
+		return
+	btn.disabled = not unlocked
+	btn.focus_mode = Control.FOCUS_ALL if unlocked else Control.FOCUS_NONE
+	btn.modulate = Color(1, 1, 1, 1) if unlocked else Color(0.55, 0.58, 0.62, 0.75)
 
 
 func _button_feedback(btn: Button) -> void:
@@ -131,17 +141,17 @@ func _on_level3_pressed() -> void:
 
 func _on_level4_pressed() -> void:
 	await _button_feedback(_level4_button)
-	_go_to_scene("res://level5/main.tscn")
+	_go_to_scene("res://level4/main.tscn")
 
 
 func _on_level5_pressed() -> void:
 	await _button_feedback(_level5_button)
-	_go_to_scene("res://level6/main.tscn")
+	_go_to_scene("res://level5/main.tscn")
 
 
 func _on_level6_pressed() -> void:
 	await _button_feedback(_level6_button)
-	_go_to_scene("res://level7/main.tscn")
+	_go_to_scene("res://level6/main.tscn")
 
 
 func _on_quit_pressed() -> void:
@@ -198,9 +208,9 @@ func _style_menu_button(btn: Button, highlight: bool = false) -> void:
 	btn.add_theme_stylebox_override("normal", _make_btn_style(normal_bg, border, 2.5 if highlight else 2.0))
 	btn.add_theme_stylebox_override("hover", _make_btn_style(BTN_BG_HOVER, CYAN, 2.5))
 	btn.add_theme_stylebox_override("pressed", _make_btn_style(BTN_BG_PRESSED, CYAN, 3.0))
-	btn.add_theme_stylebox_override("disabled", _make_btn_style(Color(0.08, 0.08, 0.1, 0.55), Color(0.25, 0.3, 0.35, 0.5), 1.0))
-	btn.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0, 1.0))
-	btn.add_theme_color_override("font_hover_color", CYAN)
+	btn.add_theme_stylebox_override("disabled", _make_btn_style(Color(0.18, 0.24, 0.32, 0.55), Color(0.35, 0.42, 0.5, 0.5), 1.0))
+	btn.add_theme_color_override("font_color", Color(0.95, 0.98, 1.0, 1.0))
+	btn.add_theme_color_override("font_hover_color", Color(0.85, 0.93, 1.0, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(1, 1, 1, 1))
 	btn.add_theme_color_override("font_disabled_color", Color(0.45, 0.5, 0.55, 0.7))
 	btn.add_theme_font_size_override("font_size", 26)

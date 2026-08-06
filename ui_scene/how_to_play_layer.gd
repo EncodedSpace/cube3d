@@ -153,9 +153,7 @@ func _build_interface() -> void:
 	_return_button.custom_minimum_size = Vector2(240, 48)
 	_return_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_return_button.focus_mode = Control.FOCUS_NONE
-	_return_button.add_theme_font_size_override("font_size", 22)
-	_return_button.add_theme_stylebox_override("normal", _style(Color("#2d5b90"), 9, Color("#80afea"), 1))
-	_return_button.add_theme_stylebox_override("hover", _style(Color("#3d76b5"), 9, Color("#b0d2ff"), 1))
+	SciFiButtonStyle.apply(_return_button, 22, true)
 	_return_button.pressed.connect(func() -> void: return_requested.emit())
 	content.add_child(_return_button)
 	var hint := _label("左右方向键翻页 · ESC 返回游戏", 14, Color("#7896b2"))
@@ -230,9 +228,7 @@ func _make_navigation_button(text: String) -> Button:
 	button.text = text
 	button.custom_minimum_size = Vector2(145, 42)
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_font_size_override("font_size", 17)
-	button.add_theme_stylebox_override("normal", _style(Color("#132a3b"), 8, CYAN_DIM, 1))
-	button.add_theme_stylebox_override("hover", _style(Color("#21475f"), 8, CYAN, 1))
+	SciFiButtonStyle.apply(button, 17)
 	return button
 
 

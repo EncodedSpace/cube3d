@@ -2,15 +2,19 @@ extends CanvasLayer
 
 
 # ==================================================
-# 每个关卡单独设置的参�?# ==================================================
+# 每个关卡单独设置的参数
+# ==================================================
 
-# 下一关场景路径�?# 教学关：res://level1/main.tscn
+# 下一关场景路径。
+# 教学关：res://level1/main.tscn
 # 第一关：res://level2/main.tscn
-# 最后一关可以留空�?@export_file("*.tscn")
+# 最后一关可以留空。
+@export_file("*.tscn")
 var next_scene_path: String = ""
 
 
-# 留空时，保留 ui_ingame_shared.tscn 中原来的文字�?@export_multiline
+# 留空时，保留 ui_ingame_shared.tscn 中原来的文字。
+@export_multiline
 var welcome_text: String = ""
 
 @export_multiline
@@ -21,13 +25,16 @@ var victory_text: String = ""
 
 @export var show_welcome: bool = true
 
-# 欢迎文字从透明到完全显示的时间�?@export_range(0.05, 5.0, 0.05)
+# 欢迎文字从透明到完全显示的时间。
+@export_range(0.05, 5.0, 0.05)
 var welcome_fade_in_duration: float = 0.6
 
-# 欢迎文字完全显示后的停留时间�?@export_range(0.0, 15.0, 0.1)
+# 欢迎文字完全显示后的停留时间。
+@export_range(0.0, 15.0, 0.1)
 var welcome_hold_duration: float = 4.0
 
-# 欢迎文字从完全显示到透明的时间�?@export_range(0.05, 5.0, 0.05)
+# 欢迎文字从完全显示到透明的时间。
+@export_range(0.05, 5.0, 0.05)
 var welcome_fade_out_duration: float = 0.8
 
 @export var show_help_button: bool = true
@@ -48,7 +55,7 @@ var succeed_sfx_volume_db: float = -4.0
 
 @export_file
 var fail_sfx_path: String = (
-	"res://assets/audio/ʧ��1.MP3"
+	"res://assets/audio/失败1.MP3"
 )
 
 @export_range(-80.0, 24.0, 0.1)
@@ -116,7 +123,8 @@ var fail_sfx_volume_db: float = -4.0
 
 
 # ==================================================
-# 运行状�?# ==================================================
+# 运行状态
+# ==================================================
 
 var won: bool = false
 
@@ -126,23 +134,28 @@ var _fail_sfx: AudioStreamPlayer
 
 
 # ==================================================
-# 初始�?# ==================================================
+# 初始化
+# ==================================================
 
 func _ready() -> void:
-	# UI 在游戏暂停时仍然可以接收按钮输入�?	process_mode = Node.PROCESS_MODE_ALWAYS
+	# UI 在游戏暂停时仍然可以接收按钮输入。
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	if victory_panel != null:
 		victory_panel.process_mode = (
 			Node.PROCESS_MODE_ALWAYS
 		)
 
-	# 每次进入关卡都解除可能残留的暂停�?	get_tree().paused = false
+	# 每次进入关卡都解除可能残留的暂停。
+	get_tree().paused = false
 
-	# 传送门通过这个分组寻找胜利 UI�?	if not is_in_group("ui_ingame"):
+	# 传送门通过这个分组寻找胜利 UI。
+	if not is_in_group("ui_ingame"):
 		add_to_group("ui_ingame")
 
 	_apply_text()
 	_apply_initial_visibility()
+	_apply_button_styles()
 	_connect_buttons()
 	_connect_player_death_signal()
 	_setup_succeed_sfx()
@@ -150,6 +163,27 @@ func _ready() -> void:
 
 	if show_welcome:
 		_play_welcome_animation()
+
+
+func _apply_button_styles() -> void:
+	var buttons: Array[Node] = []
+	_gather_buttons(self, buttons)
+	for node in buttons:
+		if SciFiButtonStyle.is_under_excluded_panel(node):
+			continue
+		var btn := node as Button
+		var highlight := btn.name in ["next", "back", "zen_mode"]
+		var size := btn.get_theme_font_size("font_size")
+		if size <= 0:
+			size = 26
+		SciFiButtonStyle.apply(btn, size, highlight)
+
+
+func _gather_buttons(node: Node, result: Array[Node]) -> void:
+	for child in node.get_children():
+		if child is Button:
+			result.append(child)
+		_gather_buttons(child, result)
 
 
 func _apply_text() -> void:
@@ -163,7 +197,8 @@ func _apply_text() -> void:
 func _apply_initial_visibility() -> void:
 	won = false
 
-	# 欢迎文字由渐显动画负责显示�?	welcome_label.visible = false
+	# 欢迎文字由渐显动画负责显示。
+	welcome_label.visible = false
 	_set_welcome_alpha(1.0)
 
 	restart_button.visible = false
@@ -185,7 +220,8 @@ func _apply_initial_visibility() -> void:
 # ==================================================
 
 func _connect_buttons() -> void:
-	# 原有界面按钮�?	_connect_button(
+	# 原有界面按钮。
+	_connect_button(
 		exit_button,
 		&"_on_exit_pressed"
 	)
@@ -210,7 +246,8 @@ func _connect_buttons() -> void:
 		&"_on_back_to_game_pressed"
 	)
 
-	# 新成功面板按钮�?	_connect_button(
+	# 新成功面板按钮。
+	_connect_button(
 		victory_next_button,
 		&"_on_next_pressed"
 	)
@@ -232,12 +269,13 @@ func _connect_button(
 ) -> void:
 	if button == null:
 		push_error(
-			"没有找到按钮�?s"
+			"没有找到按钮：%s"
 			% method_name
 		)
 		return
 
-	# 游戏暂停后按钮仍然可以接收点击�?	button.process_mode = Node.PROCESS_MODE_ALWAYS
+	# 游戏暂停后按钮仍然可以接收点击。
+	button.process_mode = Node.PROCESS_MODE_ALWAYS
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.disabled = false
 
@@ -253,13 +291,15 @@ func _connect_button(
 
 
 # ==================================================
-# 欢迎提示：渐显、停留、渐�?# ==================================================
+# 欢迎提示：渐显、停留、渐隐
+# ==================================================
 
 func _play_welcome_animation() -> void:
 	if welcome_label == null:
 		return
 
-	# 防止重复播放时保留上一�?Tween�?	_stop_welcome_tween()
+	# 防止重复播放时保留上一个 Tween。
+	_stop_welcome_tween()
 
 	welcome_label.visible = true
 	_set_welcome_alpha(0.0)
@@ -393,18 +433,24 @@ func _unhandled_input(event: InputEvent) -> void:
 # ==================================================
 
 # 保留这个函数，是为了兼容旧关卡中还没有删除的
-# body_entered 信号连接�?#
-# 这里绝对不能直接调用 _show_win()�?# 否则玩家刚进入锅口，场景就会暂停�?# 吸入动画无法完成�?func _on_exit_body_entered(
+# body_entered 信号连接。
+#
+# 这里绝对不能直接调用 _show_win()，
+# 否则玩家刚进入锅口，场景就会暂停，
+# 吸入动画无法完成。
+func _on_exit_body_entered(
 	_body: Node
 ) -> void:
 	return
 
 
-# 兼容手动连接�?absorption_finished 信号�?func _on_exit_absorption_finished() -> void:
+# 兼容手动连接的 absorption_finished 信号。
+func _on_exit_absorption_finished() -> void:
 	show_win_after_absorb()
 
 
-# 公共传送门通过 ui_ingame 分组调用这个函数�?func show_win_after_absorb() -> void:
+# 公共传送门通过 ui_ingame 分组调用这个函数。
+func show_win_after_absorb() -> void:
 	if won:
 		return
 
@@ -423,6 +469,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if victory_panel != null:
 		victory_panel.visible = true
+		if victory_next_button != null:
+			victory_next_button.visible = not next_scene_path.is_empty()
 
 	_play_succeed_sfx()
 
@@ -431,26 +479,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _show_win() -> void:
-	if won:
-		return
-
-	won = true
-
-	_hide_welcome_immediately()
-
-	help_background.visible = false
-	help_panel.visible = false
-	help_button.visible = false
-
-	congratulations_label.visible = true
-	restart_button.visible = true
-
-	# 最后一关没有下一关路径时，自动隐藏按钮�?	next_button.visible = (
-		not next_scene_path.is_empty()
-	)
-
-	_play_succeed_sfx()
-	game_paused()
+	# Prefer the dessert VictoryPanel (same as portal absorb path).
+	show_win_after_absorb()
 
 
 # ==================================================
@@ -479,7 +509,8 @@ func _on_back_to_game_pressed() -> void:
 
 
 # ==================================================
-# 暂停与继�?# ==================================================
+# 暂停与继续
+# ==================================================
 
 func game_paused() -> void:
 	get_tree().paused = true
@@ -490,13 +521,16 @@ func game_continued() -> void:
 
 
 # ==================================================
-# 重新开�?# ==================================================
+# 重新开始
+# ==================================================
 
-# 胜利界面中的“重新开始”按钮�?func _on_back_pressed() -> void:
+# 胜利界面中的“重新开始”按钮。
+func _on_back_pressed() -> void:
 	restart_current_level()
 
 
-# 死亡界面中的重新开始按钮也可以连接到这里�?func _on_restart_button_pressed() -> void:
+# 死亡界面中的重新开始按钮也可以连接到这里。
+func _on_restart_button_pressed() -> void:
 	restart_current_level()
 
 
@@ -509,13 +543,14 @@ func restart_current_level() -> void:
 
 	if error != OK:
 		push_error(
-			"重新加载当前关卡失败，错误码�?s"
+			"重新加载当前关卡失败，错误码：%s"
 			% error
 		)
 
 
 # ==================================================
-# 下一�?# ==================================================
+# 下一关
+# ==================================================
 
 func _on_next_pressed() -> void:
 	if next_scene_path.is_empty():
@@ -528,7 +563,7 @@ func _on_next_pressed() -> void:
 		next_scene_path
 	):
 		push_error(
-			"下一关场景不存在�?s"
+			"下一关场景不存在：%s"
 			% next_scene_path
 		)
 		return
@@ -549,16 +584,18 @@ func _on_next_pressed() -> void:
 
 
 # ==================================================
-# 退出游�?# ==================================================
+# 退出游戏
+# ==================================================
 
 func _on_exit_pressed() -> void:
 	get_tree().paused = false
 	get_tree().quit()
 
 
-# 死亡界面中的退出按钮可以连接到这里�?func _on_quit_button_pressed() -> void:
+# 死亡界面中的退出按钮可以连接到这里。
+func _on_quit_button_pressed() -> void:
 	get_tree().paused = false
-	get_tree().quit()
+	get_tree().change_scene_to_file("res://MainMenu/control.tscn")
 
 
 # ==================================================
@@ -598,11 +635,14 @@ func _on_player_died() -> void:
 	if won:
 		return
 
-	# 死亡信号触发后立即播放失败音效�?	_play_fail_sfx()
+	# 死亡信号触发后立即播放失败音效。
+	_play_fail_sfx()
 
-	# 停止并隐藏欢迎动画�?	_hide_welcome_immediately()
+	# 停止并隐藏欢迎动画。
+	_hide_welcome_immediately()
 
-	# 隐藏其他界面�?	help_button.visible = false
+	# 隐藏其他界面。
+	help_button.visible = false
 	help_background.visible = false
 	help_panel.visible = false
 
@@ -615,7 +655,8 @@ func _on_player_died() -> void:
 
 	game_over_panel.visible = false
 
-	# 让失败音效比失败界面提前一点出现�?	await get_tree().create_timer(0.30).timeout
+	# 让失败音效比失败界面提前一点出现。
+	await get_tree().create_timer(0.30).timeout
 
 	if not is_inside_tree():
 		return
@@ -639,7 +680,8 @@ func _setup_succeed_sfx() -> void:
 		succeed_sfx_volume_db
 	)
 
-	# 暂停场景后仍允许音效继续播放�?	_succeed_sfx.process_mode = (
+	# 暂停场景后仍允许音效继续播放。
+	_succeed_sfx.process_mode = (
 		Node.PROCESS_MODE_ALWAYS
 	)
 
@@ -652,7 +694,7 @@ func _setup_succeed_sfx() -> void:
 		succeed_sfx_path
 	):
 		push_warning(
-			"没有找到胜利音效�?s"
+			"没有找到胜利音效：%s"
 			% succeed_sfx_path
 		)
 		return
@@ -684,7 +726,8 @@ func _setup_fail_sfx() -> void:
 	_fail_sfx.bus = "Master"
 	_fail_sfx.volume_db = fail_sfx_volume_db
 
-	# 游戏暂停后，失败音效仍然继续播放�?	_fail_sfx.process_mode = (
+	# 游戏暂停后，失败音效仍然继续播放。
+	_fail_sfx.process_mode = (
 		Node.PROCESS_MODE_ALWAYS
 	)
 
@@ -697,7 +740,7 @@ func _setup_fail_sfx() -> void:
 		fail_sfx_path
 	):
 		push_warning(
-			"没有找到失败音效�?s"
+			"没有找到失败音效：%s"
 			% fail_sfx_path
 		)
 		return
