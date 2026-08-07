@@ -244,21 +244,21 @@ func _update_hint(tool: Node3D) -> void:
 func _tool_info(node: Node) -> Dictionary:
 	match String(node.name):
 		"B_Tool":
-			if bool(node.get("gravity_enabled")):
+			if _bool_property(node, &"gravity_enabled"):
 				return _info("叉子", "已解锁", "一把拥有特殊力量的叉子，可随重力移动，并消除挡路的甜点。")
 			return _info("叉子", "已锁定", "叉子似乎被封印了，需要完成某项料理准备。")
 		"G_Tool":
 			return _info("披萨盒", "", "一个普通的盒子，似乎在等待某种料理。")
 		"D_Wall", "D_Wall2":
-			if bool(node.get("is_open")):
+			if _bool_property(node, &"is_open"):
 				return _info("蛋糕盘", "蛋糕已消除", "蛋糕已经消失，可以继续前进。")
 			return _info("蛋糕盘", "盛有蛋糕", "美味的蛋糕挡住了道路，需要想办法处理。")
 		"StaticBox_E1":
-			if bool(node.get("_unlocked")):
+			if _bool_property(node, &"_unlocked"):
 				return _info("料理检测台", "已激活", "料理检测完成，隐藏机关已启动。")
 			return _info("料理检测台", "未激活", "等待指定料理，唤醒隐藏功能。")
 		"StaticBox_E2":
-			if bool(node.get("is_open")):
+			if _bool_property(node, &"is_open"):
 				return _info("暗门", "开启", "暗门开启，新的道路出现。")
 			return _info("暗门", "关闭", "似乎隐藏着某个秘密，等待机关开启。")
 		# F must use the child Area3D itself. ToolsF is only a container at the
@@ -268,7 +268,7 @@ func _tool_info(node: Node) -> Dictionary:
 			return _info("交换台", "", "两个特殊物品的位置或许会发生奇妙变化。")
 		"Portal_A", "Portal_B":
 			var root: Node = node.get_parent()
-			if root != null and bool(root.get("portals_unlocked")):
+			if _bool_property(root, &"portals_unlocked"):
 				return _info("空间通道", "开启", "可通往另一处空间。")
 			return _info("空间通道", "关闭", "等待启动机关，建立空间连接。")
 		"Portal_Key":
@@ -277,14 +277,14 @@ func _tool_info(node: Node) -> Dictionary:
 			return _info("启动开关", "待交互", "玩家交互后，最终出口已开启。")
 		"Final_Exit":
 			var final_root: Node = node.get_parent()
-			if final_root != null and bool(final_root.get("exit_unlocked")):
+			if _bool_property(final_root, &"exit_unlocked"):
 				return _info("逃生大门", "开启", "")
 			return _info("逃生大门", "关闭", "还需要完成最后的准备。")
 		"Tool_X":
 			return _info("启动开关", "待交互", "玩家交互后，跳板已恢复动力。")
 		"Tool_Y":
 			var xyz_root: Node = node.get_parent()
-			if xyz_root != null and bool(xyz_root.get("_pad_active")):
+			if _bool_property(xyz_root, &"_pad_active"):
 				return _info("跳板", "已解锁", "利用弹力跳跃，可突破上方障碍。")
 			return _info("跳板", "未解锁", "似乎缺少动力。")
 		"Tool_Z":
@@ -292,6 +292,17 @@ func _tool_info(node: Node) -> Dictionary:
 	if String(node.name).begins_with("MovableBox_C"):
 		return _info("披萨", "", "可随重力移动的魔法披萨，或许能唤醒沉睡的机关。")
 	return {}
+
+
+func _bool_property(object: Object, property_name: StringName) -> bool:
+	if object == null or not is_instance_valid(object):
+		return false
+
+	for property: Dictionary in object.get_property_list():
+		if StringName(property.get("name", "")) == property_name:
+			return object.get(property_name) == true
+
+	return false
 
 
 func _info(title: String, status: String, description: String) -> Dictionary:

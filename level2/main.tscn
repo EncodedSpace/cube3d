@@ -36,7 +36,7 @@ transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, -0.39725602, 0.02999
 
 [node name="staticboxes" type="Node3D" parent="Node3D" unique_id=562611702]
 
-[node name="StaticBox" type="StaticBody3D" parent="Node3D/staticboxes" unique_id=81787765]
+[node name="StaticBox" parent="Node3D/staticboxes" unique_id=1740518764 instance=ExtResource("5_ali33")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.5, -1.5)
 
 [node name="StaticBox5" parent="Node3D/staticboxes" unique_id=1122093463 instance=ExtResource("5_ali33")]

@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://dyqvj8t4vdocl" path="res://final_key/final_key.gd" id="1_root"]
 [ext_resource type="Script" uid="uid://7e4nfa6iwr26" path="res://final_key/final_key_pickup.gd" id="2_key"]
-[ext_resource type="PackedScene" uid="uid://ysigv6sbk6wm" path="res://assets/model/tools/button_exit.tscn" id="3_n3uly"]
 [ext_resource type="Script" uid="uid://kvm1ej78nue6" path="res://final_key/final_exit_absorb.gd" id="4_iaf8s"]
 [ext_resource type="PackedScene" uid="uid://cas8dt7dhcib5" path="res://assets/model/box/frying_pan_original.tscn" id="5_j31b5"]
 [ext_resource type="Shader" uid="uid://dw0er13tjuj1k" path="res://assets/material/sh_portal_vortex.gdshader" id="6_ra47k"]
@@ -78,10 +77,6 @@ press_duration = 0.2
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Final_Key" unique_id=494606238]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
 shape = SubResource("BoxShape3D_mxaif")
-
-[node name="ButtonExit" parent="Final_Key" unique_id=1275183846 instance=ExtResource("3_n3uly")]
-transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0.5, 0)
-visible = false
 
 [node name="ButtonVisual" type="Node3D" parent="Final_Key" unique_id=2118359851]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45, 0)

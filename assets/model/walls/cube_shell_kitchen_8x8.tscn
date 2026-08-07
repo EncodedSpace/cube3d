@@ -1,0 +1,332 @@
+[gd_scene format=3 uid="uid://b8d1c1il8lwic"]
+
+[ext_resource type="Shader" uid="uid://pmqdv6nryj8l" path="res://assets/material/sh_wall_tiles.gdshader" id="1_jbjc4"]
+
+[sub_resource type="Shader" id="Shader_t4dh0"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.7.1.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_disabled, diffuse_burley, specular_schlick_ggx;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform ivec2 albedo_texture_size;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+// --- 优化后的网格参数 ---
+group_uniforms Grid_Settings;
+uniform bool enable_grid = true;                                            // 是否开启网格
+uniform vec4 grid_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);          // 网格颜色（默认设为白色，方便对比）
+uniform float grid_scale : hint_range(0.1, 100.0, 0.1) = 10.0;             // 网格密度
+uniform float grid_thickness : hint_range(0.001, 0.2, 0.001) = 0.03;       // 线条粗细 (建议 0.01 ~ 0.05)
+// ------------------------
+
+void vertex() {
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+
+	vec4 albedo_tex = texture(texture_albedo, base_uv);
+	vec3 final_albedo = albedo.rgb * albedo_tex.rgb;
+
+	// --- 重新设计的平滑网格逻辑 ---
+	if (enable_grid) {
+		// 1. 将 UV 映射到 0~1 的重复网格单元
+		vec2 g_uv = fract(base_uv * grid_scale);
+		
+		// 2. 计算每个像素到单元格边缘的距离
+		vec2 dist = min(g_uv, 1.0 - g_uv);
+		
+		// 3. 使用屏幕空间微分计算边缘平滑抗锯齿范围
+		vec2 der = fwidth(base_uv * grid_scale);
+		vec2 grid_line = smoothstep(grid_thickness + der, grid_thickness - der, dist);
+		
+		// 4. 取 X 和 Y 方向的较大值形成交叉网格
+		float grid_mask = max(grid_line.x, grid_line.y);
+		
+		// 5. 将网格混合到基础颜色上
+		final_albedo = mix(final_albedo, grid_color.rgb, grid_mask * grid_color.a);
+	}
+	// ------------------------------
+
+	ALBEDO = final_albedo;
+
+	float metallic_tex = dot(texture(texture_metallic, base_uv), metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	SPECULAR = specular;
+
+	vec4 roughness_texture_channel = vec4(1.0, 0.0, 0.0, 0.0);
+	float roughness_tex = dot(texture(texture_roughness, base_uv), roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+	ALPHA *= albedo.a * albedo_tex.a;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_knaf2"]
+render_priority = 0
+shader = SubResource("Shader_t4dh0")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 34.80000051856177
+shader_parameter/roughness = 0.366000017385
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/enable_grid = true
+shader_parameter/grid_color = Color(0.25275356, 0.25275356, 0.25275356, 1)
+shader_parameter/grid_scale = 8.0000001192096
+shader_parameter/grid_thickness = 0.0030000001425
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_3fut4"]
+material = SubResource("ShaderMaterial_knaf2")
+size = Vector2(8, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jbjc4"]
+render_priority = 0
+shader = ExtResource("1_jbjc4")
+shader_parameter/tile_color = Color(0.96, 0.95, 0.91, 1)
+shader_parameter/grout_color = Color(0.67, 0.74, 0.78, 1)
+shader_parameter/tile_count = Vector2(8, 8)
+shader_parameter/grout_width = 0.02000000025148
+shader_parameter/corner_radius = 0.070000003325
+shader_parameter/bevel_width = 0.05000000167648
+shader_parameter/bump_strength = 0.50000002375
+shader_parameter/center_bulge = 0.02000000095
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ipp6d"]
+size = Vector3(8, 1, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jcbta"]
+render_priority = 0
+shader = SubResource("Shader_t4dh0")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 34.80000051856177
+shader_parameter/roughness = 0.366000017385
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/enable_grid = true
+shader_parameter/grid_color = Color(0.25275356, 0.25275356, 0.25275356, 1)
+shader_parameter/grid_scale = 8.0000001192096
+shader_parameter/grid_thickness = 0.0030000001425
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_x5rar"]
+material = SubResource("ShaderMaterial_jcbta")
+uv2_padding = 8.0
+size = Vector2(8, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_clr2g"]
+size = Vector3(8, 1, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7gr0e"]
+render_priority = 0
+shader = SubResource("Shader_t4dh0")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 34.80000051856177
+shader_parameter/roughness = 0.366000017385
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/enable_grid = true
+shader_parameter/grid_color = Color(0.25275356, 0.25275356, 0.25275356, 1)
+shader_parameter/grid_scale = 8.0000001192096
+shader_parameter/grid_thickness = 0.0030000001425
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_3lufi"]
+material = SubResource("ShaderMaterial_7gr0e")
+size = Vector2(8, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wvtme"]
+render_priority = 0
+shader = ExtResource("1_jbjc4")
+shader_parameter/tile_color = Color(0.5915, 0.8303751, 0.91, 1)
+shader_parameter/grout_color = Color(0.8627451, 0.9098039, 0.92156863, 1)
+shader_parameter/tile_count = Vector2(8, 8)
+shader_parameter/grout_width = 0.01500000001398
+shader_parameter/corner_radius = 0.02000000095
+shader_parameter/bevel_width = 0.02000000025148
+shader_parameter/bump_strength = 0.50000002375
+shader_parameter/center_bulge = 0.02000000095
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ipb48"]
+size = Vector3(8, 1, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8k5dq"]
+render_priority = 0
+shader = SubResource("Shader_t4dh0")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 34.80000051856177
+shader_parameter/roughness = 0.366000017385
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/enable_grid = true
+shader_parameter/grid_color = Color(0.25275356, 0.25275356, 0.25275356, 1)
+shader_parameter/grid_scale = 8.0000001192096
+shader_parameter/grid_thickness = 0.0030000001425
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_234sx"]
+material = SubResource("ShaderMaterial_8k5dq")
+size = Vector2(8, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_y8m3o"]
+size = Vector3(8, 1, 8)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7o6ex"]
+render_priority = 0
+shader = SubResource("Shader_t4dh0")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 34.80000051856177
+shader_parameter/roughness = 0.366000017385
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/enable_grid = true
+shader_parameter/grid_color = Color(0.25275356, 0.25275356, 0.25275356, 1)
+shader_parameter/grid_scale = 8.0000001192096
+shader_parameter/grid_thickness = 0.0030000001425
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vkjnr"]
+material = SubResource("ShaderMaterial_7o6ex")
+size = Vector2(8, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tctkp"]
+size = Vector3(6, 1, 6)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rmeo5"]
+render_priority = 0
+shader = SubResource("Shader_t4dh0")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 34.80000051856177
+shader_parameter/roughness = 0.366000017385
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/enable_grid = true
+shader_parameter/grid_color = Color(0.25275356, 0.25275356, 0.25275356, 1)
+shader_parameter/grid_scale = 8.0000001192096
+shader_parameter/grid_thickness = 0.0030000001425
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_5khqg"]
+material = SubResource("ShaderMaterial_rmeo5")
+size = Vector2(8, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7ut0n"]
+size = Vector3(8, 1, 8)
+
+[node name="WALLS" type="Node3D" unique_id=1166425296]
+
+[node name="WALLS" type="StaticBody3D" parent="." unique_id=865348782]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 7, 0)
+collision_mask = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WALLS" unique_id=848421832]
+mesh = SubResource("PlaneMesh_3fut4")
+surface_material_override/0 = SubResource("ShaderMaterial_jbjc4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WALLS" unique_id=618458950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ipp6d")
+
+[node name="WALLS2" type="StaticBody3D" parent="." unique_id=1388367022]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 4, 3, 0)
+collision_mask = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WALLS2" unique_id=2034343683]
+mesh = SubResource("PlaneMesh_x5rar")
+surface_material_override/0 = SubResource("ShaderMaterial_jbjc4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WALLS2" unique_id=1410696788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_clr2g")
+
+[node name="WALLS3" type="StaticBody3D" parent="." unique_id=785192761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+collision_mask = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WALLS3" unique_id=1323117461]
+mesh = SubResource("PlaneMesh_3lufi")
+surface_material_override/0 = SubResource("ShaderMaterial_wvtme")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WALLS3" unique_id=563529515]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ipb48")
+
+[node name="WALLS4" type="StaticBody3D" parent="." unique_id=1294331483]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 3, -4)
+collision_mask = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WALLS4" unique_id=857170843]
+mesh = SubResource("PlaneMesh_234sx")
+surface_material_override/0 = SubResource("ShaderMaterial_jbjc4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WALLS4" unique_id=458971322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_y8m3o")
+
+[node name="WALLS5" type="StaticBody3D" parent="." unique_id=1270552472]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 3, 4)
+collision_mask = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WALLS5" unique_id=1976839765]
+mesh = SubResource("PlaneMesh_vkjnr")
+surface_material_override/0 = SubResource("ShaderMaterial_jbjc4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WALLS5" unique_id=2060888361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_tctkp")
+
+[node name="WALLS6" type="StaticBody3D" parent="." unique_id=1151873959]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, -4, 3, 0)
+collision_mask = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WALLS6" unique_id=1613502606]
+mesh = SubResource("PlaneMesh_5khqg")
+surface_material_override/0 = SubResource("ShaderMaterial_jbjc4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WALLS6" unique_id=728754405]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_7ut0n")
